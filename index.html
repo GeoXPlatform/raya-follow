@@ -5,7 +5,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>نظام راية لإدارة العملاء | Raya CRM</title>
+    <title>نظام راية لإدارة العملاء | Raya CRM VIP</title>
     <!-- مكتبات Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -16,13 +16,13 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; }
         
-        .client-row { border-bottom: 12px solid #f8fafc; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .client-row { border-bottom: 8px solid #f8fafc; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .row-default { background-color: #ffffff; }
-        .row-has-comment { background-color: #fdf4ff !important; border-color: #f0abfc !important; border-bottom: 12px solid #f8fafc !important; } 
-        .row-sent { background-color: #dcfce7 !important; border-color: #10b981 !important; border-bottom: 12px solid #f8fafc !important; } 
-        .row-interested { background-color: #fef3c7 !important; border-color: #f59e0b !important; border-bottom: 12px solid #f8fafc !important; } 
-        .row-not-interested { background-color: #ffe4e6 !important; border-color: #f43f5e !important; border-bottom: 12px solid #f8fafc !important; } 
-        .row-done { background-color: #d1fae5 !important; border-color: #059669 !important; border-bottom: 12px solid #f8fafc !important; } 
+        .row-has-comment { background-color: #fdf4ff !important; border-color: #e879f9 !important; border-bottom: 8px solid #f8fafc !important; } 
+        .row-sent { background-color: #f0fdf4 !important; border-color: #4ade80 !important; border-bottom: 8px solid #f8fafc !important; } 
+        .row-interested { background-color: #fffbeb !important; border-color: #fcd34d !important; border-bottom: 8px solid #f8fafc !important; } 
+        .row-not-interested { background-color: #fff1f2 !important; border-color: #fb7185 !important; border-bottom: 8px solid #f8fafc !important; opacity: 0.75;} 
+        .row-done { background-color: #ecfdf5 !important; border-color: #34d399 !important; border-bottom: 8px solid #f8fafc !important; opacity: 0.85;} 
 
         .checkbox-label { cursor: pointer; user-select: none; transition: all 0.2s; }
         .checkbox-label:hover { transform: translateY(-1px); }
@@ -72,19 +72,19 @@
     </div>
 </div>
 
-<div class="max-w-[1500px] mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 hidden" id="mainAppContainer">
+<div class="max-w-[1600px] mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 hidden" id="mainAppContainer">
     
     <!-- رأس الصفحة -->
-    <div class="bg-slate-900 p-4 md:p-5 text-white flex flex-col md:flex-row justify-between items-center gap-4 shadow-md border-b-4 border-sky-600">
+    <div class="bg-slate-900 p-3 md:p-4 text-white flex flex-col md:flex-row justify-between items-center gap-4 shadow-md border-b-4 border-sky-600">
         <div class="flex items-center gap-3">
-            <div class="bg-sky-600 p-2.5 rounded-lg shadow-inner"><i class="fas fa-headset text-2xl text-white"></i></div>
-            <h1 class="text-xl md:text-2xl font-extrabold tracking-wide">نظام راية السحابي (Raya)</h1>
+            <div class="bg-sky-600 p-2 rounded-lg shadow-inner"><i class="fas fa-headset text-xl text-white"></i></div>
+            <h1 class="text-lg md:text-xl font-extrabold tracking-wide">نظام راية السحابي (Raya)</h1>
             <span id="cloudStatus" class="bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-full animate-pulse"><i class="fas fa-cloud text-white"></i> متصل</span>
         </div>
         
-        <div class="flex flex-wrap items-center gap-3 bg-slate-800 p-2 rounded-xl border border-slate-700">
-            <span class="text-sm font-bold text-slate-300 ml-2">فرع:</span>
-            <select id="headerBranchSelect" onchange="changeBranchHeader()" class="bg-slate-900 text-sky-400 font-bold border border-slate-600 p-1.5 rounded-lg outline-none text-sm cursor-pointer">
+        <div class="flex flex-wrap items-center gap-2 bg-slate-800 p-1.5 rounded-xl border border-slate-700">
+            <span class="text-xs font-bold text-slate-300 ml-2">فرع:</span>
+            <select id="headerBranchSelect" onchange="changeBranchHeader()" class="bg-slate-900 text-sky-400 font-bold border border-slate-600 p-1 rounded-lg outline-none text-xs cursor-pointer">
                 <option value="mega_helwan">Mega Helwan</option>
                 <option value="samsung_mokattam">Samsung Mokattam</option>
                 <option value="samsung_zahraa_elmaadi">Samsung Zahraa Elmaadi</option>
@@ -95,42 +95,47 @@
                 <option value="gazayer">Gazayer</option>
                 <option value="city_center">City Center</option>
             </select>
-            <button onclick="clearSessionData()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs shadow-md transition" title="مسح بيانات الفرع الحالي لتنظيف السحابة">
+            <button onclick="clearSessionData()" class="bg-rose-600 hover:bg-rose-700 text-white px-2 py-1 rounded-lg font-bold text-[10px] shadow-md transition" title="مسح بيانات الفرع الحالي لتنظيف السحابة">
                 <i class="fas fa-trash-alt"></i> تنظيف
             </button>
         </div>
     </div>
 
-    <!-- إشعار المتابعة اليومية الذكي (Notification Banner) -->
-    <div id="notificationBanner" class="hidden bg-rose-50 border-r-4 border-rose-600 p-4 mx-3 md:mx-5 mt-5 rounded-lg shadow-md flex-col sm:flex-row justify-between items-center pulse-alert">
-        <div class="flex items-center gap-4 mb-3 sm:mb-0">
-            <div class="bg-rose-600 p-3 rounded-full shadow-inner"><i class="fas fa-bell text-white text-xl animate-bounce"></i></div>
+    <!-- إشعار المتابعة اليومية -->
+    <div id="notificationBanner" class="hidden bg-rose-50 border-r-4 border-rose-600 p-3 mx-3 md:mx-4 mt-4 rounded-lg shadow-sm flex-col sm:flex-row justify-between items-center pulse-alert">
+        <div class="flex items-center gap-3 mb-2 sm:mb-0">
+            <div class="bg-rose-600 p-2 rounded-full"><i class="fas fa-bell text-white animate-bounce"></i></div>
             <div>
-                <h3 class="font-black text-rose-800 text-lg">تنبيه متابعة هام!</h3>
-                <p class="text-sm text-rose-600 font-bold">لديك (<span id="notificationCount" class="text-xl font-black text-rose-900"></span>) عملاء يجب التواصل معهم وإرسال الواتساب لهم <span class="bg-rose-200 px-1 rounded">اليوم</span>.</p>
+                <h3 class="font-black text-rose-800 text-sm">تنبيه متابعة هام!</h3>
+                <p class="text-xs text-rose-600 font-bold">لديك (<span id="notificationCount" class="text-base font-black text-rose-900"></span>) عملاء بموعد <span class="bg-rose-200 px-1 rounded">اليوم</span>.</p>
             </div>
         </div>
-        <button onclick="filterByToday()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-6 rounded-lg shadow-md transition whitespace-nowrap">
+        <button onclick="filterByToday()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-1.5 px-4 rounded-lg shadow-sm text-xs transition">
             <i class="fas fa-eye"></i> عرضهم الآن
         </button>
     </div>
 
-    <div class="p-3 md:p-5 grid grid-cols-1 xl:grid-cols-12 gap-5 relative">
+    <div class="p-3 md:p-4 grid grid-cols-1 xl:grid-cols-12 gap-4 relative">
         
-        <!-- لوحة الإعدادات -->
-        <div class="xl:col-span-3 space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-inner h-fit">
-            <h2 class="font-bold text-lg text-slate-800 border-b-2 border-slate-200 pb-2"><i class="fas fa-cloud-upload-alt text-sky-600"></i> قاعدة بيانات الفرع</h2>
+        <!-- لوحة الإعدادات والعروض -->
+        <div class="xl:col-span-3 space-y-3 bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-inner h-fit">
             
-            <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-100">
-                <label class="block font-bold text-slate-700 text-sm mb-2">1. دمج عملاء جدد (رفع شيت):</label>
-                <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" onchange="processExcel()" class="w-full border border-slate-300 p-1.5 rounded bg-slate-50 text-xs cursor-pointer file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 transition">
-                <p class="text-[10px] text-slate-400 mt-2 font-bold"><i class="fas fa-info-circle"></i> الرفع يدمج العملاء الجدد ويحتفظ بالقدامى وتعليقاتهم أوتوماتيكياً.</p>
+            <!-- لوحة العروض -->
+            <div class="bg-amber-50 p-3 rounded-lg border-2 border-amber-300 shadow-md">
+                <h2 class="font-bold text-amber-800 text-sm mb-2 flex items-center gap-2 border-b border-amber-200 pb-1">
+                    <i class="fas fa-bullhorn text-amber-600"></i> عروض راية الحالية
+                </h2>
+                <textarea id="offersText" rows="4" onchange="saveSettingsToFirebase()" class="w-full p-2 bg-amber-100/50 border border-amber-200 rounded focus:border-amber-500 outline-none transition resize-none text-xs font-bold text-amber-900 leading-relaxed" placeholder="اكتب العروض المتاحة هنا ليراها جميع الموظفين..."></textarea>
             </div>
 
             <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-100">
-                <label class="block font-bold text-slate-700 text-sm mb-2">2. نص الرسالة (الموحد للفرع):</label>
-                <textarea id="messageText" rows="6" onchange="saveSettingsToFirebase()" class="w-full p-2 border border-slate-300 rounded focus:border-sky-500 outline-none transition resize-none text-sm leading-relaxed" placeholder="اكتب رسالة راية الترويجية هنا..."></textarea>
-                <p class="text-[10px] text-sky-600 mt-1 font-bold">أي تعديل سيظهر فوراً لباقي موظفي الفرع.</p>
+                <label class="block font-bold text-slate-700 text-xs mb-1.5"><i class="fas fa-file-excel text-sky-600"></i> رفع شيت عملاء:</label>
+                <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" onchange="processExcel()" class="w-full border border-slate-300 p-1 rounded bg-slate-50 text-[10px] cursor-pointer file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:font-bold file:bg-sky-50 file:text-sky-700 transition">
+            </div>
+
+            <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-100">
+                <label class="block font-bold text-slate-700 text-xs mb-1.5"><i class="fas fa-comment-dots text-sky-600"></i> رسالة الواتساب الثابتة:</label>
+                <textarea id="messageText" rows="3" onchange="saveSettingsToFirebase()" class="w-full p-2 border border-slate-300 rounded focus:border-sky-500 outline-none transition resize-none text-[11px] leading-relaxed" placeholder="نص الرسالة الافتراضية..."></textarea>
             </div>
         </div>
 
@@ -138,35 +143,35 @@
         <div class="xl:col-span-9 flex flex-col h-full hidden" id="actionPanel">
             
             <!-- ====== الجزء المتثبت ====== -->
-            <div class="sticky-panel rounded-t-xl px-2">
+            <div class="sticky-panel rounded-t-xl px-1">
                 
                 <!-- شريط الأدوات الموحد -->
-                <div class="bg-white p-3 rounded-xl border border-slate-300 shadow-sm mb-3">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+                <div class="bg-white p-2.5 rounded-xl border border-slate-300 shadow-sm mb-2">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 items-end">
                         
                         <!-- البحث -->
-                        <div class="relative">
-                            <label class="block text-xs font-bold text-slate-500 mb-1"><i class="fas fa-search"></i> بحث عام:</label>
-                            <input type="text" id="searchInput" oninput="applyFilters()" class="bg-slate-50 border border-slate-300 text-slate-900 text-xs rounded-lg focus:border-sky-500 block w-full p-2 shadow-sm" placeholder="الاسم، الموبايل، القومي، كومنت...">
+                        <div class="relative lg:col-span-1">
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1"><i class="fas fa-search"></i> بحث عام:</label>
+                            <input type="text" id="searchInput" oninput="applyFilters()" class="bg-slate-50 border border-slate-300 text-slate-900 text-[11px] rounded focus:border-sky-500 block w-full p-1.5 shadow-sm" placeholder="ابحث هنا...">
                         </div>
                         
                         <!-- التاريخ والموظف -->
-                        <div class="flex gap-2">
+                        <div class="flex gap-1.5 lg:col-span-1">
                             <div class="w-1/2">
-                                <label class="block text-[11px] font-bold text-slate-500 mb-1"><i class="fas fa-calendar-alt"></i> تاريخ الإجراء:</label>
-                                <input type="date" id="datePicker" class="w-full border border-slate-300 p-2 rounded-lg font-bold text-slate-700 outline-none text-[11px] shadow-sm">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1"><i class="fas fa-calendar-alt"></i> تاريخ الإجراء:</label>
+                                <input type="date" id="datePicker" class="w-full border border-slate-300 p-1.5 rounded font-bold text-slate-700 outline-none text-[10px] shadow-sm">
                             </div>
                             <div class="w-1/2">
-                                <label class="block text-[11px] font-bold text-slate-500 mb-1"><i class="fas fa-id-badge"></i> ID موظفك:</label>
-                                <input type="text" id="empIdInput" class="w-full border border-slate-300 p-2 rounded-lg font-bold text-slate-700 outline-none focus:ring-2 focus:ring-sky-200 text-xs text-center shadow-sm" placeholder="رقمك">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1"><i class="fas fa-id-badge"></i> ID الموظف:</label>
+                                <input type="text" id="empIdInput" class="w-full border border-slate-300 p-1.5 rounded font-bold text-slate-700 outline-none focus:ring-1 focus:ring-sky-300 text-[10px] text-center shadow-sm" placeholder="رقمك">
                             </div>
                         </div>
 
-                        <!-- فلاتر המتابعة -->
-                        <div class="flex gap-2">
-                            <div class="w-1/2">
-                                <label class="block text-[11px] font-bold text-slate-500 mb-1"><i class="fas fa-filter"></i> فلتر المتابعة:</label>
-                                <select id="followUpFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-2 rounded-lg font-bold text-slate-700 outline-none text-[11px] shadow-sm">
+                        <!-- فلاتر المتابعة والمنتج -->
+                        <div class="flex gap-1.5 lg:col-span-2">
+                            <div class="w-1/3">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1"><i class="fas fa-filter"></i> قرار العميل:</label>
+                                <select id="followUpFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1.5 rounded font-bold text-slate-700 outline-none text-[10px] shadow-sm">
                                     <option value="all">الكل</option>
                                     <option value="interested">⭐ مهتم</option>
                                     <option value="not_interested">🚫 غير مهتم</option>
@@ -174,39 +179,51 @@
                                     <option value="has_comment">💬 كومنت</option>
                                 </select>
                             </div>
-                            <div class="w-1/2">
-                                <label class="block text-[11px] font-bold text-slate-500 mb-1"><i class="fas fa-user-tie"></i> كاتب الكومنت:</label>
-                                <select id="empDropdownFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-2 rounded-lg font-bold text-slate-700 outline-none text-[11px] shadow-sm">
+                            <div class="w-1/3">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1"><i class="fas fa-box"></i> نوع المنتج:</label>
+                                <select id="productFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1.5 rounded font-bold text-slate-700 outline-none text-[10px] shadow-sm bg-sky-50">
+                                    <option value="all">كل المنتجات</option>
+                                    <option value="Handset">Handset</option>
+                                    <option value="AC">AC</option>
+                                    <option value="SDA">SDA</option>
+                                    <option value="HA">HA</option>
+                                    <option value="Acc">Acc</option>
+                                    <option value="أخرى">أخرى</option>
+                                </select>
+                            </div>
+                            <div class="w-1/3">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1"><i class="fas fa-user-tie"></i> كاتب الكومنت:</label>
+                                <select id="empDropdownFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1.5 rounded font-bold text-slate-700 outline-none text-[10px] shadow-sm">
                                     <option value="">الكل</option>
                                 </select>
                             </div>
                         </div>
 
-                        <!-- فلتر تاريخ المتابعة الجديد -->
-                        <div class="relative">
-                            <label class="block text-xs font-bold text-slate-500 mb-1"><i class="fas fa-clock"></i> عملاء بموعد يوم:</label>
+                        <!-- فلتر تاريخ المتابعة -->
+                        <div class="relative lg:col-span-1">
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1"><i class="fas fa-clock"></i> عملاء بموعد:</label>
                             <div class="flex">
-                                <input type="date" id="followUpDateFilter" onchange="applyFilters()" class="bg-slate-50 border border-slate-300 text-slate-900 text-xs rounded-r-lg focus:border-sky-500 block w-full p-2 shadow-sm outline-none font-bold">
-                                <button onclick="clearDateFilter()" class="bg-slate-200 hover:bg-slate-300 border border-r-0 border-slate-300 px-3 rounded-l-lg text-slate-600 transition" title="عرض جميع التواريخ"><i class="fas fa-times"></i></button>
+                                <input type="date" id="followUpDateFilter" onchange="applyFilters()" class="bg-slate-50 border border-slate-300 text-slate-900 text-[10px] rounded-r focus:border-sky-500 block w-full p-1.5 shadow-sm outline-none font-bold">
+                                <button onclick="clearDateFilter()" class="bg-slate-200 hover:bg-slate-300 border border-r-0 border-slate-300 px-2 rounded-l text-slate-600 transition" title="إلغاء التاريخ"><i class="fas fa-times text-[10px]"></i></button>
                             </div>
                         </div>
 
                         <!-- إحصائيات -->
-                        <div class="flex flex-col justify-center items-center bg-slate-50 rounded-lg border border-slate-200 h-[38px] mt-auto shadow-sm">
-                            <div class="text-[10px] font-bold text-slate-500 leading-none mb-1">العدد بالفلتر</div>
-                            <div id="clientCount" class="text-sky-600 font-black text-lg leading-none">0</div>
+                        <div class="flex flex-col justify-center items-center bg-sky-50 rounded border border-sky-200 h-[32px] mt-auto shadow-sm lg:col-span-1">
+                            <div class="text-[8px] font-bold text-sky-600 leading-none mb-0.5">عدد العملاء بالفلتر</div>
+                            <div id="clientCount" class="text-sky-700 font-black text-sm leading-none">0</div>
                         </div>
                     </div>
 
-                    <!-- فلاتر الشيت الأصلية -->
-                    <div class="mt-3 pt-3 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- فلاتر الشيت الأصلية (مخفية مؤقتاً لتوفير المساحة) -->
+                    <div id="originalFiltersSection" class="mt-2 pt-2 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-2 hidden">
                         <div id="statusFilterContainer" class="hidden">
-                            <span class="block text-[10px] font-bold text-slate-400 mb-1">تصفية بحالة النظام:</span>
-                            <div id="statusCheckboxes" class="flex flex-wrap gap-1.5"></div>
+                            <span class="block text-[9px] font-bold text-slate-400 mb-0.5">حالة النظام:</span>
+                            <div id="statusCheckboxes" class="flex flex-wrap gap-1"></div>
                         </div>
                         <div id="companyFilterContainer" class="hidden">
-                            <span class="block text-[10px] font-bold text-slate-400 mb-1">تصفية بالشركة:</span>
-                            <div id="companyCheckboxes" class="flex flex-wrap gap-1.5"></div>
+                            <span class="block text-[9px] font-bold text-slate-400 mb-0.5">الشركة:</span>
+                            <div id="companyCheckboxes" class="flex flex-wrap gap-1"></div>
                         </div>
                     </div>
                 </div>
@@ -214,24 +231,21 @@
             <!-- ====== نهاية الجزء المتثبت ====== -->
 
             <!-- الجدول الشامل -->
-            <div class="overflow-x-auto bg-white flex-grow pt-2 rounded-b-xl border border-t-0 border-slate-200">
-                <!-- مؤشر تحميل -->
+            <div class="overflow-x-auto bg-white flex-grow pt-1 rounded-b-xl border border-t-0 border-slate-200">
                 <div id="loadingIndicator" class="text-center py-10 hidden">
-                    <i class="fas fa-spinner fa-spin text-4xl text-sky-500 mb-3"></i>
-                    <p class="font-bold text-slate-500">جاري مزامنة السحابة...</p>
+                    <i class="fas fa-spinner fa-spin text-3xl text-sky-500 mb-2"></i>
+                    <p class="font-bold text-slate-500 text-xs">جاري مزامنة السحابة...</p>
                 </div>
                 
                 <table class="w-full text-center border-collapse min-w-[1100px]" id="dataTable">
-                    <thead class="bg-slate-200 border-b-2 border-slate-300">
+                    <thead class="bg-slate-200 border-b border-slate-300">
                         <tr id="tableHeader">
-                            <th class="p-2 font-bold text-slate-700 text-sm hidden" id="thName">العميل</th>
-                            <th class="p-2 font-bold text-slate-700 text-sm hidden" id="thNid">القومي</th>
-                            <th class="p-2 font-bold text-slate-700 text-sm" id="thPhone">الموبايل</th>
-                            <th class="p-2 font-bold text-slate-700 text-sm hidden" id="thCompany">الشركة</th>
-                            <th class="p-2 font-bold text-slate-700 text-sm hidden" id="thStatus">النظام</th>
-                            <th class="p-2 font-bold text-slate-700 text-sm w-1/3">التعليقات وسجل المتابعة</th>
-                            <th class="p-2 font-bold text-slate-700 text-sm w-44">القرار</th>
-                            <th class="p-2 font-bold text-slate-700 text-sm w-32">الواتساب</th>
+                            <th class="p-1.5 font-bold text-slate-700 text-[11px] w-48">العميل والموبايل</th>
+                            <th class="p-1.5 font-bold text-slate-700 text-[11px] w-24">النظام</th> 
+                            <th class="p-1.5 font-bold text-slate-700 text-[11px] w-24">الشركة</th> 
+                            <th class="p-1.5 font-bold text-slate-700 text-[11px] min-w-[300px]">السجل والتعليقات</th>
+                            <th class="p-1.5 font-bold text-slate-700 text-[11px] w-40">القرار والمتابعة</th>
+                            <th class="p-1.5 font-bold text-slate-700 text-[11px] w-24">الواتساب</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody" class="divide-y divide-slate-100 bg-slate-50">
@@ -243,7 +257,6 @@
     </div>
 </div>
 
-<!-- خدعة رابط الواتساب المخفي -->
 <a id="magic-wa-link" target="Raya_Unified_WhatsApp" style="display:none;"></a>
 
 <script>
@@ -326,31 +339,66 @@
             const settings = snapshot.val();
             if (settings) {
                 if (settings.messageText !== undefined) document.getElementById('messageText').value = settings.messageText;
+                if (settings.offersText !== undefined) document.getElementById('offersText').value = settings.offersText;
                 if (settings.activeColumns !== undefined) activeColumns = settings.activeColumns;
             }
         });
 
-        branchClientsRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            globalData = [];
-            if (data) {
-                for (let phone in data) {
-                    globalData.push(data[phone]);
-                }
-                globalData.sort((a, b) => (a.orderId || 0) - (b.orderId || 0));
-            }
-            
+        // قراءة مبدئية مرة واحدة للبيانات
+        branchClientsRef.once('value', (snapshot) => {
+            updateDataFromSnapshot(snapshot);
             document.getElementById('loadingIndicator').classList.add('hidden');
             document.getElementById('dataTable').classList.remove('hidden');
-            
             if (globalData.length > 0) {
                 updateEmpDropdown();
-                checkTodayFollowUps(); // فحص الإشعارات الذكية فور جلب الداتا
+                checkTodayFollowUps(); 
                 restoreUI();
             } else {
                 document.getElementById('actionPanel').classList.add('hidden');
                 document.getElementById('notificationBanner').classList.add('hidden');
             }
+            
+            // الاستماع للتغييرات بدون ريفريش كامل
+            branchClientsRef.on('child_changed', (childSnapshot) => {
+                const updatedClient = childSnapshot.val();
+                const index = globalData.findIndex(c => c.phone === updatedClient.phone);
+                if(index !== -1) {
+                    globalData[index] = updatedClient;
+                    updateSingleRowDOM(index);
+                }
+            });
+            
+            branchClientsRef.on('child_added', (childSnapshot) => {
+                const newClient = childSnapshot.val();
+                if(!globalData.some(c => c.phone === newClient.phone)){
+                    globalData.push(newClient);
+                    applyFilters(); 
+                }
+            });
+        });
+    }
+    
+    function updateDataFromSnapshot(snapshot) {
+        const data = snapshot.val();
+        globalData = [];
+        if (data) {
+            for (let phone in data) { globalData.push(data[phone]); }
+            sortGlobalData(); 
+        }
+    }
+
+    // الترتيب الذكي (A, B, C Class)
+    function sortGlobalData() {
+        globalData.sort((a, b) => {
+            const getPriority = (client) => {
+                if (client.followUpStatus === 'interested') return 1; 
+                let hasComment = client.history && client.history.some(h => h && h.type === 'comment');
+                if (hasComment && !client.followUpStatus) return 2; 
+                if (!client.followUpStatus) return 3; 
+                if (client.followUpStatus === 'not_interested' || client.followUpStatus === 'done') return 4; 
+                return 3;
+            };
+            return getPriority(a) - getPriority(b) || (a.orderId || 0) - (b.orderId || 0);
         });
     }
 
@@ -358,6 +406,7 @@
         if(!branchSettingsRef) return;
         branchSettingsRef.update({
             messageText: document.getElementById('messageText').value,
+            offersText: document.getElementById('offersText').value,
             activeColumns: activeColumns
         });
     }
@@ -369,15 +418,16 @@
 
     function clearSessionData() {
         if(!currentBranch) return;
-        if(confirm(`هل أنت متأكد أنك تريد مسح جميع بيانات فرع (${currentBranch}) من السحابة؟ (إجراء نهائي)`)) {
+        if(confirm(`هل أنت متأكد أنك تريد مسح جميع بيانات فرع (${currentBranch}) من السحابة؟ (إجراء نهائي لتنظيف الداتا)`)) {
             branchClientsRef.remove();
             branchSettingsRef.remove();
             alert("تم مسح البيانات بنجاح! يمكنك الآن رفع شيت جديد.");
+            location.reload();
         }
     }
 
     // -----------------------------------------------------
-    // 5. دمج شيت الإكسيل (حماية كاملة من الانهيار)
+    // 5. دمج شيت الإكسيل (حماية من الانهيار)
     // -----------------------------------------------------
     function processExcel() {
         const fileInput = document.getElementById('excelFile');
@@ -419,8 +469,8 @@
                             if (h.includes("قومي") || h.includes("بطاقة") || h.includes("national")) cols.nid = i;
                             else if (h.includes("اسم") || h.includes("إسم") || h.includes("عميل") || h.includes("name")) cols.name = i;
                             else if (h.includes("موبايل") || h.includes("تليفون") || h.includes("هاتف")) cols.phone = i;
-                            else if (h.includes("حالة") || h.includes("حاله") || h.includes("status")) cols.status = i;
-                            else if (h.includes("شركة") || h.includes("شركه") || h.includes("company")) cols.company = i;
+                            else if (h.includes("حالة") || h.includes("حاله") || h.includes("status")) cols.status = i; 
+                            else if (h.includes("شركة") || h.includes("شركه") || h.includes("company")) cols.company = i; 
                         }
                         break;
                     }
@@ -481,8 +531,8 @@
                                 name: cName,
                                 nid: rawNid,
                                 phone: phoneStr,
-                                status: st,
-                                company: comp,
+                                status: st, 
+                                company: comp, 
                                 sent: false,
                                 history: [],
                                 followUpStatus: '',
@@ -495,6 +545,12 @@
                 branchClientsRef.set(cloudClientsMap).then(() => {
                     document.getElementById('loadingIndicator').classList.add('hidden');
                     document.getElementById('excelFile').value = '';
+                    alert("تم دمج ورفع الشيت بنجاح! السحابة محدثة الآن.");
+                    branchClientsRef.once('value', (snap) => {
+                        updateDataFromSnapshot(snap);
+                        applyFilters();
+                        document.getElementById('dataTable').classList.remove('hidden');
+                    });
                 }).catch(err => {
                     document.getElementById('loadingIndicator').classList.add('hidden');
                     alert("حدث خطأ أثناء الرفع للسحابة. يرجى مراجعة الصلاحيات.");
@@ -515,7 +571,7 @@
     }
 
     // -----------------------------------------------------
-    // 6. واجهة المستخدم والإشعارات الذكية
+    // 6. الإشعارات الذكية
     // -----------------------------------------------------
     function checkTodayFollowUps() {
         let today = new Date().toISOString().split('T')[0];
@@ -523,7 +579,6 @@
         
         globalData.forEach(client => {
             let clientHistory = Array.isArray(client.history) ? client.history : [];
-            // لو العميل عنده أي كومنت متسجل فيه تاريخ متابعة يطابق اليوم
             if (clientHistory.some(h => h && h.type === 'comment' && h.followUpDate === today)) {
                 count++;
             }
@@ -551,6 +606,9 @@
         applyFilters();
     }
 
+    // -----------------------------------------------------
+    // 7. واجهة المستخدم والفلاتر (تحديث DOM ذكي)
+    // -----------------------------------------------------
     function restoreUI() {
         ['Name', 'Nid', 'Phone', 'Status', 'Company'].forEach(col => {
             const th = document.getElementById('th' + col);
@@ -568,9 +626,6 @@
             if (activeColumns.company && cCompany !== 'بدون شركة') uniqueCompanies.add(cCompany);
         });
 
-        document.getElementById('statusFilterContainer').classList.add('hidden');
-        document.getElementById('companyFilterContainer').classList.add('hidden');
-
         if (activeColumns.status && uniqueStatuses.size > 0) buildCheckboxes('statusCheckboxes', uniqueStatuses, 'status', true);
         if (activeColumns.company) buildCheckboxes('companyCheckboxes', uniqueCompanies, 'company', true); 
 
@@ -584,8 +639,8 @@
         document.getElementById(containerId.replace('Checkboxes', 'FilterContainer')).classList.remove('hidden');
 
         const allDiv = document.createElement('label');
-        allDiv.className = 'checkbox-label bg-white text-slate-700 px-2 py-1 rounded border border-slate-300 flex items-center gap-1 font-bold text-[10px] shadow-sm';
-        allDiv.innerHTML = `<input type="checkbox" onchange="toggleFilterAll(this, '${typeClass}')" checked class="w-3 h-3 text-sky-600 rounded"> <span>الكل</span>`;
+        allDiv.className = 'checkbox-label bg-white text-slate-700 px-1 py-0.5 rounded border border-slate-300 flex items-center gap-0.5 font-bold text-[8px] shadow-sm';
+        allDiv.innerHTML = `<input type="checkbox" onchange="toggleFilterAll(this, '${typeClass}')" checked class="w-2 h-2 text-sky-600 rounded"> <span>الكل</span>`;
         container.appendChild(allDiv);
 
         if (addEmptyOption && typeClass === 'company') itemsSet.add("بدون شركة");
@@ -595,8 +650,8 @@
                 let safeItem = String(item);
                 let bgColor = safeItem.includes("بدون") ? "bg-rose-50 text-rose-800 border-rose-200" : "bg-slate-50 text-slate-800 border-slate-200";
                 const lbl = document.createElement('label');
-                lbl.className = `checkbox-label ${bgColor} px-2 py-1 rounded text-[10px] border flex items-center gap-1 font-bold shadow-sm`;
-                lbl.innerHTML = `<input type="checkbox" class="${typeClass}-cb w-3 h-3 rounded" value="${safeItem}" checked onchange="applyFilters()"> <span>${safeItem}</span>`;
+                lbl.className = `checkbox-label ${bgColor} px-1 py-0.5 rounded text-[8px] border flex items-center gap-0.5 font-bold shadow-sm`;
+                lbl.innerHTML = `<input type="checkbox" class="${typeClass}-cb w-2 h-2 rounded" value="${safeItem}" checked onchange="applyFilters()"> <span>${safeItem}</span>`;
                 container.appendChild(lbl);
             }
         });
@@ -634,18 +689,125 @@
         if (commentsOnly.length === 0) return '<div class="text-slate-400 text-center py-2 text-[10px] font-bold">لا توجد تعليقات</div>';
         
         return commentsOnly.map(item => {
-            // عرض إشعار تاريخ المتابعة داخل الكومنت لو الموظف حدده
-            let followUpBadge = item.followUpDate ? `<div class="text-[9px] font-bold text-rose-700 mt-1.5 bg-rose-50 inline-block px-1.5 py-0.5 rounded border border-rose-200"><i class="fas fa-clock"></i> متابعة: ${item.followUpDate}</div>` : '';
+            let followUpBadge = item.followUpDate ? `<div class="text-[9px] font-bold text-rose-700 mt-1 bg-rose-50 inline-block px-1.5 py-0.5 rounded border border-rose-200 shadow-sm"><i class="fas fa-clock"></i> متابعة: ${item.followUpDate}</div>` : '';
+            let productBadge = item.product && item.product !== 'all' ? `<span class="text-[8px] font-bold text-sky-700 bg-sky-100 px-1 rounded ml-1 border border-sky-200">${item.product}</span>` : '';
             
-            return `<div class="bg-white border border-slate-200 p-1.5 rounded mb-1.5 shadow-sm text-right">
+            return `<div class="bg-white border border-slate-200 p-1.5 rounded mb-1 shadow-sm text-right">
                 <div class="flex justify-between items-center mb-1">
-                    <span class="font-bold text-[9px] text-slate-500 bg-slate-100 px-1 rounded">${item.date || "-"}</span>
-                    <span class="text-[9px] font-bold text-sky-700">ID: ${item.empId || "-"}</span>
+                    <span class="font-bold text-[8px] text-slate-500 bg-slate-100 px-1 rounded">${item.date || "-"}</span>
+                    <span class="text-[8px] font-bold text-slate-700">ID: ${item.empId || "-"}${productBadge}</span>
                 </div>
                 <div class="font-semibold text-slate-800 text-[11px] leading-tight break-words">${item.text || "-"}</div>
                 ${followUpBadge}
             </div>`;
         }).join('');
+    }
+
+    // توليد كود HTML لصف واحد
+    function generateRowHTML(client, index) {
+        let cName = client.name ? String(client.name) : "-";
+        let cPhone = client.phone ? String(client.phone) : "-";
+        let cNid = client.nid ? String(client.nid) : "-";
+        let cStatus = client.status ? String(client.status) : "بدون حالة";
+        let cCompany = client.company ? String(client.company) : "بدون شركة";
+        let clientHistory = Array.isArray(client.history) ? client.history : [];
+        let hasComment = clientHistory.some(h => h && h.type === 'comment');
+
+        let rowClass = `client-row transition-colors text-sm `;
+        if (client.followUpStatus === 'done') rowClass += `row-done`; 
+        else if (client.followUpStatus === 'interested') rowClass += `row-interested`; 
+        else if (client.followUpStatus === 'not_interested') rowClass += `row-not-interested`;
+        else if (hasComment) rowClass += `row-has-comment`; 
+        else if (client.sent) rowClass += `row-sent`;
+        else rowClass += `row-default hover:bg-slate-50`;
+        
+        let html = '';
+        
+        let displayName = cName;
+        if (client.sent) displayName += ' <i class="fas fa-check-circle text-emerald-500 text-[10px]" title="تم الإرسال"></i>';
+        
+        // زرار الليمت مربوط بلينك راية
+        let rayaSystemLink = "https://rayainstallment.com/Account/login?ReturnUrl=%2FInstallment%2FInstallmentCalculations"; 
+        let limitBtn = `<a href="${rayaSystemLink}" target="_blank" class="mt-1 inline-block bg-slate-800 hover:bg-slate-700 text-white text-[9px] font-bold px-2 py-1 rounded shadow-sm transition"><i class="fas fa-credit-card text-sky-400"></i> عرض الليمت</a>`;
+
+        html += `<td class="p-1.5 align-top pt-2">
+            <div class="font-bold text-slate-800 text-xs">${displayName}</div>
+            <div class="text-slate-800 font-black text-xs mt-0.5" dir="ltr">+${cPhone}</div>
+            <div class="text-slate-400 font-mono text-[9px] mt-0.5 mb-1">${cNid}</div>
+            ${limitBtn}
+        </td>`;
+        
+        let displayStatus = cStatus.includes("بدون") ? '-' : cStatus;
+        let badgeStatus = cStatus.includes("بدون") ? 'text-slate-400 font-bold' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1.5 py-0.5 rounded text-[10px] font-semibold';
+        
+        let displayCompany = cCompany === 'بدون شركة' ? '-' : cCompany;
+        let badgeCompany = cCompany === 'بدون شركة' ? 'text-slate-400 font-bold' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1.5 py-0.5 rounded text-[10px] font-semibold';
+        
+        html += `<td class="p-1.5 align-top pt-3"><span class="${badgeStatus}">${displayStatus}</span></td>`;
+        html += `<td class="p-1.5 align-top pt-3"><span class="${badgeCompany}">${displayCompany}</span></td>`;
+        
+        html += `
+            <td class="p-1.5 border-r border-l border-slate-100 align-top">
+                <div class="h-24 overflow-y-auto mb-1.5 custom-scrollbar bg-slate-50/50 p-1.5 rounded border border-slate-200 shadow-inner" id="history-${index}">
+                    ${renderHistory(clientHistory)}
+                </div>
+                <div class="flex gap-1 items-stretch flex-wrap sm:flex-nowrap">
+                    <select id="comment-product-${index}" class="w-16 border border-slate-300 p-1 rounded outline-none text-[9px] font-bold text-sky-700 bg-sky-50 flex-shrink-0">
+                        <option value="all">منتج</option>
+                        <option value="Handset">Handset</option>
+                        <option value="AC">AC</option>
+                        <option value="SDA">SDA</option>
+                        <option value="HA">HA</option>
+                        <option value="Acc">Acc</option>
+                        <option value="أخرى">أخرى</option>
+                    </select>
+                    <input type="text" id="comment-input-${index}" class="w-full sm:flex-grow border border-slate-300 p-1 rounded focus:border-sky-500 outline-none text-[10px]" placeholder="كومنت...">
+                    <input type="date" id="comment-date-${index}" class="w-20 border border-slate-300 p-1 rounded outline-none text-[9px] font-bold text-slate-600 flex-shrink-0" title="موعد المتابعة">
+                    <button onclick="addComment(${index})" class="bg-sky-600 hover:bg-sky-700 text-white px-2 py-1 rounded text-[10px] font-bold shadow flex-shrink-0"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </td>
+        `;
+        
+        let dateBadge = '';
+        if (client.statusDate && client.followUpStatus) {
+            let colorClass = client.followUpStatus === 'done' ? 'text-emerald-700' : (client.followUpStatus === 'interested' ? 'text-amber-700' : 'text-rose-700');
+            dateBadge = `<div class="text-[8px] font-bold ${colorClass} mt-1 text-center"><i class="fas fa-history"></i> ${client.statusDate}</div>`;
+        }
+
+        html += `
+            <td class="p-1.5 align-top border-l border-slate-100">
+                <div class="flex flex-col gap-1 justify-center">
+                    <button onclick="setFollowUpStatus(${index}, 'interested')" class="${client.followUpStatus === 'interested' ? 'bg-amber-500 text-white shadow' : 'bg-white text-slate-600 hover:bg-amber-50'} px-1 py-1 rounded text-[10px] font-bold border border-amber-300 w-full transition">⭐ مهتم</button>
+                    <button onclick="setFollowUpStatus(${index}, 'done')" class="${client.followUpStatus === 'done' ? 'bg-emerald-500 text-white shadow' : 'bg-white text-slate-600 hover:bg-emerald-50'} px-1 py-1 rounded text-[10px] font-bold border border-emerald-300 w-full transition">✅ تم التنفيذ</button>
+                    <button onclick="setFollowUpStatus(${index}, 'not_interested')" class="${client.followUpStatus === 'not_interested' ? 'bg-rose-500 text-white shadow' : 'bg-white text-slate-600 hover:bg-rose-50'} px-1 py-1 rounded text-[10px] font-bold border border-rose-300 w-full transition">🚫 غير مهتم</button>
+                    ${dateBadge}
+                </div>
+            </td>
+        `;
+
+        let btnColor = client.sent ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-sky-600 hover:bg-sky-700';
+        let btnText = client.sent ? '<i class="fab fa-whatsapp"></i> مجدداً' : '<i class="fab fa-whatsapp"></i> إرسال';
+        
+        html += `
+            <td class="p-1.5 align-middle">
+                <button onclick="sendManual(${index})" class="${btnColor} text-white px-2 py-2 rounded text-[11px] font-bold shadow-md transition w-full flex items-center justify-center gap-1">
+                    ${btnText}
+                </button>
+            </td>
+        `;
+
+        return { html, rowClass };
+    }
+
+    function updateSingleRowDOM(index) {
+        const tr = document.getElementById(`row-${index}`);
+        if(tr) {
+            const rowData = generateRowHTML(globalData[index], index);
+            tr.className = rowData.rowClass;
+            tr.innerHTML = rowData.html;
+            const hDiv = document.getElementById(`history-${index}`);
+            if(hDiv) hDiv.scrollTop = hDiv.scrollHeight;
+        }
     }
 
     function applyFilters() {
@@ -655,6 +817,7 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
             
             const followUpFilter = document.getElementById('followUpFilter').value;
+            const productFilter = document.getElementById('productFilter').value;
             const empDropdownFilter = document.getElementById('empDropdownFilter').value;
             const targetDateFilter = document.getElementById('followUpDateFilter').value;
 
@@ -695,85 +858,24 @@
                     empMatch = clientHistory.some(h => h && h.empId === empDropdownFilter);
                 }
 
-                // فلتر تاريخ المتابعة الجديد
                 let dateMatch = true;
                 if (targetDateFilter) {
                     dateMatch = clientHistory.some(h => h && h.type === 'comment' && h.followUpDate === targetDateFilter);
                 }
 
-                if (statusMatch && companyMatch && searchMatch && fuMatch && empMatch && dateMatch) {
+                let productMatch = true;
+                if(productFilter !== 'all') {
+                    productMatch = clientHistory.some(h => h && h.type === 'comment' && h.product === productFilter);
+                }
+
+                if (statusMatch && companyMatch && searchMatch && fuMatch && empMatch && dateMatch && productMatch) {
                     count++;
-                    
-                    let rowClass = `client-row transition-colors text-sm `;
-                    if (client.followUpStatus === 'done') rowClass += `row-done`; 
-                    else if (client.followUpStatus === 'interested') rowClass += `row-interested`; 
-                    else if (client.followUpStatus === 'not_interested') rowClass += `row-not-interested`;
-                    else if (hasComment) rowClass += `row-has-comment`; 
-                    else if (client.sent) rowClass += `row-sent`;
-                    else rowClass += `row-default hover:bg-slate-50`;
-                    
                     const tr = document.createElement('tr');
                     tr.id = `row-${index}`;
-                    tr.className = rowClass;
-
-                    let html = '';
-                    let displayName = cName;
-                    if (client.sent) displayName += ' <i class="fas fa-check-circle text-emerald-500 text-[10px]" title="تم الإرسال"></i>';
-
-                    if (activeColumns.name) html += `<td class="p-2 font-bold text-slate-800 text-xs align-top pt-4">${displayName}</td>`;
-                    if (activeColumns.nid) html += `<td class="p-2 text-slate-500 font-mono text-[10px] align-top pt-4">${cNid}</td>`;
-                    html += `<td class="p-2 text-slate-800 font-bold text-xs align-top pt-4" dir="ltr">+${cPhone}</td>`;
                     
-                    let displayCompany = cCompany === 'بدون شركة' ? '-' : cCompany;
-                    let badgeCompany = cCompany === 'بدون شركة' ? 'text-slate-400 font-bold text-lg' : 'bg-slate-100 text-slate-700 border border-slate-300 px-2 py-1 rounded text-[10px]';
-                    let badgeStatus = cStatus.includes("بدون") ? 'bg-rose-100 text-rose-800 border-rose-300' : 'bg-slate-100 text-slate-700 border-slate-300';
-                    
-                    if (activeColumns.status) html += `<td class="p-2 align-top pt-4"><span class="px-2 py-1 rounded text-[10px] font-semibold border ${badgeStatus}">${cStatus}</span></td>`;
-                    if (activeColumns.company) html += `<td class="p-2 align-top pt-4"><span class="${badgeCompany}">${displayCompany}</span></td>`;
-                    
-                    // عمود الكومنتات المدمج مع اختيار تاريخ المتابعة
-                    html += `
-                        <td class="p-2 border-r border-l border-slate-100 align-top">
-                            <div class="h-28 overflow-y-auto mb-1.5 custom-scrollbar bg-slate-50/50 p-1.5 rounded border border-slate-200 shadow-inner" id="history-${index}">
-                                ${renderHistory(clientHistory)}
-                            </div>
-                            <div class="flex gap-1 items-stretch">
-                                <input type="text" id="comment-input-${index}" class="flex-grow border border-slate-300 p-1.5 rounded focus:border-sky-500 outline-none text-[11px]" placeholder="اكتب تعليق...">
-                                <input type="date" id="comment-date-${index}" class="w-24 border border-slate-300 p-1 rounded outline-none text-[10px] font-bold text-slate-600" title="موعد المتابعة (اختياري)">
-                                <button onclick="addComment(${index})" class="bg-sky-600 hover:bg-sky-700 text-white px-2 py-1 rounded text-[11px] font-bold shadow flex-shrink-0">حفظ</button>
-                            </div>
-                        </td>
-                    `;
-                    
-                    let dateBadge = '';
-                    if (client.statusDate && client.followUpStatus) {
-                        let colorClass = client.followUpStatus === 'done' ? 'text-emerald-700' : (client.followUpStatus === 'interested' ? 'text-amber-700' : 'text-rose-700');
-                        dateBadge = `<div class="text-[9px] font-bold ${colorClass} mt-1 text-center"><i class="fas fa-history"></i> ${client.statusDate}</div>`;
-                    }
-
-                    html += `
-                        <td class="p-2 align-top border-l border-slate-100">
-                            <div class="flex flex-col gap-1.5 justify-center">
-                                <button onclick="setFollowUpStatus(${index}, 'done')" class="${client.followUpStatus === 'done' ? 'bg-emerald-500 text-white shadow' : 'bg-white text-slate-600 hover:bg-emerald-50'} px-2 py-1.5 rounded text-[11px] font-bold border border-emerald-300 w-full transition">✅ تم التنفيذ</button>
-                                <button onclick="setFollowUpStatus(${index}, 'interested')" class="${client.followUpStatus === 'interested' ? 'bg-amber-500 text-white shadow' : 'bg-white text-slate-600 hover:bg-amber-50'} px-2 py-1.5 rounded text-[11px] font-bold border border-amber-300 w-full transition">⭐ مهتم</button>
-                                <button onclick="setFollowUpStatus(${index}, 'not_interested')" class="${client.followUpStatus === 'not_interested' ? 'bg-rose-500 text-white shadow' : 'bg-white text-slate-600 hover:bg-rose-50'} px-2 py-1.5 rounded text-[11px] font-bold border border-rose-300 w-full transition">🚫 غير مهتم</button>
-                                ${dateBadge}
-                            </div>
-                        </td>
-                    `;
-
-                    let btnColor = client.sent ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-sky-600 hover:bg-sky-700';
-                    let btnText = client.sent ? '<i class="fab fa-whatsapp"></i> إرسال مجدداً' : '<i class="fab fa-whatsapp"></i> إرسال للعميل';
-                    
-                    html += `
-                        <td class="p-2 align-middle">
-                            <button onclick="sendManual(${index})" class="${btnColor} text-white px-3 py-3 rounded-lg text-xs font-bold shadow-md transition w-full flex items-center justify-center gap-1 whitespace-nowrap">
-                                ${btnText}
-                            </button>
-                        </td>
-                    `;
-
-                    tr.innerHTML = html;
+                    const rowData = generateRowHTML(client, index);
+                    tr.className = rowData.rowClass;
+                    tr.innerHTML = rowData.html;
                     tbody.appendChild(tr);
                     
                     const hDiv = document.getElementById(`history-${index}`);
@@ -787,7 +889,7 @@
         }
     }
 
-    // --- الإجراءات والواتساب ---
+    // --- الإجراءات (تحديث محلي صامت + سحابة) ---
     function addComment(index) {
         const empId = document.getElementById('empIdInput').value.trim();
         if (!empId) {
@@ -798,12 +900,14 @@
         
         const input = document.getElementById(`comment-input-${index}`);
         const text = input.value.trim();
-        if (!text) return;
+        
+        const productSelect = document.getElementById(`comment-product-${index}`);
+        const product = productSelect ? productSelect.value : 'all';
 
-        // قراءة تاريخ المتابعة اللي الموظف حدده (ممكن يكون فاضي لو محددش)
+        if (!text && product === 'all') return; 
+
         const dateInput = document.getElementById(`comment-date-${index}`);
         const followUpDate = dateInput ? dateInput.value : '';
-        
         const actionDate = document.getElementById('datePicker').value; 
         
         if (!globalData[index].history) globalData[index].history = [];
@@ -811,8 +915,9 @@
             date: actionDate, 
             empId: empId, 
             type: 'comment', 
-            text: text,
-            followUpDate: followUpDate  // تم إضافة التاريخ للسحابة
+            text: text || "تحديد منتج",
+            product: product,
+            followUpDate: followUpDate 
         });
         
         updateClientInCloud(globalData[index]);
@@ -821,7 +926,7 @@
     function setFollowUpStatus(index, status) {
         const empId = document.getElementById('empIdInput').value.trim();
         if (!empId) {
-            alert("يرجى إدخال (ID الموظف) أعلى الشاشة أولاً لتسجيل القرار!");
+            alert("يرجى إدخال (ID الموظف) أعلى الشاشة لتسجيل القرار!");
             document.getElementById('empIdInput').focus();
             return;
         }
@@ -834,6 +939,7 @@
             globalData[index].followUpStatus = status;
             globalData[index].statusDate = actionDate; 
         }
+        
         updateClientInCloud(globalData[index]);
     }
 
