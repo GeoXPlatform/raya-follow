@@ -5,7 +5,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>نظام راية لإدارة العملاء | Raya CRM VIP</title>
+    <title>متابعة عملاء راية | Raya CRM</title>
     <!-- مكتبات Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -50,7 +50,7 @@
         <div class="absolute -bottom-10 -left-10 w-24 h-24 bg-sky-100 rounded-full opacity-50"></div>
         
         <i class="fas fa-building text-5xl text-sky-600 mb-4 relative z-10"></i>
-        <h2 class="text-2xl font-bold text-slate-800 mb-2 relative z-10">أنظمة راية (Raya CRM)</h2>
+        <h2 class="text-2xl font-bold text-slate-800 mb-2 relative z-10">متابعة عملاء راية</h2>
         <p class="text-slate-500 font-semibold mb-6 relative z-10">يرجى تحديد فرعك للوصول إلى قاعدة بياناتك السحابية</p>
         
         <select id="branchSelectModal" class="w-full border-2 border-slate-300 p-3 rounded-xl mb-6 text-lg font-bold text-slate-700 outline-none focus:border-sky-600 relative z-10">
@@ -78,7 +78,7 @@
     <div class="bg-slate-900 p-3 md:p-4 text-white flex flex-col md:flex-row justify-between items-center gap-4 shadow-md border-b-4 border-sky-600">
         <div class="flex items-center gap-3">
             <div class="bg-sky-600 p-2 rounded-lg shadow-inner"><i class="fas fa-headset text-xl text-white"></i></div>
-            <h1 class="text-lg md:text-xl font-extrabold tracking-wide">نظام راية السحابي (Raya)</h1>
+            <h1 class="text-lg md:text-xl font-extrabold tracking-wide">متابعة عملاء راية</h1>
             <span id="cloudStatus" class="bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-full animate-pulse"><i class="fas fa-cloud text-white"></i> متصل</span>
         </div>
         
@@ -95,8 +95,8 @@
                 <option value="gazayer">Gazayer</option>
                 <option value="city_center">City Center</option>
             </select>
-            <button onclick="clearSessionData()" class="bg-rose-600 hover:bg-rose-700 text-white px-2 py-1 rounded-lg font-bold text-[10px] shadow-md transition" title="مسح بيانات الفرع الحالي لتنظيف السحابة">
-                <i class="fas fa-trash-alt"></i> تنظيف
+            <button onclick="hardResetCloud()" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-lg font-bold text-[10px] shadow-md transition" title="مسح جميع بيانات الفرع من الجذور لحل أي مشكلة">
+                <i class="fas fa-radiation-alt"></i> ⚠️ فورمات کامل للسحابة
             </button>
         </div>
     </div>
@@ -215,7 +215,7 @@
                         </div>
                     </div>
 
-                    <!-- فلاتر الشيت الأصلية (مخفية مؤقتاً لتوفير المساحة) -->
+                    <!-- فلاتر الشيت الأصلية -->
                     <div id="originalFiltersSection" class="mt-2 pt-2 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-2 hidden">
                         <div id="statusFilterContainer" class="hidden">
                             <span class="block text-[9px] font-bold text-slate-400 mb-0.5">حالة النظام:</span>
@@ -344,7 +344,6 @@
             }
         });
 
-        // قراءة مبدئية مرة واحدة للبيانات
         branchClientsRef.once('value', (snapshot) => {
             updateDataFromSnapshot(snapshot);
             document.getElementById('loadingIndicator').classList.add('hidden');
@@ -358,7 +357,6 @@
                 document.getElementById('notificationBanner').classList.add('hidden');
             }
             
-            // الاستماع للتغييرات بدون ريفريش كامل
             branchClientsRef.on('child_changed', (childSnapshot) => {
                 const updatedClient = childSnapshot.val();
                 const index = globalData.findIndex(c => c.phone === updatedClient.phone);
@@ -387,7 +385,6 @@
         }
     }
 
-    // الترتيب الذكي (A, B, C Class)
     function sortGlobalData() {
         globalData.sort((a, b) => {
             const getPriority = (client) => {
@@ -416,18 +413,25 @@
         branchClientsRef.child(clientObj.phone).set(clientObj);
     }
 
-    function clearSessionData() {
+    // زرار الفورمات (Hard Reset)
+    function hardResetCloud() {
         if(!currentBranch) return;
-        if(confirm(`هل أنت متأكد أنك تريد مسح جميع بيانات فرع (${currentBranch}) من السحابة؟ (إجراء نهائي لتنظيف الداتا)`)) {
-            branchClientsRef.remove();
-            branchSettingsRef.remove();
-            alert("تم مسح البيانات بنجاح! يمكنك الآن رفع شيت جديد.");
-            location.reload();
+        let p = prompt("تحذير! هذا الإجراء سيمسح جميع بيانات الفرع نهائياً. لست متأكد؟ اكتب 'نعم' للتأكيد:");
+        if (p === 'نعم') {
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+            branchClientsRef.remove().then(() => {
+                branchSettingsRef.remove();
+                alert("تم فرمتة بيانات الفرع بالكامل بنجاح. سيتم إعادة تحميل الصفحة.");
+                location.reload();
+            }).catch(err => {
+                alert("حدث خطأ أثناء المسح: " + err);
+                document.getElementById('loadingIndicator').classList.add('hidden');
+            });
         }
     }
 
     // -----------------------------------------------------
-    // 5. دمج شيت الإكسيل (حماية من الانهيار)
+    // 5. دمج شيت الإكسيل (محصّن تماماً)
     // -----------------------------------------------------
     function processExcel() {
         const fileInput = document.getElementById('excelFile');
@@ -438,131 +442,138 @@
         document.getElementById('dataTable').classList.add('hidden');
 
         setTimeout(() => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-                if (jsonData.length < 2) {
-                    document.getElementById('loadingIndicator').classList.add('hidden');
-                    return alert("الملف فارغ!");
-                }
-
-                let headerRowIndex = -1;
-                let cols = { name: -1, nid: -1, phone: -1, status: -1, company: -1 };
-
-                for (let r = 0; r < Math.min(jsonData.length, 10); r++) {
-                    const rowValues = jsonData[r] || [];
-                    const headers = rowValues.map(h => String(h).trim().toLowerCase());
+            try {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                     
-                    let foundPhone = false;
-                    for (let i = 0; i < headers.length; i++) {
-                        if (headers[i].includes("موبايل") || headers[i].includes("تليفون") || headers[i].includes("هاتف")) foundPhone = true;
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                    if (jsonData.length < 2) {
+                        document.getElementById('loadingIndicator').classList.add('hidden');
+                        return alert("الملف فارغ!");
                     }
-                    
-                    if (foundPhone) {
-                        headerRowIndex = r;
+
+                    let headerRowIndex = -1;
+                    let cols = { name: -1, nid: -1, phone: -1, status: -1, company: -1 };
+
+                    for (let r = 0; r < Math.min(jsonData.length, 10); r++) {
+                        const rowValues = jsonData[r] || [];
+                        const headers = rowValues.map(h => String(h || "").trim().toLowerCase());
+                        
+                        let foundPhone = false;
                         for (let i = 0; i < headers.length; i++) {
-                            let h = headers[i];
-                            if (h.includes("قومي") || h.includes("بطاقة") || h.includes("national")) cols.nid = i;
-                            else if (h.includes("اسم") || h.includes("إسم") || h.includes("عميل") || h.includes("name")) cols.name = i;
-                            else if (h.includes("موبايل") || h.includes("تليفون") || h.includes("هاتف")) cols.phone = i;
-                            else if (h.includes("حالة") || h.includes("حاله") || h.includes("status")) cols.status = i; 
-                            else if (h.includes("شركة") || h.includes("شركه") || h.includes("company")) cols.company = i; 
-                        }
-                        break;
-                    }
-                }
-
-                if (headerRowIndex === -1) {
-                    document.getElementById('loadingIndicator').classList.add('hidden');
-                    return alert("خطأ: لم يتم العثور على عمود الموبايل في الشيت!");
-                }
-
-                activeColumns = { 
-                    name: cols.name !== -1, nid: cols.nid !== -1, phone: cols.phone !== -1, 
-                    status: cols.status !== -1, company: cols.company !== -1 
-                };
-                saveSettingsToFirebase();
-
-                let cloudClientsMap = {};
-                globalData.forEach(c => {
-                    c.name = c.name || "-";
-                    c.phone = c.phone || "";
-                    c.status = c.status || "بدون حالة";
-                    c.company = c.company || "بدون شركة";
-                    c.nid = c.nid || "-";
-                    c.history = Array.isArray(c.history) ? c.history : [];
-                    cloudClientsMap[c.phone] = c;
-                });
-
-                let orderCounter = Object.keys(cloudClientsMap).length;
-
-                for (let i = headerRowIndex + 1; i < jsonData.length; i++) {
-                    const row = jsonData[i] || [];
-                    const phoneStr = cleanPhoneNumber(row[cols.phone]);
-                    
-                    if (phoneStr && phoneStr.length > 5) { 
-                        let st = activeColumns.status ? String(row[cols.status] || "بدون حالة").trim() : "بدون حالة";
-                        if (st === "" || st === "undefined") st = "بدون حالة";
-                        
-                        let comp = activeColumns.company ? String(row[cols.company] || "بدون شركة").trim() : "بدون شركة";
-                        if (comp === "" || comp === "undefined") comp = "بدون شركة";
-                        
-                        let rawNid = activeColumns.nid ? String(row[cols.nid] || "-").trim() : "-";
-                        if (rawNid.toUpperCase().includes('E')) {
-                            rawNid = Number(row[cols.nid]).toLocaleString('fullwide', {useGrouping:false});
-                        } else {
-                            rawNid = rawNid.replace(/[^0-9]/g, '') || "-";
+                            if (headers[i].includes("موبايل") || headers[i].includes("تليفون") || headers[i].includes("هاتف")) foundPhone = true;
                         }
                         
-                        let cName = activeColumns.name ? String(row[cols.name] || "-").trim() : "-";
-
-                        if (cloudClientsMap[phoneStr]) {
-                            cloudClientsMap[phoneStr].name = cName;
-                            cloudClientsMap[phoneStr].nid = rawNid;
-                            cloudClientsMap[phoneStr].status = st;
-                            cloudClientsMap[phoneStr].company = comp;
-                        } else {
-                            cloudClientsMap[phoneStr] = {
-                                orderId: orderCounter++,
-                                name: cName,
-                                nid: rawNid,
-                                phone: phoneStr,
-                                status: st, 
-                                company: comp, 
-                                sent: false,
-                                history: [],
-                                followUpStatus: '',
-                                statusDate: ''
-                            };
+                        if (foundPhone) {
+                            headerRowIndex = r;
+                            for (let i = 0; i < headers.length; i++) {
+                                let h = headers[i];
+                                if (h.includes("قومي") || h.includes("بطاقة") || h.includes("national")) cols.nid = i;
+                                else if (h.includes("اسم") || h.includes("إسم") || h.includes("عميل") || h.includes("name")) cols.name = i;
+                                else if (h.includes("موبايل") || h.includes("تليفون") || h.includes("هاتف")) cols.phone = i;
+                                else if (h.includes("حالة") || h.includes("حاله") || h.includes("status")) cols.status = i; 
+                                else if (h.includes("شركة") || h.includes("شركه") || h.includes("company")) cols.company = i; 
+                            }
+                            break;
                         }
                     }
-                }
 
-                branchClientsRef.set(cloudClientsMap).then(() => {
-                    document.getElementById('loadingIndicator').classList.add('hidden');
-                    document.getElementById('excelFile').value = '';
-                    alert("تم دمج ورفع الشيت بنجاح! السحابة محدثة الآن.");
-                    branchClientsRef.once('value', (snap) => {
-                        updateDataFromSnapshot(snap);
-                        applyFilters();
-                        document.getElementById('dataTable').classList.remove('hidden');
+                    if (headerRowIndex === -1) {
+                        document.getElementById('loadingIndicator').classList.add('hidden');
+                        return alert("خطأ: لم يتم العثور على عمود الموبايل في الشيت!");
+                    }
+
+                    activeColumns = { 
+                        name: cols.name !== -1, nid: cols.nid !== -1, phone: cols.phone !== -1, 
+                        status: cols.status !== -1, company: cols.company !== -1 
+                    };
+                    saveSettingsToFirebase();
+
+                    let cloudClientsMap = {};
+                    globalData.forEach(c => {
+                        c.name = c.name ? String(c.name) : "-";
+                        c.phone = c.phone ? String(c.phone) : "";
+                        c.status = c.status ? String(c.status) : "بدون حالة";
+                        c.company = c.company ? String(c.company) : "بدون شركة";
+                        c.nid = c.nid ? String(c.nid) : "-";
+                        c.history = Array.isArray(c.history) ? c.history : [];
+                        if (c.phone) cloudClientsMap[c.phone] = c;
                     });
-                }).catch(err => {
-                    document.getElementById('loadingIndicator').classList.add('hidden');
-                    alert("حدث خطأ أثناء الرفع للسحابة. يرجى مراجعة الصلاحيات.");
-                });
 
-            };
-            reader.readAsArrayBuffer(fileInput.files[0]);
+                    let orderCounter = Object.keys(cloudClientsMap).length;
+
+                    for (let i = headerRowIndex + 1; i < jsonData.length; i++) {
+                        const row = jsonData[i] || [];
+                        const phoneRaw = row[cols.phone];
+                        if (!phoneRaw) continue; 
+
+                        const phoneStr = cleanPhoneNumber(phoneRaw);
+                        if (phoneStr && phoneStr.length > 5) { 
+                            let st = activeColumns.status && row[cols.status] ? String(row[cols.status]).trim() : "بدون حالة";
+                            if (st === "" || st === "undefined") st = "بدون حالة";
+                            
+                            let comp = activeColumns.company && row[cols.company] ? String(row[cols.company]).trim() : "بدون شركة";
+                            if (comp === "" || comp === "undefined") comp = "بدون شركة";
+                            
+                            let rawNid = activeColumns.nid && row[cols.nid] ? String(row[cols.nid]).trim() : "-";
+                            if (rawNid.toUpperCase().includes('E')) {
+                                rawNid = Number(row[cols.nid]).toLocaleString('fullwide', {useGrouping:false});
+                            } else {
+                                rawNid = rawNid.replace(/[^0-9]/g, '') || "-";
+                            }
+                            
+                            let cName = activeColumns.name && row[cols.name] ? String(row[cols.name]).trim() : "-";
+
+                            if (cloudClientsMap[phoneStr]) {
+                                cloudClientsMap[phoneStr].name = cName;
+                                cloudClientsMap[phoneStr].nid = rawNid;
+                                cloudClientsMap[phoneStr].status = st;
+                                cloudClientsMap[phoneStr].company = comp;
+                            } else {
+                                cloudClientsMap[phoneStr] = {
+                                    orderId: orderCounter++,
+                                    name: cName,
+                                    nid: rawNid,
+                                    phone: phoneStr,
+                                    status: st, 
+                                    company: comp, 
+                                    sent: false,
+                                    history: [],
+                                    followUpStatus: '',
+                                    statusDate: ''
+                                };
+                            }
+                        }
+                    }
+
+                    branchClientsRef.set(cloudClientsMap).then(() => {
+                        document.getElementById('loadingIndicator').classList.add('hidden');
+                        document.getElementById('excelFile').value = '';
+                        alert("تم رفع الشيت بنجاح! جاري عرض البيانات...");
+                        branchClientsRef.once('value', (snap) => {
+                            updateDataFromSnapshot(snap);
+                            applyFilters();
+                            document.getElementById('dataTable').classList.remove('hidden');
+                        });
+                    }).catch(err => {
+                        document.getElementById('loadingIndicator').classList.add('hidden');
+                        alert("حدث خطأ أثناء الرفع للسحابة. تأكد من اتصالك بالإنترنت.");
+                    });
+
+                };
+                reader.readAsArrayBuffer(fileInput.files[0]);
+            } catch(error) {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                alert("حدث خطأ في قراءة ملف الإكسيل: " + error.message);
+            }
         }, 150); 
     }
 
     function cleanPhoneNumber(phone) {
-        if (!phone || phone === "undefined") return "";
+        if (!phone || String(phone).trim() === "" || phone === "undefined") return "";
         let p = String(phone).replace(/[^0-9]/g, '');
         if (p.startsWith('1') && p.length === 10) return '20' + p;
         if (p.startsWith('01') && p.length === 11) return '2' + p;
@@ -607,7 +618,7 @@
     }
 
     // -----------------------------------------------------
-    // 7. واجهة المستخدم والفلاتر (تحديث DOM ذكي)
+    // 7. واجهة المستخدم والفلاتر المحمية
     // -----------------------------------------------------
     function restoreUI() {
         ['Name', 'Nid', 'Phone', 'Status', 'Company'].forEach(col => {
@@ -703,7 +714,6 @@
         }).join('');
     }
 
-    // توليد كود HTML لصف واحد
     function generateRowHTML(client, index) {
         let cName = client.name ? String(client.name) : "-";
         let cPhone = client.phone ? String(client.phone) : "-";
@@ -726,7 +736,6 @@
         let displayName = cName;
         if (client.sent) displayName += ' <i class="fas fa-check-circle text-emerald-500 text-[10px]" title="تم الإرسال"></i>';
         
-        // زرار الليمت مربوط بلينك راية
         let rayaSystemLink = "https://rayainstallment.com/Account/login?ReturnUrl=%2FInstallment%2FInstallmentCalculations"; 
         let limitBtn = `<a href="${rayaSystemLink}" target="_blank" class="mt-1 inline-block bg-slate-800 hover:bg-slate-700 text-white text-[9px] font-bold px-2 py-1 rounded shadow-sm transition"><i class="fas fa-credit-card text-sky-400"></i> عرض الليمت</a>`;
 
@@ -889,7 +898,6 @@
         }
     }
 
-    // --- الإجراءات (تحديث محلي صامت + سحابة) ---
     function addComment(index) {
         const empId = document.getElementById('empIdInput').value.trim();
         if (!empId) {
