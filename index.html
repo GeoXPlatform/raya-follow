@@ -32,6 +32,13 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
         .sticky-panel { position: sticky; top: 0; z-index: 50; background-color: #f8fafc; padding-top: 10px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; }
+        
+        .pulse-alert { animation: pulseAlert 2s infinite; }
+        @keyframes pulseAlert {
+            0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(225, 29, 72, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+        }
     </style>
 </head>
 <body class="p-2 md:p-4 min-h-screen">
@@ -66,6 +73,7 @@
 </div>
 
 <div class="max-w-[1500px] mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 hidden" id="mainAppContainer">
+    
     <!-- رأس الصفحة -->
     <div class="bg-slate-900 p-4 md:p-5 text-white flex flex-col md:flex-row justify-between items-center gap-4 shadow-md border-b-4 border-sky-600">
         <div class="flex items-center gap-3">
@@ -88,9 +96,23 @@
                 <option value="city_center">City Center</option>
             </select>
             <button onclick="clearSessionData()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs shadow-md transition" title="مسح بيانات الفرع الحالي لتنظيف السحابة">
-                <i class="fas fa-trash-alt"></i> مسح البيانات
+                <i class="fas fa-trash-alt"></i> تنظيف
             </button>
         </div>
+    </div>
+
+    <!-- إشعار المتابعة اليومية الذكي (Notification Banner) -->
+    <div id="notificationBanner" class="hidden bg-rose-50 border-r-4 border-rose-600 p-4 mx-3 md:mx-5 mt-5 rounded-lg shadow-md flex-col sm:flex-row justify-between items-center pulse-alert">
+        <div class="flex items-center gap-4 mb-3 sm:mb-0">
+            <div class="bg-rose-600 p-3 rounded-full shadow-inner"><i class="fas fa-bell text-white text-xl animate-bounce"></i></div>
+            <div>
+                <h3 class="font-black text-rose-800 text-lg">تنبيه متابعة هام!</h3>
+                <p class="text-sm text-rose-600 font-bold">لديك (<span id="notificationCount" class="text-xl font-black text-rose-900"></span>) عملاء يجب التواصل معهم وإرسال الواتساب لهم <span class="bg-rose-200 px-1 rounded">اليوم</span>.</p>
+            </div>
+        </div>
+        <button onclick="filterByToday()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-6 rounded-lg shadow-md transition whitespace-nowrap">
+            <i class="fas fa-eye"></i> عرضهم الآن
+        </button>
     </div>
 
     <div class="p-3 md:p-5 grid grid-cols-1 xl:grid-cols-12 gap-5 relative">
@@ -120,50 +142,59 @@
                 
                 <!-- شريط الأدوات الموحد -->
                 <div class="bg-white p-3 rounded-xl border border-slate-300 shadow-sm mb-3">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
                         
                         <!-- البحث -->
                         <div class="relative">
                             <label class="block text-xs font-bold text-slate-500 mb-1"><i class="fas fa-search"></i> بحث عام:</label>
-                            <input type="text" id="searchInput" oninput="applyFilters()" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:border-sky-500 block w-full p-2 shadow-sm" placeholder="الاسم، الموبايل، القومي، كومنت...">
+                            <input type="text" id="searchInput" oninput="applyFilters()" class="bg-slate-50 border border-slate-300 text-slate-900 text-xs rounded-lg focus:border-sky-500 block w-full p-2 shadow-sm" placeholder="الاسم، الموبايل، القومي، كومنت...">
                         </div>
                         
                         <!-- التاريخ والموظف -->
                         <div class="flex gap-2">
                             <div class="w-1/2">
-                                <label class="block text-xs font-bold text-slate-500 mb-1"><i class="fas fa-calendar-alt"></i> تاريخ الإجراء:</label>
-                                <input type="date" id="datePicker" class="w-full border border-slate-300 p-2 rounded-lg font-bold text-slate-700 outline-none text-xs shadow-sm">
+                                <label class="block text-[11px] font-bold text-slate-500 mb-1"><i class="fas fa-calendar-alt"></i> تاريخ الإجراء:</label>
+                                <input type="date" id="datePicker" class="w-full border border-slate-300 p-2 rounded-lg font-bold text-slate-700 outline-none text-[11px] shadow-sm">
                             </div>
                             <div class="w-1/2">
-                                <label class="block text-xs font-bold text-slate-500 mb-1"><i class="fas fa-id-badge"></i> ID موظفك:</label>
+                                <label class="block text-[11px] font-bold text-slate-500 mb-1"><i class="fas fa-id-badge"></i> ID موظفك:</label>
                                 <input type="text" id="empIdInput" class="w-full border border-slate-300 p-2 rounded-lg font-bold text-slate-700 outline-none focus:ring-2 focus:ring-sky-200 text-xs text-center shadow-sm" placeholder="رقمك">
                             </div>
                         </div>
 
-                        <!-- فلاتر المتابعة -->
+                        <!-- فلاتر המتابعة -->
                         <div class="flex gap-2">
                             <div class="w-1/2">
-                                <label class="block text-xs font-bold text-slate-500 mb-1"><i class="fas fa-filter"></i> حالة المتابعة:</label>
-                                <select id="followUpFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-2 rounded-lg font-bold text-slate-700 outline-none text-xs shadow-sm">
+                                <label class="block text-[11px] font-bold text-slate-500 mb-1"><i class="fas fa-filter"></i> فلتر المتابعة:</label>
+                                <select id="followUpFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-2 rounded-lg font-bold text-slate-700 outline-none text-[11px] shadow-sm">
                                     <option value="all">الكل</option>
-                                    <option value="interested">⭐ المهتمين</option>
-                                    <option value="not_interested">🚫 غير المهتمين</option>
-                                    <option value="done">✅ تم التنفيذ</option>
-                                    <option value="has_comment">💬 لهم تعليقات</option>
+                                    <option value="interested">⭐ مهتم</option>
+                                    <option value="not_interested">🚫 غير مهتم</option>
+                                    <option value="done">✅ تم</option>
+                                    <option value="has_comment">💬 كومنت</option>
                                 </select>
                             </div>
                             <div class="w-1/2">
-                                <label class="block text-xs font-bold text-slate-500 mb-1"><i class="fas fa-user-tie"></i> كاتب التعليق:</label>
-                                <select id="empDropdownFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-2 rounded-lg font-bold text-slate-700 outline-none text-xs shadow-sm">
+                                <label class="block text-[11px] font-bold text-slate-500 mb-1"><i class="fas fa-user-tie"></i> كاتب الكومنت:</label>
+                                <select id="empDropdownFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-2 rounded-lg font-bold text-slate-700 outline-none text-[11px] shadow-sm">
                                     <option value="">الكل</option>
                                 </select>
                             </div>
                         </div>
 
+                        <!-- فلتر تاريخ المتابعة الجديد -->
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-slate-500 mb-1"><i class="fas fa-clock"></i> عملاء بموعد يوم:</label>
+                            <div class="flex">
+                                <input type="date" id="followUpDateFilter" onchange="applyFilters()" class="bg-slate-50 border border-slate-300 text-slate-900 text-xs rounded-r-lg focus:border-sky-500 block w-full p-2 shadow-sm outline-none font-bold">
+                                <button onclick="clearDateFilter()" class="bg-slate-200 hover:bg-slate-300 border border-r-0 border-slate-300 px-3 rounded-l-lg text-slate-600 transition" title="عرض جميع التواريخ"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+
                         <!-- إحصائيات -->
-                        <div class="flex flex-col justify-end items-center bg-slate-50 rounded-lg border border-slate-200 p-1">
-                            <span class="text-[10px] font-bold text-slate-500">العملاء بالفلتر</span>
-                            <span id="clientCount" class="text-sky-600 font-black text-xl">0</span>
+                        <div class="flex flex-col justify-center items-center bg-slate-50 rounded-lg border border-slate-200 h-[38px] mt-auto shadow-sm">
+                            <div class="text-[10px] font-bold text-slate-500 leading-none mb-1">العدد بالفلتر</div>
+                            <div id="clientCount" class="text-sky-600 font-black text-lg leading-none">0</div>
                         </div>
                     </div>
 
@@ -190,7 +221,7 @@
                     <p class="font-bold text-slate-500">جاري مزامنة السحابة...</p>
                 </div>
                 
-                <table class="w-full text-center border-collapse min-w-[1000px]" id="dataTable">
+                <table class="w-full text-center border-collapse min-w-[1100px]" id="dataTable">
                     <thead class="bg-slate-200 border-b-2 border-slate-300">
                         <tr id="tableHeader">
                             <th class="p-2 font-bold text-slate-700 text-sm hidden" id="thName">العميل</th>
@@ -198,7 +229,7 @@
                             <th class="p-2 font-bold text-slate-700 text-sm" id="thPhone">الموبايل</th>
                             <th class="p-2 font-bold text-slate-700 text-sm hidden" id="thCompany">الشركة</th>
                             <th class="p-2 font-bold text-slate-700 text-sm hidden" id="thStatus">النظام</th>
-                            <th class="p-2 font-bold text-slate-700 text-sm w-1/4">التعليقات والمتابعة</th>
+                            <th class="p-2 font-bold text-slate-700 text-sm w-1/3">التعليقات وسجل المتابعة</th>
                             <th class="p-2 font-bold text-slate-700 text-sm w-44">القرار</th>
                             <th class="p-2 font-bold text-slate-700 text-sm w-32">الواتساب</th>
                         </tr>
@@ -229,7 +260,7 @@
         appId: "1:691272759644:web:4f693b005708f94def6999",
         measurementId: "G-LYKE4FPZVS"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const database = firebase.database();
 
     // -----------------------------------------------------
@@ -314,9 +345,11 @@
             
             if (globalData.length > 0) {
                 updateEmpDropdown();
+                checkTodayFollowUps(); // فحص الإشعارات الذكية فور جلب الداتا
                 restoreUI();
             } else {
                 document.getElementById('actionPanel').classList.add('hidden');
+                document.getElementById('notificationBanner').classList.add('hidden');
             }
         });
     }
@@ -336,15 +369,15 @@
 
     function clearSessionData() {
         if(!currentBranch) return;
-        if(confirm(`هل أنت متأكد أنك تريد مسح جميع بيانات فرع (${currentBranch}) من السحابة؟`)) {
+        if(confirm(`هل أنت متأكد أنك تريد مسح جميع بيانات فرع (${currentBranch}) من السحابة؟ (إجراء نهائي)`)) {
             branchClientsRef.remove();
             branchSettingsRef.remove();
-            alert("تم مسح البيانات القديمة بنجاح! يمكنك الآن رفع شيت جديد نظيف.");
+            alert("تم مسح البيانات بنجاح! يمكنك الآن رفع شيت جديد.");
         }
     }
 
     // -----------------------------------------------------
-    // 5. دمج شيت الإكسيل بذكاء وقوة (Bulletproof)
+    // 5. دمج شيت الإكسيل (حماية كاملة من الانهيار)
     // -----------------------------------------------------
     function processExcel() {
         const fileInput = document.getElementById('excelFile');
@@ -370,7 +403,6 @@
                 let headerRowIndex = -1;
                 let cols = { name: -1, nid: -1, phone: -1, status: -1, company: -1 };
 
-                // البحث عن صف العناوين في أول 10 صفوف
                 for (let r = 0; r < Math.min(jsonData.length, 10); r++) {
                     const rowValues = jsonData[r] || [];
                     const headers = rowValues.map(h => String(h).trim().toLowerCase());
@@ -407,7 +439,6 @@
 
                 let cloudClientsMap = {};
                 globalData.forEach(c => {
-                    // حماية البيانات القديمة من إنها تكون ناقصة
                     c.name = c.name || "-";
                     c.phone = c.phone || "";
                     c.status = c.status || "بدون حالة";
@@ -464,10 +495,9 @@
                 branchClientsRef.set(cloudClientsMap).then(() => {
                     document.getElementById('loadingIndicator').classList.add('hidden');
                     document.getElementById('excelFile').value = '';
-                    alert("تم دمج ورفع الشيت بنجاح! جميع الأجهزة ستتحدث الآن.");
                 }).catch(err => {
                     document.getElementById('loadingIndicator').classList.add('hidden');
-                    alert("حدث خطأ أثناء الرفع للسحابة. تأكد من إعدادات Firebase Rules");
+                    alert("حدث خطأ أثناء الرفع للسحابة. يرجى مراجعة الصلاحيات.");
                 });
 
             };
@@ -485,8 +515,42 @@
     }
 
     // -----------------------------------------------------
-    // 6. واجهة المستخدم والفلاتر المحمية من الانهيار
+    // 6. واجهة المستخدم والإشعارات الذكية
     // -----------------------------------------------------
+    function checkTodayFollowUps() {
+        let today = new Date().toISOString().split('T')[0];
+        let count = 0;
+        
+        globalData.forEach(client => {
+            let clientHistory = Array.isArray(client.history) ? client.history : [];
+            // لو العميل عنده أي كومنت متسجل فيه تاريخ متابعة يطابق اليوم
+            if (clientHistory.some(h => h && h.type === 'comment' && h.followUpDate === today)) {
+                count++;
+            }
+        });
+        
+        const banner = document.getElementById('notificationBanner');
+        if (count > 0) {
+            document.getElementById('notificationCount').innerText = count;
+            banner.classList.remove('hidden');
+            banner.classList.add('flex');
+        } else {
+            banner.classList.add('hidden');
+            banner.classList.remove('flex');
+        }
+    }
+
+    function filterByToday() {
+        let today = new Date().toISOString().split('T')[0];
+        document.getElementById('followUpDateFilter').value = today;
+        applyFilters();
+    }
+
+    function clearDateFilter() {
+        document.getElementById('followUpDateFilter').value = '';
+        applyFilters();
+    }
+
     function restoreUI() {
         ['Name', 'Nid', 'Phone', 'Status', 'Company'].forEach(col => {
             const th = document.getElementById('th' + col);
@@ -570,12 +634,16 @@
         if (commentsOnly.length === 0) return '<div class="text-slate-400 text-center py-2 text-[10px] font-bold">لا توجد تعليقات</div>';
         
         return commentsOnly.map(item => {
-            return `<div class="bg-white border border-slate-200 p-1.5 rounded mb-1 shadow-sm text-right">
+            // عرض إشعار تاريخ المتابعة داخل الكومنت لو الموظف حدده
+            let followUpBadge = item.followUpDate ? `<div class="text-[9px] font-bold text-rose-700 mt-1.5 bg-rose-50 inline-block px-1.5 py-0.5 rounded border border-rose-200"><i class="fas fa-clock"></i> متابعة: ${item.followUpDate}</div>` : '';
+            
+            return `<div class="bg-white border border-slate-200 p-1.5 rounded mb-1.5 shadow-sm text-right">
                 <div class="flex justify-between items-center mb-1">
                     <span class="font-bold text-[9px] text-slate-500 bg-slate-100 px-1 rounded">${item.date || "-"}</span>
                     <span class="text-[9px] font-bold text-sky-700">ID: ${item.empId || "-"}</span>
                 </div>
                 <div class="font-semibold text-slate-800 text-[11px] leading-tight break-words">${item.text || "-"}</div>
+                ${followUpBadge}
             </div>`;
         }).join('');
     }
@@ -588,13 +656,13 @@
             
             const followUpFilter = document.getElementById('followUpFilter').value;
             const empDropdownFilter = document.getElementById('empDropdownFilter').value;
+            const targetDateFilter = document.getElementById('followUpDateFilter').value;
 
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
             let count = 0;
 
             globalData.forEach((client, index) => {
-                // حماية المتغيرات من الانهيار (Fallbacks)
                 let cName = client.name ? String(client.name) : "-";
                 let cPhone = client.phone ? String(client.phone) : "-";
                 let cNid = client.nid ? String(client.nid) : "-";
@@ -627,7 +695,13 @@
                     empMatch = clientHistory.some(h => h && h.empId === empDropdownFilter);
                 }
 
-                if (statusMatch && companyMatch && searchMatch && fuMatch && empMatch) {
+                // فلتر تاريخ المتابعة الجديد
+                let dateMatch = true;
+                if (targetDateFilter) {
+                    dateMatch = clientHistory.some(h => h && h.type === 'comment' && h.followUpDate === targetDateFilter);
+                }
+
+                if (statusMatch && companyMatch && searchMatch && fuMatch && empMatch && dateMatch) {
                     count++;
                     
                     let rowClass = `client-row transition-colors text-sm `;
@@ -657,13 +731,15 @@
                     if (activeColumns.status) html += `<td class="p-2 align-top pt-4"><span class="px-2 py-1 rounded text-[10px] font-semibold border ${badgeStatus}">${cStatus}</span></td>`;
                     if (activeColumns.company) html += `<td class="p-2 align-top pt-4"><span class="${badgeCompany}">${displayCompany}</span></td>`;
                     
+                    // عمود الكومنتات المدمج مع اختيار تاريخ المتابعة
                     html += `
                         <td class="p-2 border-r border-l border-slate-100 align-top">
-                            <div class="h-24 overflow-y-auto mb-1.5 custom-scrollbar bg-slate-50/50 p-1.5 rounded border border-slate-200 shadow-inner" id="history-${index}">
+                            <div class="h-28 overflow-y-auto mb-1.5 custom-scrollbar bg-slate-50/50 p-1.5 rounded border border-slate-200 shadow-inner" id="history-${index}">
                                 ${renderHistory(clientHistory)}
                             </div>
-                            <div class="flex gap-1">
+                            <div class="flex gap-1 items-stretch">
                                 <input type="text" id="comment-input-${index}" class="flex-grow border border-slate-300 p-1.5 rounded focus:border-sky-500 outline-none text-[11px]" placeholder="اكتب تعليق...">
+                                <input type="date" id="comment-date-${index}" class="w-24 border border-slate-300 p-1 rounded outline-none text-[10px] font-bold text-slate-600" title="موعد المتابعة (اختياري)">
                                 <button onclick="addComment(${index})" class="bg-sky-600 hover:bg-sky-700 text-white px-2 py-1 rounded text-[11px] font-bold shadow flex-shrink-0">حفظ</button>
                             </div>
                         </td>
@@ -719,13 +795,25 @@
             document.getElementById('empIdInput').focus();
             return;
         }
+        
         const input = document.getElementById(`comment-input-${index}`);
         const text = input.value.trim();
         if (!text) return;
+
+        // قراءة تاريخ المتابعة اللي الموظف حدده (ممكن يكون فاضي لو محددش)
+        const dateInput = document.getElementById(`comment-date-${index}`);
+        const followUpDate = dateInput ? dateInput.value : '';
         
         const actionDate = document.getElementById('datePicker').value; 
+        
         if (!globalData[index].history) globalData[index].history = [];
-        globalData[index].history.push({ date: actionDate, empId: empId, type: 'comment', text: text });
+        globalData[index].history.push({ 
+            date: actionDate, 
+            empId: empId, 
+            type: 'comment', 
+            text: text,
+            followUpDate: followUpDate  // تم إضافة التاريخ للسحابة
+        });
         
         updateClientInCloud(globalData[index]);
     }
