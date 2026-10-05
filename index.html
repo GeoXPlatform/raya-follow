@@ -2,12 +2,11 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <!-- كود منع الكاش عشان يجبر المتصفح يجيب التحديث الجديد فوراً -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>نظام راية لإدارة العملاء | Raya CRM</title>
-    <!-- تضمين مكتبات Firebase -->
+    <!-- مكتبات Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
@@ -27,11 +26,6 @@
 
         .checkbox-label { cursor: pointer; user-select: none; transition: all 0.2s; }
         .checkbox-label:hover { transform: translateY(-1px); }
-        
-        .tab-btn { transition: all 0.3s; }
-        .tab-active { background-color: #0284c7; color: white; border-color: #0284c7; } 
-        .tab-inactive { background-color: #f1f5f9; color: #475569; border-color: #cbd5e1; }
-        .tab-inactive:hover { background-color: #e2e8f0; }
         
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -93,7 +87,7 @@
                 <option value="gazayer">Gazayer</option>
                 <option value="city_center">City Center</option>
             </select>
-            <button onclick="clearSessionData()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs shadow-md transition" title="مسح بيانات الفرع الحالي فقط">
+            <button onclick="clearSessionData()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs shadow-md transition" title="مسح بيانات الفرع الحالي لتنظيف السحابة">
                 <i class="fas fa-trash-alt"></i> مسح البيانات
             </button>
         </div>
@@ -146,7 +140,7 @@
                             </div>
                         </div>
 
-                        <!-- فلاتر המتابعة -->
+                        <!-- فلاتر المتابعة -->
                         <div class="flex gap-2">
                             <div class="w-1/2">
                                 <label class="block text-xs font-bold text-slate-500 mb-1"><i class="fas fa-filter"></i> حالة المتابعة:</label>
@@ -190,7 +184,7 @@
 
             <!-- الجدول الشامل -->
             <div class="overflow-x-auto bg-white flex-grow pt-2 rounded-b-xl border border-t-0 border-slate-200">
-                <!-- مؤشر تحميل معالج الأخطاء -->
+                <!-- مؤشر تحميل -->
                 <div id="loadingIndicator" class="text-center py-10 hidden">
                     <i class="fas fa-spinner fa-spin text-4xl text-sky-500 mb-3"></i>
                     <p class="font-bold text-slate-500">جاري مزامنة السحابة...</p>
@@ -242,9 +236,7 @@
     // 2. متغيرات النظام
     // -----------------------------------------------------
     let globalData = [];
-    let visibleRows = [];
     let activeColumns = { name: false, nid: false, phone: false, status: false, company: false };
-    
     let currentBranch = ''; 
     let currentDate = new Date().toISOString().split('T')[0];
     document.getElementById('datePicker').value = currentDate;
@@ -344,16 +336,15 @@
 
     function clearSessionData() {
         if(!currentBranch) return;
-        if(confirm(`هل أنت متأكد أنك تريد مسح جميع بيانات وشيتات فرع (${currentBranch}) والبدء من جديد؟`)) {
-            // مسح من الفايربيز
+        if(confirm(`هل أنت متأكد أنك تريد مسح جميع بيانات فرع (${currentBranch}) من السحابة؟`)) {
             branchClientsRef.remove();
             branchSettingsRef.remove();
-            document.getElementById('actionPanel').classList.add('hidden');
+            alert("تم مسح البيانات القديمة بنجاح! يمكنك الآن رفع شيت جديد نظيف.");
         }
     }
 
     // -----------------------------------------------------
-    // 5. دمج شيت الإكسيل مع السحابة
+    // 5. دمج شيت الإكسيل بذكاء وقوة (Bulletproof)
     // -----------------------------------------------------
     function processExcel() {
         const fileInput = document.getElementById('excelFile');
@@ -379,6 +370,7 @@
                 let headerRowIndex = -1;
                 let cols = { name: -1, nid: -1, phone: -1, status: -1, company: -1 };
 
+                // البحث عن صف العناوين في أول 10 صفوف
                 for (let r = 0; r < Math.min(jsonData.length, 10); r++) {
                     const rowValues = jsonData[r] || [];
                     const headers = rowValues.map(h => String(h).trim().toLowerCase());
@@ -414,7 +406,16 @@
                 saveSettingsToFirebase();
 
                 let cloudClientsMap = {};
-                globalData.forEach(c => cloudClientsMap[c.phone] = c);
+                globalData.forEach(c => {
+                    // حماية البيانات القديمة من إنها تكون ناقصة
+                    c.name = c.name || "-";
+                    c.phone = c.phone || "";
+                    c.status = c.status || "بدون حالة";
+                    c.company = c.company || "بدون شركة";
+                    c.nid = c.nid || "-";
+                    c.history = Array.isArray(c.history) ? c.history : [];
+                    cloudClientsMap[c.phone] = c;
+                });
 
                 let orderCounter = Object.keys(cloudClientsMap).length;
 
@@ -423,34 +424,31 @@
                     const phoneStr = cleanPhoneNumber(row[cols.phone]);
                     
                     if (phoneStr && phoneStr.length > 5) { 
-                        let st = activeColumns.status ? String(row[cols.status] || "").trim() : "";
-                        if (activeColumns.status && st === "") st = "بدون حالة";
+                        let st = activeColumns.status ? String(row[cols.status] || "بدون حالة").trim() : "بدون حالة";
+                        if (st === "" || st === "undefined") st = "بدون حالة";
                         
-                        let comp = activeColumns.company ? String(row[cols.company] || "").trim() : "";
-                        if (activeColumns.company && comp === "") comp = "بدون شركة";
+                        let comp = activeColumns.company ? String(row[cols.company] || "بدون شركة").trim() : "بدون شركة";
+                        if (comp === "" || comp === "undefined") comp = "بدون شركة";
                         
-                        let rawNid = activeColumns.nid ? row[cols.nid] : "-";
-                        if (rawNid !== undefined && rawNid !== null && rawNid !== "" && rawNid !== "-") {
-                            let nidStr = String(rawNid).trim();
-                            if (nidStr.toUpperCase().includes('E')) {
-                                rawNid = Number(rawNid).toLocaleString('fullwide', {useGrouping:false});
-                            } else {
-                                rawNid = nidStr.replace(/[^0-9]/g, '');
-                            }
+                        let rawNid = activeColumns.nid ? String(row[cols.nid] || "-").trim() : "-";
+                        if (rawNid.toUpperCase().includes('E')) {
+                            rawNid = Number(row[cols.nid]).toLocaleString('fullwide', {useGrouping:false});
                         } else {
-                            rawNid = "-";
+                            rawNid = rawNid.replace(/[^0-9]/g, '') || "-";
                         }
+                        
+                        let cName = activeColumns.name ? String(row[cols.name] || "-").trim() : "-";
 
                         if (cloudClientsMap[phoneStr]) {
-                            cloudClientsMap[phoneStr].name = activeColumns.name ? String(row[cols.name] || "-").trim() : "-";
-                            cloudClientsMap[phoneStr].nid = rawNid || "-";
+                            cloudClientsMap[phoneStr].name = cName;
+                            cloudClientsMap[phoneStr].nid = rawNid;
                             cloudClientsMap[phoneStr].status = st;
                             cloudClientsMap[phoneStr].company = comp;
                         } else {
                             cloudClientsMap[phoneStr] = {
                                 orderId: orderCounter++,
-                                name: activeColumns.name ? String(row[cols.name] || "-").trim() : "-",
-                                nid: rawNid || "-",
+                                name: cName,
+                                nid: rawNid,
                                 phone: phoneStr,
                                 status: st,
                                 company: comp,
@@ -463,14 +461,13 @@
                     }
                 }
 
-                // الرفع مع معالجة الأخطاء الذكية وإظهار الرسالة
                 branchClientsRef.set(cloudClientsMap).then(() => {
                     document.getElementById('loadingIndicator').classList.add('hidden');
                     document.getElementById('excelFile').value = '';
                     alert("تم دمج ورفع الشيت بنجاح! جميع الأجهزة ستتحدث الآن.");
                 }).catch(err => {
                     document.getElementById('loadingIndicator').classList.add('hidden');
-                    alert("حدث خطأ أثناء الرفع للسحابة.\nالسبب: " + err.message + "\n\n(لو السبب Permission Denied، تأكد من تحديث Firebase Rules).");
+                    alert("حدث خطأ أثناء الرفع للسحابة. تأكد من إعدادات Firebase Rules");
                 });
 
             };
@@ -479,7 +476,7 @@
     }
 
     function cleanPhoneNumber(phone) {
-        if (!phone) return "";
+        if (!phone || phone === "undefined") return "";
         let p = String(phone).replace(/[^0-9]/g, '');
         if (p.startsWith('1') && p.length === 10) return '20' + p;
         if (p.startsWith('01') && p.length === 11) return '2' + p;
@@ -488,7 +485,7 @@
     }
 
     // -----------------------------------------------------
-    // 6. واجهة المستخدم والفلاتر 
+    // 6. واجهة المستخدم والفلاتر المحمية من الانهيار
     // -----------------------------------------------------
     function restoreUI() {
         ['Name', 'Nid', 'Phone', 'Status', 'Company'].forEach(col => {
@@ -501,8 +498,10 @@
         let uniqueCompanies = new Set();
 
         globalData.forEach(client => {
-            if (activeColumns.status && client.status) uniqueStatuses.add(client.status);
-            if (activeColumns.company && client.company && client.company !== 'بدون شركة') uniqueCompanies.add(client.company);
+            let cStatus = client.status ? String(client.status) : "بدون حالة";
+            let cCompany = client.company ? String(client.company) : "بدون شركة";
+            if (activeColumns.status) uniqueStatuses.add(cStatus);
+            if (activeColumns.company && cCompany !== 'بدون شركة') uniqueCompanies.add(cCompany);
         });
 
         document.getElementById('statusFilterContainer').classList.add('hidden');
@@ -529,10 +528,11 @@
 
         itemsSet.forEach(item => {
             if (item) {
-                let bgColor = item.includes("بدون") ? "bg-rose-50 text-rose-800 border-rose-200" : "bg-slate-50 text-slate-800 border-slate-200";
+                let safeItem = String(item);
+                let bgColor = safeItem.includes("بدون") ? "bg-rose-50 text-rose-800 border-rose-200" : "bg-slate-50 text-slate-800 border-slate-200";
                 const lbl = document.createElement('label');
                 lbl.className = `checkbox-label ${bgColor} px-2 py-1 rounded text-[10px] border flex items-center gap-1 font-bold shadow-sm`;
-                lbl.innerHTML = `<input type="checkbox" class="${typeClass}-cb w-3 h-3 rounded" value="${item}" checked onchange="applyFilters()"> <span>${item}</span>`;
+                lbl.innerHTML = `<input type="checkbox" class="${typeClass}-cb w-3 h-3 rounded" value="${safeItem}" checked onchange="applyFilters()"> <span>${safeItem}</span>`;
                 container.appendChild(lbl);
             }
         });
@@ -549,13 +549,14 @@
     function updateEmpDropdown() {
         const empSet = new Set();
         globalData.forEach(client => {
-            if (client.history) client.history.forEach(h => { if (h.empId) empSet.add(h.empId); });
+            let clientHistory = Array.isArray(client.history) ? client.history : [];
+            clientHistory.forEach(h => { if (h && h.empId) empSet.add(h.empId); });
         });
         const select = document.getElementById('empDropdownFilter');
         const currentVal = select.value;
         select.innerHTML = '<option value="">الكل</option>';
         empSet.forEach(emp => {
-            if (emp && emp !== 'غير محدد') {
+            if (emp && String(emp).trim() !== '') {
                 const opt = document.createElement('option');
                 opt.value = emp; opt.textContent = emp; select.appendChild(opt);
             }
@@ -564,21 +565,153 @@
     }
 
     function renderHistory(historyArray) {
-        const commentsOnly = historyArray.filter(item => item.type === 'comment');
-        if (!commentsOnly || commentsOnly.length === 0) return '<div class="text-slate-400 text-center py-2 text-[10px] font-bold">لا توجد تعليقات</div>';
+        if (!historyArray || !Array.isArray(historyArray)) return '<div class="text-slate-400 text-center py-2 text-[10px] font-bold">لا توجد تعليقات</div>';
+        const commentsOnly = historyArray.filter(item => item && item.type === 'comment');
+        if (commentsOnly.length === 0) return '<div class="text-slate-400 text-center py-2 text-[10px] font-bold">لا توجد تعليقات</div>';
         
         return commentsOnly.map(item => {
             return `<div class="bg-white border border-slate-200 p-1.5 rounded mb-1 shadow-sm text-right">
                 <div class="flex justify-between items-center mb-1">
-                    <span class="font-bold text-[9px] text-slate-500 bg-slate-100 px-1 rounded">${item.date}</span>
-                    <span class="text-[9px] font-bold text-sky-700">ID: ${item.empId}</span>
+                    <span class="font-bold text-[9px] text-slate-500 bg-slate-100 px-1 rounded">${item.date || "-"}</span>
+                    <span class="text-[9px] font-bold text-sky-700">ID: ${item.empId || "-"}</span>
                 </div>
-                <div class="font-semibold text-slate-800 text-[11px] leading-tight break-words">${item.text}</div>
+                <div class="font-semibold text-slate-800 text-[11px] leading-tight break-words">${item.text || "-"}</div>
             </div>`;
         }).join('');
     }
 
-    // --- الإجراءات (تُرسل للسحابة فوراً) ---
+    function applyFilters() {
+        try {
+            const selectedStatuses = activeColumns.status ? getCheckedValues('status') : [];
+            const selectedCompanies = activeColumns.company ? getCheckedValues('company') : [];
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            const followUpFilter = document.getElementById('followUpFilter').value;
+            const empDropdownFilter = document.getElementById('empDropdownFilter').value;
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            let count = 0;
+
+            globalData.forEach((client, index) => {
+                // حماية المتغيرات من الانهيار (Fallbacks)
+                let cName = client.name ? String(client.name) : "-";
+                let cPhone = client.phone ? String(client.phone) : "-";
+                let cNid = client.nid ? String(client.nid) : "-";
+                let cStatus = client.status ? String(client.status) : "بدون حالة";
+                let cCompany = client.company ? String(client.company) : "بدون شركة";
+                let clientHistory = Array.isArray(client.history) ? client.history : [];
+
+                let statusMatch = !activeColumns.status || selectedStatuses.includes(cStatus);
+                let companyMatch = !activeColumns.company || selectedCompanies.includes(cCompany);
+                
+                let searchMatch = true;
+                if (searchTerm) {
+                    let inComments = clientHistory.some(h => h && h.type === 'comment' && h.text && String(h.text).toLowerCase().includes(searchTerm));
+                    searchMatch = cName.toLowerCase().includes(searchTerm) || 
+                                  cPhone.includes(searchTerm) || 
+                                  cNid.includes(searchTerm) ||
+                                  inComments;
+                }
+
+                let hasComment = clientHistory.some(h => h && h.type === 'comment');
+                
+                let fuMatch = true;
+                if (followUpFilter === 'interested') fuMatch = client.followUpStatus === 'interested';
+                if (followUpFilter === 'not_interested') fuMatch = client.followUpStatus === 'not_interested';
+                if (followUpFilter === 'done') fuMatch = client.followUpStatus === 'done';
+                if (followUpFilter === 'has_comment') fuMatch = hasComment;
+
+                let empMatch = true;
+                if (empDropdownFilter) {
+                    empMatch = clientHistory.some(h => h && h.empId === empDropdownFilter);
+                }
+
+                if (statusMatch && companyMatch && searchMatch && fuMatch && empMatch) {
+                    count++;
+                    
+                    let rowClass = `client-row transition-colors text-sm `;
+                    if (client.followUpStatus === 'done') rowClass += `row-done`; 
+                    else if (client.followUpStatus === 'interested') rowClass += `row-interested`; 
+                    else if (client.followUpStatus === 'not_interested') rowClass += `row-not-interested`;
+                    else if (hasComment) rowClass += `row-has-comment`; 
+                    else if (client.sent) rowClass += `row-sent`;
+                    else rowClass += `row-default hover:bg-slate-50`;
+                    
+                    const tr = document.createElement('tr');
+                    tr.id = `row-${index}`;
+                    tr.className = rowClass;
+
+                    let html = '';
+                    let displayName = cName;
+                    if (client.sent) displayName += ' <i class="fas fa-check-circle text-emerald-500 text-[10px]" title="تم الإرسال"></i>';
+
+                    if (activeColumns.name) html += `<td class="p-2 font-bold text-slate-800 text-xs align-top pt-4">${displayName}</td>`;
+                    if (activeColumns.nid) html += `<td class="p-2 text-slate-500 font-mono text-[10px] align-top pt-4">${cNid}</td>`;
+                    html += `<td class="p-2 text-slate-800 font-bold text-xs align-top pt-4" dir="ltr">+${cPhone}</td>`;
+                    
+                    let displayCompany = cCompany === 'بدون شركة' ? '-' : cCompany;
+                    let badgeCompany = cCompany === 'بدون شركة' ? 'text-slate-400 font-bold text-lg' : 'bg-slate-100 text-slate-700 border border-slate-300 px-2 py-1 rounded text-[10px]';
+                    let badgeStatus = cStatus.includes("بدون") ? 'bg-rose-100 text-rose-800 border-rose-300' : 'bg-slate-100 text-slate-700 border-slate-300';
+                    
+                    if (activeColumns.status) html += `<td class="p-2 align-top pt-4"><span class="px-2 py-1 rounded text-[10px] font-semibold border ${badgeStatus}">${cStatus}</span></td>`;
+                    if (activeColumns.company) html += `<td class="p-2 align-top pt-4"><span class="${badgeCompany}">${displayCompany}</span></td>`;
+                    
+                    html += `
+                        <td class="p-2 border-r border-l border-slate-100 align-top">
+                            <div class="h-24 overflow-y-auto mb-1.5 custom-scrollbar bg-slate-50/50 p-1.5 rounded border border-slate-200 shadow-inner" id="history-${index}">
+                                ${renderHistory(clientHistory)}
+                            </div>
+                            <div class="flex gap-1">
+                                <input type="text" id="comment-input-${index}" class="flex-grow border border-slate-300 p-1.5 rounded focus:border-sky-500 outline-none text-[11px]" placeholder="اكتب تعليق...">
+                                <button onclick="addComment(${index})" class="bg-sky-600 hover:bg-sky-700 text-white px-2 py-1 rounded text-[11px] font-bold shadow flex-shrink-0">حفظ</button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    let dateBadge = '';
+                    if (client.statusDate && client.followUpStatus) {
+                        let colorClass = client.followUpStatus === 'done' ? 'text-emerald-700' : (client.followUpStatus === 'interested' ? 'text-amber-700' : 'text-rose-700');
+                        dateBadge = `<div class="text-[9px] font-bold ${colorClass} mt-1 text-center"><i class="fas fa-history"></i> ${client.statusDate}</div>`;
+                    }
+
+                    html += `
+                        <td class="p-2 align-top border-l border-slate-100">
+                            <div class="flex flex-col gap-1.5 justify-center">
+                                <button onclick="setFollowUpStatus(${index}, 'done')" class="${client.followUpStatus === 'done' ? 'bg-emerald-500 text-white shadow' : 'bg-white text-slate-600 hover:bg-emerald-50'} px-2 py-1.5 rounded text-[11px] font-bold border border-emerald-300 w-full transition">✅ تم التنفيذ</button>
+                                <button onclick="setFollowUpStatus(${index}, 'interested')" class="${client.followUpStatus === 'interested' ? 'bg-amber-500 text-white shadow' : 'bg-white text-slate-600 hover:bg-amber-50'} px-2 py-1.5 rounded text-[11px] font-bold border border-amber-300 w-full transition">⭐ مهتم</button>
+                                <button onclick="setFollowUpStatus(${index}, 'not_interested')" class="${client.followUpStatus === 'not_interested' ? 'bg-rose-500 text-white shadow' : 'bg-white text-slate-600 hover:bg-rose-50'} px-2 py-1.5 rounded text-[11px] font-bold border border-rose-300 w-full transition">🚫 غير مهتم</button>
+                                ${dateBadge}
+                            </div>
+                        </td>
+                    `;
+
+                    let btnColor = client.sent ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-sky-600 hover:bg-sky-700';
+                    let btnText = client.sent ? '<i class="fab fa-whatsapp"></i> إرسال مجدداً' : '<i class="fab fa-whatsapp"></i> إرسال للعميل';
+                    
+                    html += `
+                        <td class="p-2 align-middle">
+                            <button onclick="sendManual(${index})" class="${btnColor} text-white px-3 py-3 rounded-lg text-xs font-bold shadow-md transition w-full flex items-center justify-center gap-1 whitespace-nowrap">
+                                ${btnText}
+                            </button>
+                        </td>
+                    `;
+
+                    tr.innerHTML = html;
+                    tbody.appendChild(tr);
+                    
+                    const hDiv = document.getElementById(`history-${index}`);
+                    if(hDiv) hDiv.scrollTop = hDiv.scrollHeight;
+                }
+            });
+            
+            document.getElementById('clientCount').innerText = count;
+        } catch(error) {
+            console.error("حدث خطأ أثناء رسم الجدول:", error);
+        }
+    }
+
+    // --- الإجراءات والواتساب ---
     function addComment(index) {
         const empId = document.getElementById('empIdInput').value.trim();
         if (!empId) {
@@ -616,129 +749,6 @@
         updateClientInCloud(globalData[index]);
     }
 
-    function applyFilters() {
-        const selectedStatuses = activeColumns.status ? getCheckedValues('status') : [];
-        const selectedCompanies = activeColumns.company ? getCheckedValues('company') : [];
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-        
-        const followUpFilter = document.getElementById('followUpFilter').value;
-        const empDropdownFilter = document.getElementById('empDropdownFilter').value;
-
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
-        visibleRows = [];
-        let count = 0;
-
-        globalData.forEach((client, index) => {
-            let statusMatch = !activeColumns.status || selectedStatuses.includes(client.status);
-            let companyMatch = !activeColumns.company || selectedCompanies.includes(client.company);
-            
-            let searchMatch = true;
-            if (searchTerm) {
-                let inComments = client.history && client.history.some(h => h.type === 'comment' && h.text.toLowerCase().includes(searchTerm));
-                searchMatch = client.name.toLowerCase().includes(searchTerm) || 
-                              client.phone.includes(searchTerm) || 
-                              client.nid.includes(searchTerm) ||
-                              inComments;
-            }
-
-            let hasComment = client.history && client.history.some(h => h.type === 'comment');
-            
-            let fuMatch = true;
-            if (followUpFilter === 'interested') fuMatch = client.followUpStatus === 'interested';
-            if (followUpFilter === 'not_interested') fuMatch = client.followUpStatus === 'not_interested';
-            if (followUpFilter === 'done') fuMatch = client.followUpStatus === 'done';
-            if (followUpFilter === 'has_comment') fuMatch = hasComment;
-
-            let empMatch = true;
-            if (empDropdownFilter) {
-                empMatch = client.history && client.history.some(h => h.empId === empDropdownFilter);
-            }
-
-            if (statusMatch && companyMatch && searchMatch && fuMatch && empMatch) {
-                visibleRows.push(index);
-                count++;
-                
-                let rowClass = `client-row transition-colors text-sm `;
-                if (client.followUpStatus === 'done') rowClass += `row-done`; 
-                else if (client.followUpStatus === 'interested') rowClass += `row-interested`; 
-                else if (client.followUpStatus === 'not_interested') rowClass += `row-not-interested`;
-                else if (hasComment) rowClass += `row-has-comment`; 
-                else if (client.sent) rowClass += `row-sent`;
-                else rowClass += `row-default hover:bg-slate-50`;
-                
-                const tr = document.createElement('tr');
-                tr.id = `row-${index}`;
-                tr.className = rowClass;
-
-                let html = '';
-
-                let displayName = client.name;
-                if (client.sent) displayName += ' <i class="fas fa-check-circle text-emerald-500 text-[10px]" title="تم الإرسال"></i>';
-
-                if (activeColumns.name) html += `<td class="p-2 font-bold text-slate-800 text-xs align-top pt-4">${displayName}</td>`;
-                if (activeColumns.nid) html += `<td class="p-2 text-slate-500 font-mono text-[10px] align-top pt-4">${client.nid}</td>`;
-                html += `<td class="p-2 text-slate-800 font-bold text-xs align-top pt-4" dir="ltr">+${client.phone}</td>`;
-                
-                let displayCompany = client.company === 'بدون شركة' ? '-' : client.company;
-                let badgeCompany = client.company === 'بدون شركة' ? 'text-slate-400 font-bold text-lg' : 'bg-slate-100 text-slate-700 border border-slate-300 px-2 py-1 rounded text-[10px]';
-                
-                let badgeStatus = client.status.includes("بدون") ? 'bg-rose-100 text-rose-800 border-rose-300' : 'bg-slate-100 text-slate-700 border-slate-300';
-                if (activeColumns.status) html += `<td class="p-2 align-top pt-4"><span class="px-2 py-1 rounded text-[10px] font-semibold border ${badgeStatus}">${client.status || '-'}</span></td>`;
-                if (activeColumns.company) html += `<td class="p-2 align-top pt-4"><span class="${badgeCompany}">${displayCompany}</span></td>`;
-                
-                html += `
-                    <td class="p-2 border-r border-l border-slate-100 align-top">
-                        <div class="h-24 overflow-y-auto mb-1.5 custom-scrollbar bg-slate-50/50 p-1.5 rounded border border-slate-200 shadow-inner" id="history-${index}">
-                            ${renderHistory(client.history)}
-                        </div>
-                        <div class="flex gap-1">
-                            <input type="text" id="comment-input-${index}" class="flex-grow border border-slate-300 p-1.5 rounded focus:border-sky-500 outline-none text-[11px]" placeholder="اكتب تعليق...">
-                            <button onclick="addComment(${index})" class="bg-sky-600 hover:bg-sky-700 text-white px-2 py-1 rounded text-[11px] font-bold shadow flex-shrink-0">حفظ</button>
-                        </div>
-                    </td>
-                `;
-                
-                let dateBadge = '';
-                if (client.statusDate && client.followUpStatus) {
-                    let colorClass = client.followUpStatus === 'done' ? 'text-emerald-700' : (client.followUpStatus === 'interested' ? 'text-amber-700' : 'text-rose-700');
-                    dateBadge = `<div class="text-[9px] font-bold ${colorClass} mt-1 text-center"><i class="fas fa-history"></i> ${client.statusDate}</div>`;
-                }
-
-                html += `
-                    <td class="p-2 align-top border-l border-slate-100">
-                        <div class="flex flex-col gap-1.5 justify-center">
-                            <button onclick="setFollowUpStatus(${index}, 'done')" class="${client.followUpStatus === 'done' ? 'bg-emerald-500 text-white shadow' : 'bg-white text-slate-600 hover:bg-emerald-50'} px-2 py-1.5 rounded text-[11px] font-bold border border-emerald-300 w-full transition">✅ تم التنفيذ</button>
-                            <button onclick="setFollowUpStatus(${index}, 'interested')" class="${client.followUpStatus === 'interested' ? 'bg-amber-500 text-white shadow' : 'bg-white text-slate-600 hover:bg-amber-50'} px-2 py-1.5 rounded text-[11px] font-bold border border-amber-300 w-full transition">⭐ مهتم</button>
-                            <button onclick="setFollowUpStatus(${index}, 'not_interested')" class="${client.followUpStatus === 'not_interested' ? 'bg-rose-500 text-white shadow' : 'bg-white text-slate-600 hover:bg-rose-50'} px-2 py-1.5 rounded text-[11px] font-bold border border-rose-300 w-full transition">🚫 غير مهتم</button>
-                            ${dateBadge}
-                        </div>
-                    </td>
-                `;
-
-                let btnColor = client.sent ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-sky-600 hover:bg-sky-700';
-                let btnText = client.sent ? '<i class="fab fa-whatsapp"></i> إرسال مجدداً' : '<i class="fab fa-whatsapp"></i> إرسال للعميل';
-                
-                html += `
-                    <td class="p-2 align-middle">
-                        <button onclick="sendManual(${index})" class="${btnColor} text-white px-3 py-3 rounded-lg text-xs font-bold shadow-md transition w-full flex items-center justify-center gap-1 whitespace-nowrap">
-                            ${btnText}
-                        </button>
-                    </td>
-                `;
-
-                tr.innerHTML = html;
-                tbody.appendChild(tr);
-                
-                const hDiv = document.getElementById(`history-${index}`);
-                if(hDiv) hDiv.scrollTop = hDiv.scrollHeight;
-            }
-        });
-        
-        document.getElementById('clientCount').innerText = count;
-    }
-
-    // --- الواتساب والإرسال ---
     function generateWaLink(client) {
         let msg = document.getElementById('messageText').value;
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
