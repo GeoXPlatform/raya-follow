@@ -96,7 +96,7 @@
                 <option value="city_center">City Center</option>
             </select>
             <button onclick="hardResetCloud()" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-lg font-bold text-[10px] shadow-md transition" title="مسح جميع بيانات الفرع من الجذور لحل أي مشكلة">
-                <i class="fas fa-radiation-alt"></i> ⚠️️ فورمات کامل للسحابة
+                <i class="fas fa-radiation-alt"></i> ⚠️ فورمات کامل للسحابة
             </button>
         </div>
     </div>
@@ -449,7 +449,6 @@
                     const workbook = XLSX.read(data, {type: 'array'});
                     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                     
-                    // تحويل الشيت لمصفوفات علشان نتعامل مع الترحيل بذكاء
                     const jsonArray = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
                     
                     if (jsonArray.length < 2) {
@@ -514,7 +513,6 @@
 
                     let orderCounter = Object.keys(cloudClientsMap).length;
 
-                    // قراءة الداتا من السطر اللي تحت العناوين مباشرة
                     for (let i = headerRowIndex + 1; i < jsonArray.length; i++) {
                         const row = jsonArray[i];
                         if (!row || row.length === 0) continue;
@@ -540,13 +538,11 @@
                             let cName = activeColumns.name && row[cols.name] ? String(row[cols.name]).trim() : "-";
 
                             if (cloudClientsMap[phoneStr]) {
-                                // تحديث العميل لو موجود
                                 cloudClientsMap[phoneStr].name = cName;
                                 cloudClientsMap[phoneStr].nid = rawNid;
                                 cloudClientsMap[phoneStr].status = st;
                                 cloudClientsMap[phoneStr].company = comp;
                             } else {
-                                // عميل جديد
                                 cloudClientsMap[phoneStr] = {
                                     orderId: orderCounter++,
                                     name: cName,
@@ -563,7 +559,6 @@
                         }
                     }
 
-                    // رفع الداتا بعد تنظيفها للسحابة
                     branchClientsRef.set(cloudClientsMap).then(() => {
                         document.getElementById('loadingIndicator').classList.add('hidden');
                         document.getElementById('excelFile').value = '';
@@ -597,8 +592,32 @@
     }
 
     // -----------------------------------------------------
-    // 6. الإشعارات الذكية
+    // 6. الإشعارات الذكية ونسخ الرقم القومي
     // -----------------------------------------------------
+    
+    // الدالة السحرية لنسخ الرقم القومي وفتح موقع راية
+    window.copyAndOpenRaya = function(nid, btn) {
+        if (nid && String(nid).trim() !== "-" && String(nid).trim() !== "") {
+            const tempInput = document.createElement("input");
+            tempInput.value = nid;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand("copy");
+                let originalText = btn.innerHTML;
+                btn.innerHTML = `<i class="fas fa-check text-emerald-400"></i> تم النسخ`;
+                setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+            } catch(err) {
+                console.error("Copy failed", err);
+            }
+            document.body.removeChild(tempInput);
+        } else {
+            alert("لا يوجد رقم قومي لهذا العميل لنسخه!");
+        }
+        // فتح موقع راية فوراً في تاب جديدة
+        window.open("https://rayainstallment.com/Account/login?ReturnUrl=%2FInstallment%2FInstallmentCalculations", "_blank");
+    };
+
     function checkTodayFollowUps() {
         let today = new Date().toISOString().split('T')[0];
         let count = 0;
@@ -636,27 +655,25 @@
     // 7. واجهة المستخدم والفلاتر المحمية
     // -----------------------------------------------------
     function restoreUI() {
-        ['Name', 'Nid', 'Phone', 'Status', 'Company'].forEach(col => {
-            const th = document.getElementById('th' + col);
-            if (activeColumns[col.toLowerCase()]) th.classList.remove('hidden');
-            else th.classList.add('hidden');
-        });
+        try {
+            let uniqueStatuses = new Set();
+            let uniqueCompanies = new Set();
 
-        let uniqueStatuses = new Set();
-        let uniqueCompanies = new Set();
+            globalData.forEach(client => {
+                let cStatus = client.status ? String(client.status) : "بدون حالة";
+                let cCompany = client.company ? String(client.company) : "بدون شركة";
+                if (activeColumns.status) uniqueStatuses.add(cStatus);
+                if (activeColumns.company && cCompany !== 'بدون شركة') uniqueCompanies.add(cCompany);
+            });
 
-        globalData.forEach(client => {
-            let cStatus = client.status ? String(client.status) : "بدون حالة";
-            let cCompany = client.company ? String(client.company) : "بدون شركة";
-            if (activeColumns.status) uniqueStatuses.add(cStatus);
-            if (activeColumns.company && cCompany !== 'بدون شركة') uniqueCompanies.add(cCompany);
-        });
+            if (activeColumns.status && uniqueStatuses.size > 0) buildCheckboxes('statusCheckboxes', uniqueStatuses, 'status', true);
+            if (activeColumns.company) buildCheckboxes('companyCheckboxes', uniqueCompanies, 'company', true); 
 
-        if (activeColumns.status && uniqueStatuses.size > 0) buildCheckboxes('statusCheckboxes', uniqueStatuses, 'status', true);
-        if (activeColumns.company) buildCheckboxes('companyCheckboxes', uniqueCompanies, 'company', true); 
-
-        document.getElementById('actionPanel').classList.remove('hidden');
-        applyFilters();
+            document.getElementById('actionPanel').classList.remove('hidden');
+            applyFilters();
+        } catch(e) {
+            console.error("Error in restoreUI", e);
+        }
     }
 
     function buildCheckboxes(containerId, itemsSet, typeClass, addEmptyOption = false) {
@@ -751,8 +768,8 @@
         let displayName = cName;
         if (client.sent) displayName += ' <i class="fas fa-check-circle text-emerald-500 text-[10px]" title="تم الإرسال"></i>';
         
-        let rayaSystemLink = "https://rayainstallment.com/Account/login?ReturnUrl=%2FInstallment%2FInstallmentCalculations"; 
-        let limitBtn = `<a href="${rayaSystemLink}" target="_blank" class="mt-1 inline-block bg-slate-800 hover:bg-slate-700 text-white text-[9px] font-bold px-2 py-1 rounded shadow-sm transition"><i class="fas fa-credit-card text-sky-400"></i> عرض الليمت</a>`;
+        // زرار الليمت الذكي (بينسخ الرقم القومي ويفتح اللينك)
+        let limitBtn = `<button onclick="copyAndOpenRaya('${cNid}', this)" class="mt-1 inline-block bg-slate-800 hover:bg-slate-700 text-white text-[9px] font-bold px-2 py-1 rounded shadow-sm transition cursor-pointer w-full text-center"><i class="fas fa-credit-card text-sky-400"></i> عرض الليمت</button>`;
 
         html += `<td class="p-1.5 align-top pt-2">
             <div class="font-bold text-slate-800 text-xs">${displayName}</div>
