@@ -12,7 +12,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
-    <!-- مكتبات التصميم وقراءة الإكسيل -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,7 +19,7 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; }
         
-        /* إطارات واضحة لكل عميل مع تأثيرات */
+        /* إطارات واضحة لكل عميل مع تأثيرات لتوضيح الحالة */
         .client-row { border: 2px solid #cbd5e1; border-bottom: 5px solid #94a3b8; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: background-color 0.3s ease; }
         .row-default { background-color: #ffffff; }
         .row-has-comment { background-color: #fdf4ff !important; border: 2px solid #d8b4fe !important; border-bottom: 5px solid #a855f7 !important; } 
@@ -219,7 +218,7 @@
                         </div>
                     </div>
 
-                    <button onclick="toggleAdvancedFilters()" class="w-full mt-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1 px-2 rounded text-[9px] border border-slate-300 flex justify-between outline-none">
+                    <button onclick="toggleAdvancedFilters()" class="w-full mt-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1 px-2 rounded text-[9px] border border-slate-300 flex justify-between transition outline-none">
                         <span><i class="fas fa-sliders-h text-sky-600"></i> فلاتر متقدمة (نظام وشركات)</span>
                         <i class="fas fa-chevron-down" id="advFilterIcon"></i>
                     </button>
@@ -244,7 +243,7 @@
                     <p class="font-bold text-slate-500 text-[9px]">جاري المزامنة مع السحابة...</p>
                 </div>
                 
-                <table class="w-full text-center border-collapse min-w-[700px] md:min-w-[900px] table-fixed" id="dataTable">
+                <table class="w-full text-center border-collapse min-w-[700px] md:min-w-[900px]" id="dataTable">
                     <thead class="bg-slate-200 border-b border-slate-300">
                         <tr id="tableHeader">
                             <th class="p-1 font-bold text-slate-700 text-[9px] w-32">العميل والموبايل</th>
@@ -360,7 +359,7 @@
                 document.getElementById('dataTable').classList.remove('hidden');
                 document.getElementById('actionPanel').classList.remove('hidden');
                 updateEmpDropdown();
-                loadFilters(); // استرجاع الفلاتر من الذاكرة عشان متطيرش مع الريفريش
+                loadFilters(); // استرجاع الفلاتر من الذاكرة
                 checkTodayFollowUps();
                 restoreUI();
             } else {
@@ -398,7 +397,7 @@
         sortGlobalData();
     }
 
-    // الترتيب الذكي: المهتم فوق، ثم اللي ليه كومنت، ثم الجديد، ثم تم التنفيذ، ثم غير مهتم
+    // الترتيب الذكي
     function sortGlobalData() {
         globalData.sort((a, b) => {
             const gp = c => {
@@ -435,7 +434,7 @@
             document.getElementById('dataTable').classList.add('hidden');
             branchClientsRef.remove().then(() => {
                 branchSettingsRef.remove();
-                localStorage.removeItem('raya_f'); // مسح الفلاتر
+                localStorage.removeItem('raya_f'); // مسح الفلاتر المحفوظة
                 alert("تم الفرمتة بنجاح!");
                 location.reload();
             });
@@ -456,126 +455,127 @@
             try {
                 const r = new FileReader();
                 r.onload = e => {
-                    const d = new Uint8Array(e.target.result),
-                          wb = XLSX.read(d, { type: 'array' });
-                          
-                    let ja = [];
-                    // الدمج الشامل لكل الشيتات في الملف عشان الداتا المخفية
-                    wb.SheetNames.forEach(sheetName => {
-                        let sheetData = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1, raw: false, defval: "" });
-                        ja = ja.concat(sheetData);
-                    });
-                          
-                    if (ja.length < 1) {
-                        document.getElementById('loadingIndicator').classList.add('hidden');
-                        return alert("ملف الإكسيل فارغ أو غير مدعوم!");
-                    }
-                    
-                    let cm = {};
-                    globalData.forEach(c => {
-                        if (c.phone) {
-                            c.name = c.name || "-"; c.status = c.status || "-"; c.company = c.company || "-"; c.nid = c.nid || "-";
-                            c.history = Array.isArray(c.history) ? c.history : [];
-                            cm[c.phone] = c;
+                    try {
+                        const d = new Uint8Array(e.target.result),
+                              wb = XLSX.read(d, { type: 'array' });
+                              
+                        let ja = [];
+                        // دمج شامل لكل الشيتات الموجودة في الملف 
+                        wb.SheetNames.forEach(sheetName => {
+                            let sheetData = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1, defval: "" });
+                            ja = ja.concat(sheetData);
+                        });
+                              
+                        if (ja.length < 1) {
+                            document.getElementById('loadingIndicator').classList.add('hidden');
+                            return alert("ملف الإكسيل فارغ أو غير مدعوم!");
                         }
-                    });
-                    
-                    let oc = Object.keys(cm).length;
-                    let addedCount = 0;
-                    
-                    // الاستخراج الجبري بدون الاعتماد على العناوين
-                    for (let i = 0; i < ja.length; i++) {
-                        const row = ja[i];
-                        if (!row || !Array.isArray(row) || row.length === 0) continue;
-
-                        let ps = "", cn = "-", rn = "-", st = "-", cp = "-";
-
-                        for (let j = 0; j < row.length; j++) {
-                            let cellValue = row[j];
-                            if (cellValue === null || cellValue === undefined || cellValue === "") continue;
-                            
-                            let cStr = String(cellValue).trim();
-                            // علاج الأرقام العلمية E+
-                            if (cStr.toUpperCase().includes('E') && !isNaN(cellValue)) {
-                                cStr = Number(cellValue).toLocaleString('fullwide', {useGrouping:false});
+                        
+                        let cm = {};
+                        globalData.forEach(c => {
+                            if (c.phone) {
+                                c.name = c.name || "-"; c.status = c.status || "-"; c.company = c.company || "-"; c.nid = c.nid || "-";
+                                c.history = Array.isArray(c.history) ? c.history : [];
+                                cm[c.phone] = c;
                             }
-                            
-                            let cNum = cStr.replace(/[^0-9]/g, '');
+                        });
+                        
+                        let oc = Object.keys(cm).length;
+                        let addedCount = 0;
+                        
+                        // الاستخراج الجبري القوي جداً (سطر سطر)
+                        for (let i = 0; i < ja.length; i++) {
+                            const row = ja[i];
+                            if (!row || !Array.isArray(row) || row.length === 0) continue;
 
-                            // اصطياد الموبايل
-                            if (!ps && (cNum.length >= 10 && cNum.length <= 13)) {
-                                if (cNum.startsWith('01') || cNum.startsWith('1') || cNum.startsWith('201')) {
-                                    ps = cleanPhoneNumber(cNum);
+                            let ps = "", cn = "-", rn = "-", st = "-", cp = "-";
+
+                            for (let j = 0; j < row.length; j++) {
+                                let cellValue = row[j];
+                                if (cellValue === null || cellValue === undefined || cellValue === "") continue;
+                                
+                                let cStr = String(cellValue).trim();
+                                
+                                let cNum = cStr.replace(/[^0-9]/g, '');
+
+                                // اصطياد الموبايل
+                                if (!ps && (cNum.length >= 10 && cNum.length <= 13)) {
+                                    if (cNum.startsWith('01') || cNum.startsWith('1') || cNum.startsWith('201')) {
+                                        ps = cleanPhoneNumber(cNum);
+                                        continue;
+                                    }
+                                }
+                                // اصطياد الرقم القومي
+                                if (rn === "-" && cNum.length === 14 && (cNum.startsWith('2') || cNum.startsWith('3'))) {
+                                    rn = cNum;
                                     continue;
                                 }
+                                // اصطياد الحالة
+                                let clow = cStr.toLowerCase();
+                                if (st === "-" && (clow.includes('pending') || clow.includes('approved') || clow.includes('rejected') || clow.includes('active') || clow.includes('cancel') || clow.includes('limit') || clow.includes('expired') || clow.includes('مرفوض') || clow.includes('مقبول') || clow.includes('معلق'))) {
+                                    st = cStr;
+                                    continue;
+                                }
+                                // اصطياد الشركة
+                                if (cp === "-" && (clow.includes('company') || clow.includes('telecom') || clow.includes('bank') || clow.includes('شركة') || clow.includes('بنك') || clow.includes('foods') || clow.includes('services'))) {
+                                    cp = cStr;
+                                    continue;
+                                }
+                                // اصطياد الاسم (نص بدون أرقام)
+                                if (cn === "-" && cStr.length > 5 && isNaN(cStr) && !clow.includes('pending') && !cStr.includes('@') && !cStr.includes('http') && !cStr.match(/\d/)) {
+                                    cn = cStr;
+                                }
                             }
-                            // اصطياد الرقم القومي
-                            if (rn === "-" && cNum.length === 14 && (cNum.startsWith('2') || cNum.startsWith('3'))) {
-                                rn = cNum;
-                                continue;
-                            }
-                            // اصطياد الحالة
-                            let clow = cStr.toLowerCase();
-                            if (st === "-" && (clow.includes('pending') || clow.includes('approved') || clow.includes('rejected') || clow.includes('active') || clow.includes('cancel') || clow.includes('limit') || clow.includes('expired') || clow.includes('مرفوض') || clow.includes('مقبول') || clow.includes('معلق'))) {
-                                st = cStr;
-                                continue;
-                            }
-                            // اصطياد الشركة
-                            if (cp === "-" && (clow.includes('company') || clow.includes('telecom') || clow.includes('bank') || clow.includes('شركة') || clow.includes('بنك') || clow.includes('foods') || clow.includes('services'))) {
-                                cp = cStr;
-                                continue;
-                            }
-                            // اصطياد الاسم (نص بدون أرقام)
-                            if (cn === "-" && cStr.length > 5 && isNaN(cStr) && !clow.includes('pending') && !cStr.includes('@') && !cStr.includes('http') && !cStr.match(/\d/)) {
-                                cn = cStr;
+
+                            if (ps && ps.length > 5) {
+                                if (cm[ps]) {
+                                    if (cn !== "-" && cm[ps].name === "-") cm[ps].name = cn;
+                                    if (rn !== "-" && cm[ps].nid === "-") cm[ps].nid = rn;
+                                    if (st !== "-" && cm[ps].status === "-") cm[ps].status = st;
+                                    if (cp !== "-" && cm[ps].company === "-") cm[ps].company = cp;
+                                } else {
+                                    cm[ps] = {
+                                        orderId: oc++, name: cn, nid: rn, phone: ps, status: st, company: cp,
+                                        sent: false, history: [], followUpStatus: '', statusDate: ''
+                                    };
+                                    addedCount++;
+                                }
                             }
                         }
-
-                        if (ps && ps.length > 5) {
-                            if (cm[ps]) {
-                                if (cn !== "-" && cm[ps].name === "-") cm[ps].name = cn;
-                                if (rn !== "-" && cm[ps].nid === "-") cm[ps].nid = rn;
-                                if (st !== "-" && cm[ps].status === "-") cm[ps].status = st;
-                                if (cp !== "-" && cm[ps].company === "-") cm[ps].company = cp;
-                            } else {
-                                cm[ps] = {
-                                    orderId: oc++, name: cn, nid: rn, phone: ps, status: st, company: cp,
-                                    sent: false, history: [], followUpStatus: '', statusDate: ''
-                                };
-                                addedCount++;
-                            }
-                        }
-                    }
-                    
-                    if (addedCount === 0 && Object.keys(cm).length === 0) {
-                        document.getElementById('loadingIndicator').classList.add('hidden');
-                        document.getElementById('actionPanel').classList.remove('hidden');
-                        document.getElementById('dataTable').classList.remove('hidden');
-                        return alert("لم يتم العثور على أرقام هواتف لعملاء في هذا الشيت! تأكد من محتوى الشيت.");
-                    }
-
-                    // إجبار الفلاتر إنها تظهر دايماً
-                    activeColumns = { name: true, nid: true, phone: true, status: true, company: true };
-                    saveSettingsToFirebase();
-
-                    branchClientsRef.set(cm).then(() => {
-                        document.getElementById('loadingIndicator').classList.add('hidden');
-                        document.getElementById('excelFile').value = '';
                         
-                        // إظهار لوحة التحكم والجدول فوراً
-                        branchClientsRef.once('value', s => {
-                            updateDataFromSnapshot(s);
+                        if (addedCount === 0 && Object.keys(cm).length === 0) {
+                            document.getElementById('loadingIndicator').classList.add('hidden');
                             document.getElementById('actionPanel').classList.remove('hidden');
                             document.getElementById('dataTable').classList.remove('hidden');
-                            updateEmpDropdown();
-                            checkTodayFollowUps();
-                            restoreUI(); 
+                            return alert("تحذير: لم أتمكن من إيجاد أرقام هواتف عملاء في هذا الشيت! تأكد من المحتوى.");
+                        }
+
+                        // إجبار إظهار كل الأعمدة
+                        activeColumns = { name: true, nid: true, phone: true, status: true, company: true };
+                        saveSettingsToFirebase();
+
+                        branchClientsRef.set(cm).then(() => {
+                            document.getElementById('loadingIndicator').classList.add('hidden');
+                            document.getElementById('excelFile').value = '';
+                            
+                            // إظهار لوحة التحكم والجدول فوراً
+                            branchClientsRef.once('value', s => {
+                                updateDataFromSnapshot(s);
+                                document.getElementById('actionPanel').classList.remove('hidden');
+                                document.getElementById('dataTable').classList.remove('hidden');
+                                updateEmpDropdown();
+                                checkTodayFollowUps();
+                                restoreUI(); 
+                            });
+                            alert(`تم الرفع والدمج بنجاح! تم التقاط ${addedCount} عميل جديد.`);
+                        }).catch(err => {
+                            document.getElementById('loadingIndicator').classList.add('hidden');
+                            alert("خطأ أثناء الاتصال بالسحابة: " + err);
                         });
-                        alert(`تم الرفع والدمج بنجاح! تم التقاط ${addedCount} عميل جديد.`);
-                    }).catch(err => {
+                    } catch (innerErr) {
                         document.getElementById('loadingIndicator').classList.add('hidden');
-                        alert("خطأ أثناء الاتصال بالسحابة: " + err);
-                    });
+                        alert("حدث خطأ أثناء تحليل الشيت: " + innerErr.message);
+                    }
                 };
                 r.readAsArrayBuffer(f.files[0]);
             } catch (err) {
@@ -588,9 +588,6 @@
     function cleanPhoneNumber(p) {
         if (!p || String(p).trim() === "" || p === "undefined") return "";
         let cStr = String(p).trim();
-        if (cStr.toUpperCase().includes('E') && !isNaN(p)) {
-            cStr = Number(p).toLocaleString('fullwide', {useGrouping:false});
-        }
         let f = cStr.replace(/[^0-9]/g, '');
         if (f.startsWith('1') && f.length === 10) return '20' + f;
         if (f.startsWith('01') && f.length === 11) return '2' + f;
@@ -746,7 +743,7 @@
     }
 
     // -----------------------------------------------------
-    // 6. رسم الجدول (تنسيق واسع وغير مضغوط)
+    // 6. رسم الجدول (أزرار كبيرة وكتابة صغيرة)
     // -----------------------------------------------------
     function renderHistory(ha) {
         if (!ha || !Array.isArray(ha)) return '<div class="text-slate-400 text-center py-1 text-[8px]">لا توجد تعليقات</div>';
@@ -859,7 +856,7 @@
 
     function applyFilters() {
         try {
-            // حماية الفلاتر
+            // حماية الفلاتر لمنع اختفاء الجدول
             const sCb = document.querySelectorAll('.status-cb:checked');
             const cCb = document.querySelectorAll('.company-cb:checked');
             
@@ -938,7 +935,7 @@
         if (!globalData[i].history) globalData[i].history = [];
         globalData[i].history.push({ date: ad, empId: ei, type: 'comment', text: t || "تحديد منتج", product: p, followUpDate: fd });
         
-        // حفظ مكان التمرير
+        // حفظ مكان التمرير لثبات الشاشة
         let cs = window.scrollY;
         updateClientInCloud(globalData[i]);
         sortGlobalData();
@@ -960,7 +957,7 @@
             globalData[i].followUpStatus = st; globalData[i].statusDate = ad;
         }
         
-        // حفظ مكان التمرير 
+        // حفظ مكان التمرير لثبات الشاشة
         let cs = window.scrollY;
         updateClientInCloud(globalData[i]);
         sortGlobalData();
