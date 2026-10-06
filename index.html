@@ -19,7 +19,6 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; }
         
-        /* إطارات واضحة لكل عميل */
         .client-row { border: 2px solid #cbd5e1; border-bottom: 6px solid #94a3b8; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .row-default { background-color: #ffffff; }
         .row-has-comment { background-color: #fdf4ff !important; border: 2px solid #c084fc !important; border-bottom: 6px solid #a855f7 !important; } 
@@ -44,13 +43,11 @@
             100% { box-shadow: 0 0 0 0 transparent; }
         }
 
-        /* توهج الزراير عند الضغط */
         .btn-active-glow { box-shadow: 0 0 10px 2px currentColor; transform: scale(0.98); }
     </style>
 </head>
 <body class="p-1 md:p-3 min-h-screen text-[11px] md:text-sm">
 
-<!-- نافذة اختيار الفرع -->
 <div id="branchModal" class="fixed inset-0 bg-slate-900 bg-opacity-95 z-[100] flex items-center justify-center hidden">
     <div class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl max-w-sm w-11/12 text-center border-t-8 border-sky-600 relative overflow-hidden">
         <i class="fas fa-building text-5xl text-sky-600 mb-4"></i>
@@ -78,7 +75,6 @@
 
 <div class="max-w-[1600px] mx-auto bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200 hidden" id="mainAppContainer">
     
-    <!-- رأس الصفحة -->
     <div class="bg-slate-900 p-2 text-white flex flex-wrap justify-between items-center gap-2 border-b-4 border-sky-600">
         <div class="flex items-center gap-2">
             <div class="bg-sky-600 p-1.5 rounded"><i class="fas fa-headset text-sm"></i></div>
@@ -105,7 +101,6 @@
         </div>
     </div>
 
-    <!-- إشعار المتابعة اليومية -->
     <div id="notificationBanner" class="hidden bg-rose-50 border-r-4 border-rose-600 p-2 mx-2 mt-2 rounded-lg flex-col sm:flex-row justify-between items-center pulse-alert">
         <div class="flex items-center gap-2">
             <div class="bg-rose-600 p-1.5 rounded-full"><i class="fas fa-bell text-white text-[10px] animate-bounce"></i></div>
@@ -121,7 +116,6 @@
 
     <div class="p-1.5 md:p-3 grid grid-cols-1 xl:grid-cols-12 gap-2 relative">
         
-        <!-- لوحة الإعدادات والعروض -->
         <div class="xl:col-span-3 space-y-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
             
             <div class="bg-amber-50 p-2.5 rounded-lg border border-amber-400 shadow-sm">
@@ -142,7 +136,6 @@
             </div>
         </div>
 
-        <!-- لوحة التحكم والجدول -->
         <div class="xl:col-span-9 flex flex-col h-full hidden" id="actionPanel">
             
             <div class="sticky-panel rounded-lg px-0.5">
@@ -285,7 +278,6 @@
     let activeColumns = { name: false, nid: false, phone: false, status: false, company: false };
     let currentBranch = '';
     
-    // ضبط تاريخ اليوم أوتوماتيك أول ما تفتح
     document.getElementById('datePicker').value = new Date().toISOString().split('T')[0];
     
     let branchClientsRef = null, branchSettingsRef = null;
@@ -346,11 +338,12 @@
         branchClientsRef.once('value', s => {
             updateDataFromSnapshot(s);
             document.getElementById('loadingIndicator').classList.add('hidden');
-            document.getElementById('dataTable').classList.remove('hidden');
             
             if (globalData.length > 0) {
+                document.getElementById('dataTable').classList.remove('hidden');
+                document.getElementById('actionPanel').classList.remove('hidden');
                 updateEmpDropdown();
-                loadFilters(); // استرجاع الفلاتر من الذاكرة عشان متطيرش مع الريفريش
+                loadFilters(); 
                 checkTodayFollowUps();
                 restoreUI();
             } else {
@@ -358,7 +351,6 @@
                 document.getElementById('notificationBanner').classList.add('hidden');
             }
 
-            // الاستماع للتغييرات بدون إزعاج باقي الموظفين
             branchClientsRef.on('child_changed', cs => {
                 const uc = cs.val(), i = globalData.findIndex(c => c.phone === uc.phone);
                 if (i !== -1) {
@@ -422,15 +414,15 @@
             document.getElementById('dataTable').classList.add('hidden');
             branchClientsRef.remove().then(() => {
                 branchSettingsRef.remove();
-                localStorage.removeItem('raya_f'); // مسح الفلاتر
-                alert("تم الفرمتة!");
+                localStorage.removeItem('raya_f'); 
+                alert("تم الفرمتة بنجاح!");
                 location.reload();
             });
         }
     }
 
     // -----------------------------------------------------
-    // 4. دمج وقراءة الإكسيل
+    // 4. دمج وقراءة الإكسيل بذكاء
     // -----------------------------------------------------
     function processExcel() {
         const f = document.getElementById('excelFile');
@@ -455,13 +447,12 @@
                     
                     let hri = -1, cols = { name: -1, nid: -1, phone: -1, status: -1, company: -1 };
                     
-                    for (let i = 0; i < Math.min(ja.length, 15); i++) {
+                    for (let i = 0; i < Math.min(ja.length, 20); i++) {
                         const rv = ja[i];
                         if (!rv || rv.length === 0) continue;
                         const hs = rv.map(x => String(x).trim().toLowerCase());
                         let fp = false;
                         for (let j = 0; j < hs.length; j++) {
-                            // تم إضافة mobile و customer لدعم شيتات راية المختلفة
                             if (hs[j].includes("موبايل") || hs[j].includes("تليفون") || hs[j].includes("هاتف") || hs[j].includes("phone") || hs[j].includes("mobile")) {
                                 fp = true; break;
                             }
@@ -482,7 +473,8 @@
                     
                     if (hri === -1) {
                         document.getElementById('loadingIndicator').classList.add('hidden');
-                        return alert("خطأ بالشيت: لم يتم العثور على عمود الموبايل");
+                        document.getElementById('dataTable').classList.remove('hidden');
+                        return alert("خطأ بالشيت: لم أتمكن من العثور على عمود الموبايل");
                     }
                     
                     activeColumns = {
@@ -508,18 +500,22 @@
                         const ps = cleanPhoneNumber(rv[cols.phone]);
                         if (ps && ps.length > 5) {
                             let st = activeColumns.status && rv[cols.status] ? String(rv[cols.status]).trim() : "-";
-                            let cp = activeColumns.company && rv[cols.company] ? String(rv[cols.company]).trim() : "-";
-                            let rn = activeColumns.nid && rv[cols.nid] ? String(rv[cols.nid]).trim() : "-";
-                            if (rn.toUpperCase().includes('E')) rn = Number(rv[cols.nid]).toLocaleString('fullwide', { useGrouping: false });
-                            else rn = rn.replace(/[^0-9]/g, '') || "-";
+                            if (st === "" || st === "undefined") st = "-";
                             
-                            let cn = activeColumns.name && rv[cols.name] ? String(rv[cols.name]).trim() : "-";
+                            let comp = activeColumns.company && rv[cols.company] ? String(rv[cols.company]).trim() : "-";
+                            if (comp === "" || comp === "undefined") comp = "-";
+                            
+                            let rawNid = activeColumns.nid && rv[cols.nid] ? String(rv[cols.nid]).trim() : "-";
+                            if (rawNid.toUpperCase().includes('E')) rn = Number(rv[cols.nid]).toLocaleString('fullwide', { useGrouping: false });
+                            else rawNid = rawNid.replace(/[^0-9]/g, '') || "-";
+                            
+                            let cName = activeColumns.name && rv[cols.name] ? String(rv[cols.name]).trim() : "-";
                             
                             if (cm[ps]) {
-                                cm[ps].name = cn; cm[ps].nid = rn; cm[ps].status = st; cm[ps].company = cp;
+                                cm[ps].name = cName; cm[ps].nid = rawNid; cm[ps].status = st; cm[ps].company = comp;
                             } else {
                                 cm[ps] = {
-                                    orderId: oc++, name: cn, nid: rn, phone: ps, status: st, company: cp,
+                                    orderId: oc++, name: cName, nid: rawNid, phone: ps, status: st, company: comp,
                                     sent: false, history: [], followUpStatus: '', statusDate: ''
                                 };
                             }
@@ -529,16 +525,15 @@
                     branchClientsRef.set(cm).then(() => {
                         document.getElementById('loadingIndicator').classList.add('hidden');
                         document.getElementById('excelFile').value = '';
+                        document.getElementById('actionPanel').classList.remove('hidden');
+                        document.getElementById('dataTable').classList.remove('hidden');
                         alert("تم الرفع والدمج بنجاح!");
+                        
                         branchClientsRef.once('value', s => {
                             updateDataFromSnapshot(s);
-                            
-                            // إظهار لوحة التحكم وإعادة بناء الفلاتر فوراً
                             updateEmpDropdown();
                             checkTodayFollowUps();
                             restoreUI(); 
-                            
-                            document.getElementById('dataTable').classList.remove('hidden');
                         });
                     }).catch(err => {
                         document.getElementById('loadingIndicator').classList.add('hidden');
@@ -563,7 +558,7 @@
     }
 
     // -----------------------------------------------------
-    // 5. الوظائف المتنوعة (النسخ، الإشعارات، الفلاتر)
+    // 5. الوظائف المتنوعة
     // -----------------------------------------------------
     window.copyAndOpenRaya = function(nid, btn) {
         if (nid && String(nid).trim() !== "-" && String(nid).trim() !== "") {
@@ -619,7 +614,6 @@
         }
     }
 
-    // حفظ الفلاتر واسترجاعها
     function saveFilters() {
         const f = {
             s: document.getElementById('searchInput').value,
@@ -662,16 +656,17 @@
         ct.innerHTML = '';
         document.getElementById(cid.replace('Checkboxes', 'FilterContainer')).classList.remove('hidden');
         let al = document.createElement('label');
-        al.className = 'checkbox-label bg-white px-1 py-0.5 rounded border border-slate-300 flex items-center gap-0.5 text-[8px] font-bold';
-        al.innerHTML = `<input type="checkbox" onchange="toggleFilterAll(this, '${tc}')" checked class="w-2 h-2 text-sky-600 rounded"> <span>الكل</span>`;
+        al.className = 'checkbox-label bg-white px-1.5 py-1 rounded border border-slate-300 flex items-center gap-1 font-bold text-[9px] shadow-sm cursor-pointer';
+        al.innerHTML = `<input type="checkbox" onchange="toggleFilterAll(this, '${tc}')" checked class="w-2.5 h-2.5 text-sky-600 rounded"> <span>الكل</span>`;
         ct.appendChild(al);
         if (ae && tc === 'company') st.add("-");
         st.forEach(i => {
             if (i) {
-                let bg = i.includes("بدون") || i === "-" ? "bg-rose-50 border-rose-200 text-rose-700" : "bg-slate-50 border-slate-200 text-slate-700";
+                let safeItem = String(i);
+                let bgColor = safeItem.includes("بدون") || safeItem === "-" ? "bg-rose-50 text-rose-800 border-rose-200" : "bg-slate-50 text-slate-800 border-slate-200";
                 let l = document.createElement('label');
-                l.className = `checkbox-label ${bg} px-1 py-0.5 rounded text-[8px] border flex items-center gap-0.5 font-bold`;
-                l.innerHTML = `<input type="checkbox" class="${tc}-cb w-2 h-2 rounded" value="${i}" checked onchange="applyFilters()"> <span>${i}</span>`;
+                l.className = `checkbox-label ${bgColor} px-1.5 py-1 rounded text-[9px] border flex items-center gap-1 font-bold shadow-sm cursor-pointer`;
+                l.innerHTML = `<input type="checkbox" class="${tc}-cb w-2.5 h-2.5 rounded" value="${safeItem}" checked onchange="applyFilters()"> <span>${safeItem}</span>`;
                 ct.appendChild(l);
             }
         });
@@ -703,14 +698,13 @@
     }
 
     // -----------------------------------------------------
-    // 6. رسم الجدول والأزرار
+    // 6. رسم الجدول
     // -----------------------------------------------------
     function renderHistory(ha) {
         if (!ha || !Array.isArray(ha)) return '<div class="text-slate-400 text-center py-1 text-[8px]">لا توجد تعليقات</div>';
         const co = ha.filter(i => i && i.type === 'comment');
         if (co.length === 0) return '<div class="text-slate-400 text-center py-1 text-[8px]">لا توجد تعليقات</div>';
         
-        // الأحدث فوق والأقدم تحت
         return co.slice().reverse().map(i => {
             let fb = i.followUpDate ? `<span class="text-[7px] text-rose-600 bg-rose-50 px-1 border border-rose-100 rounded mr-1"><i class="fas fa-clock"></i> متابعة: ${i.followUpDate}</span>` : '';
             let pb = i.product && i.product !== 'all' ? `<span class="text-[7px] text-sky-700 bg-sky-100 px-1 rounded ml-1 border border-sky-200">${i.product}</span>` : '';
@@ -754,7 +748,6 @@
         
         html += `<td class="p-1 align-top pt-2"><span class="${bgs}">${cs}</span><span class="${bgc}">${cc}</span></td>`;
         
-        // تصغير خانة التعليق وتكبير زر الحفظ
         html += `<td class="p-1 border-r border-l border-slate-200 align-top bg-slate-50/30">
             <div class="h-24 overflow-y-auto mb-1.5 custom-scrollbar bg-white p-1 rounded border border-slate-200" id="history-${idx}">
                 ${renderHistory(ch)}
@@ -859,7 +852,7 @@
                 }
             });
             document.getElementById('clientCount').innerText = ct;
-            saveFilters(); // حفظ الفلاتر دايماً
+            saveFilters();
         } catch (err) { console.log(err); }
     }
 
@@ -874,7 +867,6 @@
               
         if (!t && p === 'all') return;
         
-        // تأثير ضغطة الزر
         btn.classList.add('btn-active-glow');
         setTimeout(() => btn.classList.remove('btn-active-glow'), 300);
 
@@ -884,7 +876,6 @@
         if (!globalData[i].history) globalData[i].history = [];
         globalData[i].history.push({ date: ad, empId: ei, type: 'comment', text: t || "تحديد منتج", product: p, followUpDate: fd });
         
-        // الشاشة مش هتتحرك خالص 
         let cs = window.scrollY;
         updateClientInCloud(globalData[i]);
         sortGlobalData();
@@ -896,7 +887,6 @@
         const ei = document.getElementById('empIdInput').value.trim();
         if (!ei) { alert("أدخل ID الموظف!"); document.getElementById('empIdInput').focus(); return; }
         
-        // تأثير توهج زر القرار 
         btn.classList.add('btn-active-glow');
         setTimeout(() => btn.classList.remove('btn-active-glow'), 300);
 
@@ -907,7 +897,6 @@
             globalData[i].followUpStatus = st; globalData[i].statusDate = ad;
         }
         
-        // شاشتك ثابتة مكانها والعميل هو اللي بيطير
         let cs = window.scrollY;
         updateClientInCloud(globalData[i]);
         sortGlobalData();
