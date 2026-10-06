@@ -237,6 +237,9 @@
         </div>
     </div>
 
+    <!-- هذا الرابط المخفي هو سر فتح الواتساب في تاب واحدة باستمرار -->
+    <a id="magic-wa-link" target="Raya_Unified_WhatsApp" style="display:none;"></a>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAkSD8k1Q4_gSwar3mwfDPVpUPWzHJevNk",
@@ -587,7 +590,7 @@
                 try {
                     document.execCommand("copy");
                     let originalText = btn.innerHTML;
-                    btn.innerHTML = `<i class="fas fa-check text-emerald-400"></i> تم نسخ الرقم القومي للعميل`;
+                    btn.innerHTML = `<i class="fas fa-check text-emerald-400"></i> تم نسخ الرقم القومي`;
                     setTimeout(() => { btn.innerHTML = originalText; }, 2000);
                 } catch (err) { console.error("Copy failed", err); }
                 document.body.removeChild(tempInput);
@@ -976,7 +979,10 @@
             if (isMobile) { 
                 window.location.href = link; 
             } else { 
-                window.open(link, 'Raya_WhatsApp_Tab'); 
+                // نستخدم الرابط المخفي لتفعيل الـ Target وإجبار المتصفح على تاب واحدة فقط
+                let hiddenLink = document.getElementById('magic-wa-link');
+                hiddenLink.href = link; 
+                hiddenLink.click();
             }
             client.sent = true;
             updateClientInCloud(client);
