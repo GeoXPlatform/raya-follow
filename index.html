@@ -12,6 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
+    <!-- مكتبات التصميم وقراءة الإكسيل -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,8 +20,8 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; }
         
-        /* إطارات واضحة لكل عميل */
-        .client-row { border: 2px solid #cbd5e1; border-bottom: 6px solid #94a3b8; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: background-color 0.3s ease; }
+        /* إطارات واضحة لكل عميل مع تأثيرات */
+        .client-row { border: 2px solid #cbd5e1; border-bottom: 5px solid #94a3b8; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: background-color 0.3s ease; }
         .row-default { background-color: #ffffff; }
         .row-has-comment { background-color: #fdf4ff !important; border: 2px solid #d8b4fe !important; border-bottom: 5px solid #a855f7 !important; } 
         .row-sent { background-color: #f0fdf4 !important; border: 2px solid #86efac !important; border-bottom: 5px solid #22c55e !important; } 
@@ -31,10 +32,12 @@
         .checkbox-label { cursor: pointer; user-select: none; transition: all 0.2s; }
         .checkbox-label:hover { transform: translateY(-1px); }
         
+        /* تخصيص السكرول بار */
         .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
+        /* تثبيت الفلاتر في أعلى الشاشة */
         .sticky-panel { position: sticky; top: 0; z-index: 50; background-color: #f1f5f9; padding-top: 8px; padding-bottom: 8px; }
         
         .pulse-alert { animation: pulseAlert 2s infinite; }
@@ -216,7 +219,7 @@
                         </div>
                     </div>
 
-                    <button onclick="toggleAdvancedFilters()" class="w-full mt-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1 px-2 rounded text-[9px] border border-slate-300 flex justify-between transition outline-none">
+                    <button onclick="toggleAdvancedFilters()" class="w-full mt-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1 px-2 rounded text-[9px] border border-slate-300 flex justify-between outline-none">
                         <span><i class="fas fa-sliders-h text-sky-600"></i> فلاتر متقدمة (نظام وشركات)</span>
                         <i class="fas fa-chevron-down" id="advFilterIcon"></i>
                     </button>
@@ -241,7 +244,7 @@
                     <p class="font-bold text-slate-500 text-[9px]">جاري المزامنة مع السحابة...</p>
                 </div>
                 
-                <table class="w-full text-center border-collapse min-w-[700px] md:min-w-[900px]" id="dataTable">
+                <table class="w-full text-center border-collapse min-w-[700px] md:min-w-[900px] table-fixed" id="dataTable">
                     <thead class="bg-slate-200 border-b border-slate-300">
                         <tr id="tableHeader">
                             <th class="p-1 font-bold text-slate-700 text-[9px] w-32">العميل والموبايل</th>
@@ -287,11 +290,10 @@
     // 2. المتغيرات والتهيئة
     // -----------------------------------------------------
     let globalData = [];
-    // جعل كل الأعمدة متاحة افتراضياً حتى لو مفيش عناوين
     let activeColumns = { name: true, nid: true, phone: true, status: true, company: true };
     let currentBranch = '';
     
-    // تاريخ اليوم يفتح أوتوماتيك
+    // ضبط تاريخ اليوم أوتوماتيك أول ما تفتح
     document.getElementById('datePicker').value = new Date().toISOString().split('T')[0];
     
     let branchClientsRef = null;
@@ -368,7 +370,8 @@
 
             // الاستماع للتغييرات بدون إزعاج باقي الموظفين
             branchClientsRef.on('child_changed', cs => {
-                const uc = cs.val(), i = globalData.findIndex(c => c.phone === uc.phone);
+                const uc = cs.val();
+                const i = globalData.findIndex(c => c.phone === uc.phone);
                 if (i !== -1) {
                     globalData[i] = uc;
                     updateSingleRowDOM(i);
@@ -424,7 +427,7 @@
         if (branchClientsRef) branchClientsRef.child(obj.phone).set(obj);
     }
 
-    // زرار الفورمات السحري 
+    // زرار الفورمات 
     function hardResetCloud() {
         if (!currentBranch) return;
         if (prompt("تحذير! هذا الإجراء سيمسح جميع بيانات الفرع نهائياً. للفرمتة اكتب 'نعم'") === 'نعم') {
@@ -432,7 +435,7 @@
             document.getElementById('dataTable').classList.add('hidden');
             branchClientsRef.remove().then(() => {
                 branchSettingsRef.remove();
-                localStorage.removeItem('raya_f'); // مسح الفلاتر المحفوظة
+                localStorage.removeItem('raya_f'); // مسح الفلاتر
                 alert("تم الفرمتة بنجاح!");
                 location.reload();
             });
@@ -440,7 +443,7 @@
     }
 
     // -----------------------------------------------------
-    // 4. قراءة الإكسيل الجبرية (Ultra Scavenger) كاسحة الألغام
+    // 4. قراءة الإكسيل الجبرية (Ultra Scavenger) كاسحة الألغام الشاملة
     // -----------------------------------------------------
     function processExcel() {
         const f = document.getElementById('excelFile');
@@ -454,9 +457,14 @@
                 const r = new FileReader();
                 r.onload = e => {
                     const d = new Uint8Array(e.target.result),
-                          wb = XLSX.read(d, { type: 'array' }),
-                          ws = wb.Sheets[wb.SheetNames[0]],
-                          ja = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: "" });
+                          wb = XLSX.read(d, { type: 'array' });
+                          
+                    let ja = [];
+                    // الدمج الشامل لكل الشيتات في الملف عشان الداتا المخفية
+                    wb.SheetNames.forEach(sheetName => {
+                        let sheetData = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1, raw: false, defval: "" });
+                        ja = ja.concat(sheetData);
+                    });
                           
                     if (ja.length < 1) {
                         document.getElementById('loadingIndicator').classList.add('hidden');
@@ -475,7 +483,7 @@
                     let oc = Object.keys(cm).length;
                     let addedCount = 0;
                     
-                    // الكاسحة: بيلف على كل السطور وكل الخلايا يجيب أي رقم شبه الموبايل أو القومي
+                    // الاستخراج الجبري بدون الاعتماد على العناوين
                     for (let i = 0; i < ja.length; i++) {
                         const row = ja[i];
                         if (!row || !Array.isArray(row) || row.length === 0) continue;
@@ -487,43 +495,42 @@
                             if (cellValue === null || cellValue === undefined || cellValue === "") continue;
                             
                             let cStr = String(cellValue).trim();
-                            // علاج الأرقام العلمية في الإكسيل E+
+                            // علاج الأرقام العلمية E+
                             if (cStr.toUpperCase().includes('E') && !isNaN(cellValue)) {
                                 cStr = Number(cellValue).toLocaleString('fullwide', {useGrouping:false});
                             }
                             
                             let cNum = cStr.replace(/[^0-9]/g, '');
 
-                            // استخراج الموبايل
+                            // اصطياد الموبايل
                             if (!ps && (cNum.length >= 10 && cNum.length <= 13)) {
                                 if (cNum.startsWith('01') || cNum.startsWith('1') || cNum.startsWith('201')) {
                                     ps = cleanPhoneNumber(cNum);
                                     continue;
                                 }
                             }
-                            // استخراج الرقم القومي
+                            // اصطياد الرقم القومي
                             if (rn === "-" && cNum.length === 14 && (cNum.startsWith('2') || cNum.startsWith('3'))) {
                                 rn = cNum;
                                 continue;
                             }
-                            // استخراج الحالة
+                            // اصطياد الحالة
                             let clow = cStr.toLowerCase();
                             if (st === "-" && (clow.includes('pending') || clow.includes('approved') || clow.includes('rejected') || clow.includes('active') || clow.includes('cancel') || clow.includes('limit') || clow.includes('expired') || clow.includes('مرفوض') || clow.includes('مقبول') || clow.includes('معلق'))) {
                                 st = cStr;
                                 continue;
                             }
-                            // استخراج الشركة
+                            // اصطياد الشركة
                             if (cp === "-" && (clow.includes('company') || clow.includes('telecom') || clow.includes('bank') || clow.includes('شركة') || clow.includes('بنك') || clow.includes('foods') || clow.includes('services'))) {
                                 cp = cStr;
                                 continue;
                             }
-                            // استخراج الاسم (أي نص طويل مفيش فيه علامات غريبة ومش أرقام)
-                            if (cn === "-" && cStr.length > 5 && isNaN(cStr) && !clow.includes('pending') && !cStr.includes('@') && !cStr.includes('http') && !cStr.match(/^[0-9]+$/)) {
+                            // اصطياد الاسم (نص بدون أرقام)
+                            if (cn === "-" && cStr.length > 5 && isNaN(cStr) && !clow.includes('pending') && !cStr.includes('@') && !cStr.includes('http') && !cStr.match(/\d/)) {
                                 cn = cStr;
                             }
                         }
 
-                        // لو لقى موبايل، يبقى ده عميل بجد
                         if (ps && ps.length > 5) {
                             if (cm[ps]) {
                                 if (cn !== "-" && cm[ps].name === "-") cm[ps].name = cn;
@@ -739,7 +746,7 @@
     }
 
     // -----------------------------------------------------
-    // 6. رسم الجدول (أزرار كبيرة وكتابة صغيرة)
+    // 6. رسم الجدول (تنسيق واسع وغير مضغوط)
     // -----------------------------------------------------
     function renderHistory(ha) {
         if (!ha || !Array.isArray(ha)) return '<div class="text-slate-400 text-center py-1 text-[8px]">لا توجد تعليقات</div>';
@@ -852,7 +859,7 @@
 
     function applyFilters() {
         try {
-            // إضافة حماية قوية للفلاتر لمنع اختفاء الجدول
+            // حماية الفلاتر
             const sCb = document.querySelectorAll('.status-cb:checked');
             const cCb = document.querySelectorAll('.company-cb:checked');
             
@@ -931,7 +938,7 @@
         if (!globalData[i].history) globalData[i].history = [];
         globalData[i].history.push({ date: ad, empId: ei, type: 'comment', text: t || "تحديد منتج", product: p, followUpDate: fd });
         
-        // ثبات الشاشة في نفس المكان بعد التحديث
+        // حفظ مكان التمرير
         let cs = window.scrollY;
         updateClientInCloud(globalData[i]);
         sortGlobalData();
@@ -943,7 +950,6 @@
         const ei = document.getElementById('empIdInput').value.trim();
         if (!ei) { alert("أدخل ID الموظف أولاً من أعلى الشاشة!"); document.getElementById('empIdInput').focus(); return; }
         
-        // تأثير توهج الزر 
         btn.classList.add('btn-active-glow');
         setTimeout(() => btn.classList.remove('btn-active-glow'), 300);
 
@@ -954,7 +960,7 @@
             globalData[i].followUpStatus = st; globalData[i].statusDate = ad;
         }
         
-        // ثبات الشاشة في نفس المكان أثناء طيران العميل لأول القائمة
+        // حفظ مكان التمرير 
         let cs = window.scrollY;
         updateClientInCloud(globalData[i]);
         sortGlobalData();
