@@ -55,6 +55,7 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8 }
         .sticky-panel { position: sticky; top: 0; z-index: 50; background-color: #f8fafc; padding-top: 10px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0 }
         
+        /* جعل الجزء الأيمن ثابتا عند النزول */
         .sticky-sidebar { position: sticky; top: 20px; z-index: 40; }
         
         .pulse-alert { animation: pulseAlert 2s infinite }
@@ -125,6 +126,7 @@
         </div>
 
         <div class="p-2 md:p-4 grid grid-cols-1 xl:grid-cols-12 gap-3 lg:gap-4 relative px-2 lg:px-6 items-start">
+            <!-- الشريط الجانبي الثابت -->
             <div class="xl:col-span-3 space-y-2 md:space-y-3 bg-slate-50 p-2 md:p-3 lg:p-4 rounded-xl border border-slate-200 shadow-inner h-fit sticky-sidebar">
                 <div class="bg-amber-50 p-3 md:p-4 rounded-lg border-2 border-amber-400 shadow-md">
                     <h2 class="font-bold text-amber-800 text-sm md:text-base lg:text-lg mb-2 md:mb-3 flex items-center gap-1.5 border-b-2 border-amber-300 pb-1.5"><i class="fas fa-bullhorn text-amber-600 text-base md:text-lg"></i> عروض راية الحالية</h2>
@@ -516,7 +518,6 @@
                             if (c.phone) { cloudClientsMap[c.phone] = c; }
                         });
                         
-                        // هنا يتم الدمج مع الحفاظ على ترتيب الشيت الجديد
                         let currentSheetPhones = new Set();
                         let orderCounter = 0;
                         let newClientsAdded = 0;
@@ -530,11 +531,9 @@
                             
                             if (phoneStr && phoneStr.length > 5) {
                                 if (cloudClientsMap[phoneStr]) {
-                                    // العميل موجود: تحديث الترتيب فقط بناء على الشيت الجديد
                                     cloudClientsMap[phoneStr].orderId = orderCounter++;
                                     currentSheetPhones.add(phoneStr);
                                 } else {
-                                    // عميل جديد: إضافته بالترتيب الحالي
                                     let st = activeColumns.status && row[cols.status] ? String(row[cols.status]).trim() : "بدون حالة";
                                     if (st === "" || st === "undefined") st = "بدون حالة";
                                     let comp = activeColumns.company && row[cols.company] ? String(row[cols.company]).trim() : "بدون شركة";
@@ -557,7 +556,6 @@
                             }
                         }
                         
-                        // العملاء القدامى غير الموجودين في الشيت الجديد نضعهم في الأسفل
                         for (let p in cloudClientsMap) {
                             if (!currentSheetPhones.has(p)) {
                                 cloudClientsMap[p].orderId = orderCounter++;
@@ -613,7 +611,6 @@
             }
         };
 
-        // الإشعار الأحمر يظهر فقط لو كان موعد المتابعة يوافق تاريخ اليوم الحالي
         function checkTodayFollowUps() {
             let today = getCairoToday();
             let count = 0;
@@ -686,7 +683,6 @@
                     let isDash = (safeItem === "-" || safeItem.includes("بدون"));
                     let displayItem = isDash ? "-" : safeItem;
                     
-                    // الألوان الذكية في الفلاتر
                     let bgColor = "bg-slate-50 text-slate-800 border-slate-200";
                     if (isDash) {
                         bgColor = "bg-rose-100 text-rose-900 border-rose-300";
@@ -773,16 +769,27 @@
             }).join('');
         }
 
-        // استخراج آخر كومنت ليعرض تحت القرار
-        function getLastCommentText(historyArray) {
-            if (!historyArray || !Array.isArray(historyArray)) return '';
-            const commentsOnly = historyArray.filter(item => item && item.type === 'comment');
-            if (commentsOnly.length === 0) return '';
+        // استخراج آخر تحديث بالتاريخ (للكومنتات أو القرارات)
+        function getLastCommentText(client) {
+            let lastActionText = '';
+            let lastActionDate = '';
             
-            const lastComment = commentsOnly[commentsOnly.length - 1]; // اخر عنصر
-            let text = lastComment.text || '';
-            let dateStr = lastComment.followUpDate ? `<br><span class="text-rose-600"><i class="fas fa-clock"></i> ${lastComment.followUpDate}</span>` : '';
-            return `<div class="text-[9px] lg:text-[11px] font-semibold text-slate-600 mt-1 border-t border-slate-200 pt-1 leading-tight break-words text-right"><b>آخر كومنت:</b> ${text}${dateStr}</div>`;
+            let historyArray = Array.isArray(client.history) ? client.history : [];
+            const commentsOnly = historyArray.filter(item => item && item.type === 'comment');
+            
+            if (commentsOnly.length > 0) {
+                const lastComment = commentsOnly[commentsOnly.length - 1];
+                lastActionText = lastComment.text || '';
+                lastActionDate = lastComment.date || '';
+            } else if (client.statusDate) {
+                // إذا لم يكن هناك كومنت ولكن تم اتخاذ قرار
+                lastActionText = "تم تغيير القرار";
+                lastActionDate = client.statusDate;
+            } else {
+                return '';
+            }
+            
+            return `<div class="text-[9px] lg:text-[11px] font-semibold text-slate-600 mt-1 border-t border-slate-200 pt-1 leading-tight break-words text-right"><b>آخر تحديث:</b> ${lastActionText}<br><span class="text-rose-600"><i class="fas fa-calendar-day"></i> ${lastActionDate}</span></div>`;
         }
 
         function generateRowHTML(client, index) {
@@ -800,7 +807,6 @@
             
             let rowClass = `client-row text-sm lg:text-base `;
             
-            // التلوين حسب الحالة فقط بدون تغيير عند الارسال
             if (client.followUpStatus === 'done') rowClass += `row-done`;
             else if (client.followUpStatus === 'interested') rowClass += `row-interested`;
             else if (client.followUpStatus === 'not_interested') rowClass += `row-not-interested`;
@@ -813,7 +819,6 @@
             
             html += `<td class="p-1 md:p-1.5 lg:p-3 align-top pt-1.5 lg:pt-3"><div class="font-bold text-slate-800 text-[10px] md:text-xs lg:text-base break-words w-full" title="${cName}">${cName}</div><div class="text-slate-800 font-black text-[10px] md:text-xs lg:text-base mt-0.5 lg:mt-1" dir="ltr">+${cPhone}</div><div class="text-sky-900 font-black text-[11px] md:text-sm lg:text-lg mt-0.5 mb-0.5 lg:mt-1 lg:mb-1">${cNid}</div>${limitBtn}</td>`;
             
-            // الألوان الذكية في الجداول
             let badgeStatus = '';
             if (cStatus === "-") {
                 badgeStatus = 'text-slate-400 font-bold lg:text-sm block mb-1';
@@ -866,11 +871,10 @@
                     <button onclick="setFollowUpStatus(${index}, 'interested', this)" class="action-btn ${client.followUpStatus === 'interested' ? 'bg-amber-500 text-white shadow-md border-amber-600' : 'bg-white text-slate-600 hover:bg-amber-50'} px-1 lg:px-2 py-1 lg:py-1.5 rounded text-[10px] lg:text-sm font-bold border border-amber-300 w-full transition">⭐ مهتم</button>
                     <button onclick="setFollowUpStatus(${index}, 'done', this)" class="action-btn ${client.followUpStatus === 'done' ? 'bg-emerald-500 text-white shadow-md border-emerald-600' : 'bg-white text-slate-600 hover:bg-emerald-50'} px-1 lg:px-2 py-1 lg:py-1.5 rounded text-[10px] lg:text-sm font-bold border border-emerald-300 w-full transition">✅ تم</button>
                     <button onclick="setFollowUpStatus(${index}, 'not_interested', this)" class="action-btn ${client.followUpStatus === 'not_interested' ? 'bg-rose-500 text-white shadow-md border-rose-600' : 'bg-white text-slate-600 hover:bg-rose-50'} px-1 lg:px-2 py-1 lg:py-1.5 rounded text-[10px] lg:text-sm font-bold border border-rose-300 w-full transition">🚫 غير مهتم</button>
-                    ${getLastCommentText(clientHistory)}
+                    ${getLastCommentText(client)}
                 </div>
             </td>`;
             
-            // تغيير نص وشكل الزر للإرسال فقط
             let btnColor = client.sent ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-sky-600 hover:bg-sky-700';
             let btnText = client.sent ? '<i class="fas fa-check text-white mr-1 lg:text-lg"></i> تم الإرسال' : '<i class="fab fa-whatsapp lg:text-xl"></i> إرسال';
             
@@ -933,8 +937,15 @@
                     
                     let empMatch = true;
                     if (empDropdownFilter) { empMatch = clientHistory.some(h => h && h.empId === empDropdownFilter); }
+                    
+                    // التعديل: فلتر التاريخ بيجيب أي حاجة حصلت للعميل في التاريخ ده (كومنت أو قرار أو متابعة)
                     let dateMatch = true;
-                    if (targetDateFilter) { dateMatch = clientHistory.some(h => h && h.type === 'comment' && h.followUpDate === targetDateFilter); }
+                    if (targetDateFilter) {
+                        let historyMatch = clientHistory.some(h => h && h.type === 'comment' && (h.date === targetDateFilter || h.followUpDate === targetDateFilter));
+                        let statusDateMatch = (client.statusDate === targetDateFilter);
+                        dateMatch = historyMatch || statusDateMatch;
+                    }
+                    
                     let productMatch = true;
                     if (productFilter !== 'all') { productMatch = clientHistory.some(h => h && h.type === 'comment' && h.product === productFilter); }
                     
@@ -956,18 +967,14 @@
         }
 
         // ===============================================
-        // دالة الفتح في نافذة Popup واحدة منفصلة عن التابات الأساسية (الإرسال الفردي)
-        // ===============================================
         function openWAPopup(link) {
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             if (isMobile) { 
                 window.location.href = link; 
             } else {
                 if (!waWindowPopup || waWindowPopup.closed) {
-                    // فتح نافذة منفصلة (Popup) بحجم معين
                     waWindowPopup = window.open(link, 'RayaAutoWA', 'width=800,height=650,left=200,top=100,scrollbars=yes,resizable=yes');
                 } else {
-                    // تحديث نفس النافذة المفتوحة مسبقاً برابط العميل الجديد
                     waWindowPopup.location.href = link;
                     waWindowPopup.focus();
                 }
@@ -1000,7 +1007,7 @@
             if (!text && product === 'all') return;
             const dateInput = document.getElementById(`comment-date-${index}`);
             const followUpDate = dateInput ? dateInput.value : '';
-            const actionDate = getCairoToday(); // الكومنت يحفظ بتاريخ اليوم الفعلي دائما
+            const actionDate = getCairoToday(); 
             
             if (!globalData[index].history) globalData[index].history = [];
             globalData[index].history.push({
