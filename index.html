@@ -39,7 +39,6 @@
 
         .row-default td { border-color: #cbd5e1; background-color: #ffffff; }
         .row-has-comment td { border-color: #c084fc; background-color: #f3e8ff !important; }
-        /* تم إلغاء تغيير لون السطر بالكامل عند الإرسال بناء على طلبك */
         .row-interested td { border-color: #fbbf24; background-color: #fffbeb !important; }
         .row-done td { border-color: #10b981; background-color: #ecfdf5 !important; }
         .row-not-interested td { border-color: #f43f5e; background-color: #fff1f2 !important; opacity: 0.85; }
@@ -56,11 +55,12 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8 }
         .sticky-panel { position: sticky; top: 0; z-index: 50; background-color: #f8fafc; padding-top: 10px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0 }
         
+        .sticky-sidebar { position: sticky; top: 20px; z-index: 40; }
+        
         .pulse-alert { animation: pulseAlert 2s infinite }
         @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(225,29,72,0.4) } 70% { box-shadow: 0 0 0 10px rgba(225,29,72,0) } 100% { box-shadow: 0 0 0 0 rgba(225,29,72,0) } }
         
-        .slide-up-bar { animation: slideUpBar 0.3s ease-out forwards; }
-        @keyframes slideUpBar { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .readonly-input { background-color: #f1f5f9; cursor: not-allowed; color: #64748b; }
     </style>
 </head>
 <body class="p-1 md:p-4 min-h-screen text-sm md:text-base lg:text-lg">
@@ -124,14 +124,14 @@
             <button onclick="filterByToday()" class="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white font-bold py-1.5 px-4 rounded-lg shadow-sm text-[10px] md:text-xs lg:text-sm transition"><i class="fas fa-eye"></i> عرضهم الآن</button>
         </div>
 
-        <div class="p-2 md:p-4 grid grid-cols-1 xl:grid-cols-12 gap-3 lg:gap-4 relative px-2 lg:px-6">
-            <div class="xl:col-span-3 space-y-2 md:space-y-3 bg-slate-50 p-2 md:p-3 lg:p-4 rounded-xl border border-slate-200 shadow-inner h-fit">
+        <div class="p-2 md:p-4 grid grid-cols-1 xl:grid-cols-12 gap-3 lg:gap-4 relative px-2 lg:px-6 items-start">
+            <div class="xl:col-span-3 space-y-2 md:space-y-3 bg-slate-50 p-2 md:p-3 lg:p-4 rounded-xl border border-slate-200 shadow-inner h-fit sticky-sidebar">
                 <div class="bg-amber-50 p-3 md:p-4 rounded-lg border-2 border-amber-400 shadow-md">
                     <h2 class="font-bold text-amber-800 text-sm md:text-base lg:text-lg mb-2 md:mb-3 flex items-center gap-1.5 border-b-2 border-amber-300 pb-1.5"><i class="fas fa-bullhorn text-amber-600 text-base md:text-lg"></i> عروض راية الحالية</h2>
                     <textarea id="offersText" rows="5" onchange="saveSettingsToFirebase()" class="w-full p-2.5 bg-amber-100/60 border border-amber-300 rounded-lg focus:border-amber-500 outline-none transition resize-none text-xs md:text-base lg:text-lg font-black text-amber-900 leading-relaxed shadow-inner" placeholder="اكتب العروض هنا..."></textarea>
                 </div>
                 <div class="bg-white p-2 md:p-3 lg:p-4 rounded-lg shadow-sm border border-slate-100">
-                    <label class="block font-bold text-slate-700 text-[10px] md:text-xs lg:text-sm mb-1"><i class="fas fa-file-excel text-sky-600"></i> رفع شيت عملاء جديد (يتم إضافة الجديد فقط):</label>
+                    <label class="block font-bold text-slate-700 text-[10px] md:text-xs lg:text-sm mb-1"><i class="fas fa-file-excel text-sky-600"></i> رفع شيت عملاء جديد (تحديث + دمج):</label>
                     <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" onchange="processExcel()" class="w-full border border-slate-300 p-1 rounded bg-slate-50 text-[10px] lg:text-sm cursor-pointer file:mr-1 file:py-0.5 file:px-2 file:rounded file:border-0 file:font-bold file:bg-sky-50 file:text-sky-700 transition">
                 </div>
                 <div class="bg-white p-2 md:p-3 lg:p-4 rounded-lg shadow-sm border border-slate-100">
@@ -146,11 +146,11 @@
                         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1.5 lg:gap-3 items-end">
                             <div class="relative col-span-2 md:col-span-1 lg:col-span-1">
                                 <label class="block text-[9px] md:text-[10px] lg:text-sm font-bold text-slate-500 mb-0.5"><i class="fas fa-search"></i> بحث عام:</label>
-                                <input type="text" id="searchInput" oninput="saveFiltersAndApply()" class="bg-slate-50 border border-slate-300 text-slate-900 text-[10px] md:text-[11px] lg:text-sm rounded focus:border-sky-500 block w-full p-1.5 lg:p-2 shadow-sm" placeholder="ابحث...">
+                                <input type="text" id="searchInput" oninput="applyFilters()" class="bg-slate-50 border border-slate-300 text-slate-900 text-[10px] md:text-[11px] lg:text-sm rounded focus:border-sky-500 block w-full p-1.5 lg:p-2 shadow-sm" placeholder="ابحث...">
                             </div>
                             <div class="w-full">
-                                <label class="block text-[9px] md:text-[10px] lg:text-sm font-bold text-slate-500 mb-0.5"><i class="fas fa-calendar-alt"></i> تاريخ اليوم:</label>
-                                <input type="date" id="datePicker" class="w-full border border-slate-300 p-1.5 lg:p-2 rounded font-bold text-slate-700 outline-none text-[9px] md:text-[10px] lg:text-sm shadow-sm">
+                                <label class="block text-[9px] md:text-[10px] lg:text-sm font-bold text-slate-500 mb-0.5" title="هذا التاريخ ثابت ولا يمكن تعديله"><i class="fas fa-calendar-alt"></i> تاريخ اليوم:</label>
+                                <input type="date" id="datePicker" class="w-full border border-slate-300 p-1.5 lg:p-2 rounded font-bold outline-none text-[9px] md:text-[10px] lg:text-sm shadow-sm readonly-input" readonly>
                             </div>
                             <div class="w-full">
                                 <label class="block text-[9px] md:text-[10px] lg:text-sm font-bold text-slate-500 mb-0.5"><i class="fas fa-id-badge"></i> ID الموظف:</label>
@@ -158,7 +158,7 @@
                             </div>
                             <div class="w-full">
                                 <label class="block text-[9px] md:text-[10px] lg:text-sm font-bold text-slate-500 mb-0.5"><i class="fas fa-filter"></i> قرار:</label>
-                                <select id="followUpFilter" onchange="saveFiltersAndApply()" class="w-full border border-slate-300 p-1.5 lg:p-2 rounded font-bold text-slate-700 outline-none text-[9px] md:text-[10px] lg:text-sm shadow-sm">
+                                <select id="followUpFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1.5 lg:p-2 rounded font-bold text-slate-700 outline-none text-[9px] md:text-[10px] lg:text-sm shadow-sm">
                                     <option value="all">الكل</option>
                                     <option value="interested">⭐ مهتم</option>
                                     <option value="not_interested">🚫 غير مهتم</option>
@@ -168,7 +168,7 @@
                             </div>
                             <div class="w-full">
                                 <label class="block text-[9px] md:text-[10px] lg:text-sm font-bold text-slate-500 mb-0.5"><i class="fas fa-box"></i> منتج:</label>
-                                <select id="productFilter" onchange="saveFiltersAndApply()" class="w-full border border-slate-300 p-1.5 lg:p-2 rounded font-bold text-slate-700 outline-none text-[9px] md:text-[10px] lg:text-sm shadow-sm bg-sky-50">
+                                <select id="productFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1.5 lg:p-2 rounded font-bold text-slate-700 outline-none text-[9px] md:text-[10px] lg:text-sm shadow-sm bg-sky-50">
                                     <option value="all">الكل</option>
                                     <option value="Handset">Handset</option>
                                     <option value="TV">TV</option>
@@ -181,7 +181,7 @@
                             </div>
                             <div class="w-full">
                                 <label class="block text-[9px] md:text-[10px] lg:text-sm font-bold text-slate-500 mb-0.5"><i class="fas fa-users"></i> الموظفين:</label>
-                                <select id="empDropdownFilter" onchange="saveFiltersAndApply()" class="w-full border border-slate-300 p-1.5 lg:p-2 rounded font-bold text-slate-700 outline-none text-[9px] md:text-[10px] lg:text-sm shadow-sm">
+                                <select id="empDropdownFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1.5 lg:p-2 rounded font-bold text-slate-700 outline-none text-[9px] md:text-[10px] lg:text-sm shadow-sm">
                                     <option value="">الكل</option>
                                 </select>
                             </div>
@@ -191,7 +191,7 @@
                                     <span id="miniTodayCountBadge" class="hidden bg-rose-100 text-rose-700 px-1 py-0.5 rounded text-[8px] lg:text-xs font-black"><span id="miniTodayCount">0</span> اليوم</span>
                                 </label>
                                 <div class="flex">
-                                    <input type="date" id="followUpDateFilter" onchange="saveFiltersAndApply()" class="bg-slate-50 border border-slate-300 text-slate-900 text-[10px] lg:text-sm rounded-r focus:border-sky-500 block w-full p-1.5 lg:p-2 shadow-sm outline-none font-bold">
+                                    <input type="date" id="followUpDateFilter" onchange="applyFilters()" class="bg-slate-50 border border-slate-300 text-slate-900 text-[10px] lg:text-sm rounded-r focus:border-sky-500 block w-full p-1.5 lg:p-2 shadow-sm outline-none font-bold">
                                     <button onclick="clearDateFilter()" class="bg-slate-200 hover:bg-slate-300 border border-r-0 border-slate-300 px-2 lg:px-3 rounded-l text-slate-600 transition" title="إلغاء التاريخ"><i class="fas fa-times text-[9px] lg:text-xs"></i></button>
                                 </div>
                             </div>
@@ -222,13 +222,10 @@
                         <i class="fas fa-spinner fa-spin text-2xl text-sky-500 mb-1"></i>
                         <p class="font-bold text-slate-500 text-[10px] lg:text-sm">مزامنة السحابة...</p>
                     </div>
-                    <table class="w-full text-center min-w-[750px]" id="dataTable">
+                    <table class="w-full text-center min-w-[700px]" id="dataTable">
                         <thead class="bg-slate-200">
                             <tr id="tableHeader">
-                                <th class="p-2 lg:p-3 font-bold text-slate-700 w-10 lg:w-12 rounded-r-lg border-l border-slate-300">
-                                    <input type="checkbox" id="selectAllCb" class="w-4 h-4 lg:w-5 lg:h-5 cursor-pointer text-sky-600 rounded" onchange="toggleSelectAllClients(this)">
-                                </th>
-                                <th class="p-2 lg:p-3 font-bold text-slate-700 text-[10px] md:text-[11px] lg:text-sm w-32 md:w-48 lg:w-56">العميل والموبايل</th>
+                                <th class="p-2 lg:p-3 font-bold text-slate-700 text-[10px] md:text-[11px] lg:text-sm w-32 md:w-48 lg:w-56 rounded-r-lg">العميل والموبايل</th>
                                 <th class="p-2 lg:p-3 font-bold text-slate-700 text-[10px] md:text-[11px] lg:text-sm w-16 md:w-24 lg:w-32">النظام والشركة</th>
                                 <th class="p-2 lg:p-3 font-bold text-slate-700 text-[10px] md:text-[11px] lg:text-sm min-w-[220px] md:min-w-[300px]">السجل والتعليقات</th>
                                 <th class="p-2 lg:p-3 font-bold text-slate-700 text-[10px] md:text-[11px] lg:text-sm w-20 md:w-32 lg:w-40">القرار</th>
@@ -239,29 +236,6 @@
                     </table>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- الشريط السفلي الذكي للإرسال الأوتوماتيكي -->
-    <div id="multiSelectBar" class="fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-3 lg:p-4 shadow-[0_-4px_25px_rgba(0,0,0,0.3)] z-[100] flex flex-col md:flex-row justify-between items-center gap-3 hidden slide-up-bar border-t-4 border-sky-500">
-        <div class="flex items-center gap-3 w-full md:w-auto justify-between">
-            <div class="bg-sky-600 px-3 lg:px-4 py-1.5 lg:py-2 rounded-full font-bold text-sm lg:text-base shadow-inner">
-                تم تحديد: <span id="selectedCountSpan" class="text-white text-base lg:text-lg">0</span> عملاء
-            </div>
-            <div id="waSendingInfo" class="hidden text-sm lg:text-base font-bold text-amber-400 bg-slate-800 px-3 py-1.5 rounded-lg border border-amber-500/30">
-                <i class="fas fa-spinner fa-spin mr-1"></i> إرسال آلي لـ: <span id="currentWaName" class="text-white ml-1"></span>
-            </div>
-        </div>
-        <div class="flex gap-2 w-full md:w-auto">
-            <button id="btnStartWaSelected" onclick="startAutoWaSelected()" class="w-full md:w-auto bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-lg font-bold text-sm lg:text-base shadow-lg flex items-center justify-center gap-2 transition" title="سيقوم بتغيير الرقم تلقائياً كل 8 ثواني داخل نفس التاب">
-                <i class="fab fa-whatsapp text-lg"></i> إرسال آلي (كل 8 ثواني)
-            </button>
-            <button id="btnStopWaSelected" onclick="stopAutoWaSelected()" class="w-full md:w-auto bg-rose-500 hover:bg-rose-600 px-5 py-2 rounded-lg font-bold text-sm lg:text-base shadow-lg items-center justify-center gap-2 transition hidden">
-                <i class="fas fa-stop"></i> إيقاف الإرسال
-            </button>
-            <button onclick="clearSelection()" class="bg-slate-600 hover:bg-slate-700 px-3 py-2 rounded-lg font-bold text-sm lg:text-base shadow-lg transition" title="إلغاء التحديد">
-                <i class="fas fa-times"></i>
-            </button>
         </div>
     </div>
 
@@ -282,18 +256,20 @@
         let activeColumns = { name: false, nid: false, phone: false, status: false, company: false };
         let currentBranch = '';
         
-        let selectedIndexes = new Set();
         let waWindowPopup = null; 
-        let autoSendInterval;
-        let isSendingSession = false;
-        let sendingCurrentPointer = 0;
-        let sendingArray = [];
 
         let branchClientsRef = null;
         let branchSettingsRef = null;
 
+        function getCairoToday() {
+            let d = new Date();
+            let utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+            let cairoDate = new Date(utc + (3600000 * 3));
+            return cairoDate.toISOString().split('T')[0];
+        }
+
         window.onload = function() {
-            let currentDate = new Date().toISOString().split('T')[0];
+            let currentDate = getCairoToday();
             document.getElementById('datePicker').value = currentDate;
             
             const savedBranch = localStorage.getItem('raya_activeBranch');
@@ -335,14 +311,10 @@
             } catch(e) {}
         }
 
-        function saveFiltersAndApply() {
-            saveFiltersToLocal();
-            applyFilters();
-        }
-
         function toggleFilterAll(masterCheckbox, typeClass) {
             document.querySelectorAll(`.${typeClass}-cb`).forEach(cb => cb.checked = masterCheckbox.checked);
-            saveFiltersAndApply();
+            applyFilters();
+            saveFiltersToLocal();
         }
 
         function confirmBranchSelection() {
@@ -402,6 +374,7 @@
                     if (index !== -1) {
                         globalData[index] = updatedClient;
                         updateSingleRowDOM(index);
+                        checkTodayFollowUps();
                     }
                 });
                 
@@ -411,6 +384,7 @@
                         globalData.push(newClient);
                         sortGlobalData();
                         applyFilters();
+                        checkTodayFollowUps();
                     }
                 });
             });
@@ -427,7 +401,7 @@
             }
         }
 
-        // الترتيب الجديد: مهتم -> كومنت -> فاضي -> تم -> غير مهتم
+        // الترتيب: مهتم -> لديه كومنت (وليس له قرار) -> الباقي (بدون قرار) -> تم -> غير مهتم
         function sortGlobalData() {
             globalData.sort((a, b) => {
                 const getPriority = (client) => {
@@ -542,7 +516,9 @@
                             if (c.phone) { cloudClientsMap[c.phone] = c; }
                         });
                         
-                        let orderCounter = Object.keys(cloudClientsMap).length;
+                        // هنا يتم الدمج مع الحفاظ على ترتيب الشيت الجديد
+                        let currentSheetPhones = new Set();
+                        let orderCounter = 0;
                         let newClientsAdded = 0;
                         
                         for (let i = headerRowIndex + 1; i < jsonArray.length; i++) {
@@ -554,8 +530,11 @@
                             
                             if (phoneStr && phoneStr.length > 5) {
                                 if (cloudClientsMap[phoneStr]) {
-                                    continue; 
+                                    // العميل موجود: تحديث الترتيب فقط بناء على الشيت الجديد
+                                    cloudClientsMap[phoneStr].orderId = orderCounter++;
+                                    currentSheetPhones.add(phoneStr);
                                 } else {
+                                    // عميل جديد: إضافته بالترتيب الحالي
                                     let st = activeColumns.status && row[cols.status] ? String(row[cols.status]).trim() : "بدون حالة";
                                     if (st === "" || st === "undefined") st = "بدون حالة";
                                     let comp = activeColumns.company && row[cols.company] ? String(row[cols.company]).trim() : "بدون شركة";
@@ -573,14 +552,22 @@
                                         status: st, company: comp, sent: false, history: [], followUpStatus: '', statusDate: ''
                                     };
                                     newClientsAdded++;
+                                    currentSheetPhones.add(phoneStr);
                                 }
+                            }
+                        }
+                        
+                        // العملاء القدامى غير الموجودين في الشيت الجديد نضعهم في الأسفل
+                        for (let p in cloudClientsMap) {
+                            if (!currentSheetPhones.has(p)) {
+                                cloudClientsMap[p].orderId = orderCounter++;
                             }
                         }
                         
                         branchClientsRef.set(cloudClientsMap).then(() => {
                             document.getElementById('loadingIndicator').classList.add('hidden');
                             document.getElementById('excelFile').value = '';
-                            alert(`تم الرفع بنجاح! تمت إضافة ${newClientsAdded} عميل جديد.`);
+                            alert(`تم الرفع بنجاح! تمت إضافة ${newClientsAdded} عميل جديد مع تحديث الترتيب.`);
                             branchClientsRef.once('value', (snap) => {
                                 updateDataFromSnapshot(snap);
                                 applyFilters();
@@ -626,8 +613,9 @@
             }
         };
 
+        // الإشعار الأحمر يظهر فقط لو كان موعد المتابعة يوافق تاريخ اليوم الحالي
         function checkTodayFollowUps() {
-            let today = new Date().toISOString().split('T')[0];
+            let today = getCairoToday();
             let count = 0;
             globalData.forEach(client => {
                 let clientHistory = Array.isArray(client.history) ? client.history : [];
@@ -647,14 +635,16 @@
         }
 
         function filterByToday() {
-            let today = new Date().toISOString().split('T')[0];
+            let today = getCairoToday();
             document.getElementById('followUpDateFilter').value = today;
-            saveFiltersAndApply();
+            applyFilters();
+            saveFiltersToLocal();
         }
 
         function clearDateFilter() {
             document.getElementById('followUpDateFilter').value = '';
-            saveFiltersAndApply();
+            applyFilters();
+            saveFiltersToLocal();
         }
 
         function toggleAdvancedFilters() {
@@ -696,12 +686,22 @@
                     let isDash = (safeItem === "-" || safeItem.includes("بدون"));
                     let displayItem = isDash ? "-" : safeItem;
                     
-                    let bgColor = isDash ? "bg-rose-100 text-rose-900 border-rose-300" : "bg-slate-50 text-slate-800 border-slate-200";
+                    // الألوان الذكية في الفلاتر
+                    let bgColor = "bg-slate-50 text-slate-800 border-slate-200";
+                    if (isDash) {
+                        bgColor = "bg-rose-100 text-rose-900 border-rose-300";
+                    } else if (typeClass === 'status') {
+                        let s = displayItem.toLowerCase();
+                        if (s.includes('active') || s.includes('approved') || s.includes('اكتيف') || s.includes('ابروف')) bgColor = 'bg-emerald-50 text-emerald-800 border-emerald-300';
+                        else if (s.includes('reject') || s.includes('cancel') || s.includes('مرفوض') || s.includes('ملغي')) bgColor = 'bg-rose-50 text-rose-800 border-rose-300';
+                        else if (s.includes('pending') || s.includes('معلق')) bgColor = 'bg-amber-50 text-amber-800 border-amber-300';
+                    }
+                    
                     let isChecked = hasSavedState ? savedChecked.includes(displayItem) : true;
                     
                     const lbl = document.createElement('label');
                     lbl.className = `checkbox-label ${bgColor} px-1 lg:px-2 py-0.5 lg:py-1 rounded text-[8px] md:text-[9px] lg:text-sm border flex items-center gap-0.5 lg:gap-1 font-bold shadow-sm cursor-pointer`;
-                    lbl.innerHTML = `<input type="checkbox" class="${typeClass}-cb w-2.5 h-2.5 lg:w-4 lg:h-4 rounded" value="${displayItem}" ${isChecked ? 'checked' : ''} onchange="saveFiltersAndApply()"> <span>${displayItem}</span>`;
+                    lbl.innerHTML = `<input type="checkbox" class="${typeClass}-cb w-2.5 h-2.5 lg:w-4 lg:h-4 rounded" value="${displayItem}" ${isChecked ? 'checked' : ''} onchange="applyFilters(); saveFiltersToLocal();"> <span>${displayItem}</span>`;
                     container.appendChild(lbl);
                 }
             });
@@ -773,6 +773,18 @@
             }).join('');
         }
 
+        // استخراج آخر كومنت ليعرض تحت القرار
+        function getLastCommentText(historyArray) {
+            if (!historyArray || !Array.isArray(historyArray)) return '';
+            const commentsOnly = historyArray.filter(item => item && item.type === 'comment');
+            if (commentsOnly.length === 0) return '';
+            
+            const lastComment = commentsOnly[commentsOnly.length - 1]; // اخر عنصر
+            let text = lastComment.text || '';
+            let dateStr = lastComment.followUpDate ? `<br><span class="text-rose-600"><i class="fas fa-clock"></i> ${lastComment.followUpDate}</span>` : '';
+            return `<div class="text-[9px] lg:text-[11px] font-semibold text-slate-600 mt-1 border-t border-slate-200 pt-1 leading-tight break-words text-right"><b>آخر كومنت:</b> ${text}${dateStr}</div>`;
+        }
+
         function generateRowHTML(client, index) {
             let cName = client.name ? String(client.name) : "-";
             let cPhone = client.phone ? String(client.phone) : "-";
@@ -787,7 +799,8 @@
             let hasComment = clientHistory.some(h => h && h.type === 'comment');
             
             let rowClass = `client-row text-sm lg:text-base `;
-            // إزالة تغيير لون السطر بأكمله عند الإرسال والاعتماد فقط على الحالة
+            
+            // التلوين حسب الحالة فقط بدون تغيير عند الارسال
             if (client.followUpStatus === 'done') rowClass += `row-done`;
             else if (client.followUpStatus === 'interested') rowClass += `row-interested`;
             else if (client.followUpStatus === 'not_interested') rowClass += `row-not-interested`;
@@ -795,18 +808,26 @@
             else rowClass += `row-default hover:bg-slate-50`;
             
             let html = '';
-            
-            let isChecked = selectedIndexes.has(index) ? 'checked' : '';
-            html += `<td class="p-1 lg:p-2 align-middle border-l border-slate-200">
-                        <input type="checkbox" class="client-cb w-4 h-4 lg:w-5 lg:h-5 cursor-pointer text-sky-600 rounded shadow-sm" value="${index}" onchange="toggleClientSelection(${index}, this)" ${isChecked}>
-                     </td>`;
 
             let limitBtn = `<button onclick="copyAndOpenRaya('${cNid}', this)" class="mt-0.5 inline-block bg-slate-800 hover:bg-slate-700 text-white text-[8px] md:text-[9px] lg:text-xs font-bold px-1.5 lg:px-3 py-1 lg:py-1.5 rounded shadow-sm transition cursor-pointer w-full text-center"><i class="fas fa-credit-card text-sky-400 mr-0.5"></i> الليمت</button>`;
             
             html += `<td class="p-1 md:p-1.5 lg:p-3 align-top pt-1.5 lg:pt-3"><div class="font-bold text-slate-800 text-[10px] md:text-xs lg:text-base break-words w-full" title="${cName}">${cName}</div><div class="text-slate-800 font-black text-[10px] md:text-xs lg:text-base mt-0.5 lg:mt-1" dir="ltr">+${cPhone}</div><div class="text-sky-900 font-black text-[11px] md:text-sm lg:text-lg mt-0.5 mb-0.5 lg:mt-1 lg:mb-1">${cNid}</div>${limitBtn}</td>`;
             
-            let badgeStatus = cStatus === "-" ? 'text-slate-400 font-bold lg:text-sm' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 lg:px-2 py-0.5 lg:py-1 rounded text-[8px] md:text-[9px] lg:text-sm font-semibold block mb-1';
-            let badgeCompany = cCompany === "-" ? 'text-slate-400 font-bold lg:text-sm' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 lg:px-2 py-0.5 lg:py-1 rounded text-[8px] md:text-[9px] lg:text-sm font-semibold block';
+            // الألوان الذكية في الجداول
+            let badgeStatus = '';
+            if (cStatus === "-") {
+                badgeStatus = 'text-slate-400 font-bold lg:text-sm block mb-1';
+            } else {
+                let sLow = cStatus.toLowerCase();
+                let colorClasses = 'bg-slate-100 text-slate-700 border-slate-300';
+                if (sLow.includes('active') || sLow.includes('approved') || sLow.includes('اكتيف') || sLow.includes('ابروف')) colorClasses = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+                else if (sLow.includes('reject') || sLow.includes('cancel') || sLow.includes('مرفوض') || sLow.includes('ملغي')) colorClasses = 'bg-rose-100 text-rose-800 border-rose-300';
+                else if (sLow.includes('pending') || sLow.includes('معلق')) colorClasses = 'bg-amber-100 text-amber-800 border-amber-300';
+                
+                badgeStatus = `${colorClasses} border px-1 lg:px-2 py-0.5 lg:py-1 rounded text-[8px] md:text-[9px] lg:text-sm font-semibold block mb-1`;
+            }
+
+            let badgeCompany = cCompany === "-" ? 'text-slate-400 font-bold lg:text-sm block' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 lg:px-2 py-0.5 lg:py-1 rounded text-[8px] md:text-[9px] lg:text-sm font-semibold block';
             html += `<td class="p-1 md:p-1.5 lg:p-3 align-top pt-2 lg:pt-4"><span class="${badgeStatus}">${cStatus}</span><span class="${badgeCompany}">${cCompany}</span></td>`;
             
             html += `<td class="p-1 md:p-1.5 lg:p-3 align-top">
@@ -840,24 +861,19 @@
                 </div>
             </td>`;
             
-            let dateBadge = '';
-            if (client.statusDate && client.followUpStatus) {
-                let colorClass = client.followUpStatus === 'done' ? 'text-emerald-700' : (client.followUpStatus === 'interested' ? 'text-amber-700' : 'text-rose-700');
-                dateBadge = `<div class="text-[8px] lg:text-xs font-bold ${colorClass} mt-0.5 lg:mt-1 text-center"><i class="fas fa-history"></i> ${client.statusDate}</div>`;
-            }
-            
             html += `<td class="p-1 md:p-1.5 lg:p-3 align-top">
-                <div class="flex flex-col gap-1 lg:gap-2 justify-center h-full">
+                <div class="flex flex-col gap-1 lg:gap-1.5 justify-center h-full">
                     <button onclick="setFollowUpStatus(${index}, 'interested', this)" class="action-btn ${client.followUpStatus === 'interested' ? 'bg-amber-500 text-white shadow-md border-amber-600' : 'bg-white text-slate-600 hover:bg-amber-50'} px-1 lg:px-2 py-1 lg:py-1.5 rounded text-[10px] lg:text-sm font-bold border border-amber-300 w-full transition">⭐ مهتم</button>
                     <button onclick="setFollowUpStatus(${index}, 'done', this)" class="action-btn ${client.followUpStatus === 'done' ? 'bg-emerald-500 text-white shadow-md border-emerald-600' : 'bg-white text-slate-600 hover:bg-emerald-50'} px-1 lg:px-2 py-1 lg:py-1.5 rounded text-[10px] lg:text-sm font-bold border border-emerald-300 w-full transition">✅ تم</button>
                     <button onclick="setFollowUpStatus(${index}, 'not_interested', this)" class="action-btn ${client.followUpStatus === 'not_interested' ? 'bg-rose-500 text-white shadow-md border-rose-600' : 'bg-white text-slate-600 hover:bg-rose-50'} px-1 lg:px-2 py-1 lg:py-1.5 rounded text-[10px] lg:text-sm font-bold border border-rose-300 w-full transition">🚫 غير مهتم</button>
-                    ${dateBadge}
+                    ${getLastCommentText(clientHistory)}
                 </div>
             </td>`;
             
-            // تغيير شكل زر الواتساب فقط دون تغيير لون السطر كله
-            let btnColor = 'bg-sky-600 hover:bg-sky-700';
-            let btnText = client.sent ? '<i class="fab fa-whatsapp lg:text-xl"></i> تم الإرسال ✔️' : '<i class="fab fa-whatsapp lg:text-xl"></i> إرسال';
+            // تغيير نص وشكل الزر للإرسال فقط
+            let btnColor = client.sent ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-sky-600 hover:bg-sky-700';
+            let btnText = client.sent ? '<i class="fas fa-check text-white mr-1 lg:text-lg"></i> تم الإرسال' : '<i class="fab fa-whatsapp lg:text-xl"></i> إرسال';
+            
             html += `<td class="p-1 md:p-1.5 lg:p-3 align-middle"><button onclick="sendManual(${index})" class="${btnColor} text-white px-1 lg:px-2 py-2 lg:py-3 rounded text-[11px] lg:text-sm font-bold shadow-md transition w-full flex items-center justify-center gap-1 lg:gap-2">${btnText}</button></td>`;
             
             return { html, rowClass };
@@ -887,12 +903,6 @@
                 const tbody = document.getElementById('tableBody');
                 tbody.innerHTML = '';
                 let count = 0;
-                
-                if(!isSendingSession) {
-                    selectedIndexes.clear();
-                    document.getElementById('selectAllCb').checked = false;
-                    updateMultiSelectBar();
-                }
                 
                 globalData.forEach((client, index) => {
                     let cName = client.name ? String(client.name) : "-";
@@ -946,126 +956,29 @@
         }
 
         // ===============================================
-        // أكواد الإرسال التلقائي المستقل (Popup Window)
+        // دالة الفتح في نافذة Popup واحدة منفصلة عن التابات الأساسية (الإرسال الفردي)
         // ===============================================
-        
-        function toggleSelectAllClients(checkbox) {
-            const checkboxes = document.querySelectorAll('.client-cb');
-            checkboxes.forEach(cb => {
-                cb.checked = checkbox.checked;
-                if(cb.checked) selectedIndexes.add(parseInt(cb.value));
-                else selectedIndexes.delete(parseInt(cb.value));
-            });
-            updateMultiSelectBar();
-        }
-
-        function toggleClientSelection(index, checkbox) {
-            if(checkbox.checked) selectedIndexes.add(index);
-            else selectedIndexes.delete(index);
-            updateMultiSelectBar();
-        }
-
-        function updateMultiSelectBar() {
-            const bar = document.getElementById('multiSelectBar');
-            const countSpan = document.getElementById('selectedCountSpan');
-            
-            if(selectedIndexes.size > 0 || isSendingSession) {
-                bar.classList.remove('hidden');
-                countSpan.innerText = selectedIndexes.size;
-            } else {
-                bar.classList.add('hidden');
-            }
-        }
-
-        function clearSelection() {
-            selectedIndexes.clear();
-            isSendingSession = false;
-            clearTimeout(autoSendInterval); // إيقاف أي إرسال تلقائي شغال
-            document.querySelectorAll('.client-cb').forEach(cb => cb.checked = false);
-            document.getElementById('selectAllCb').checked = false;
-            
-            document.getElementById('btnStartWaSelected').classList.remove('hidden');
-            document.getElementById('btnStopWaSelected').classList.add('hidden');
-            document.getElementById('waSendingInfo').classList.add('hidden');
-            
-            updateMultiSelectBar();
-        }
-
-        // دالة الفتح في نافذة Popup واحدة منفصلة عن التابات الأساسية
         function openWAPopup(link) {
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             if (isMobile) { 
                 window.location.href = link; 
             } else {
                 if (!waWindowPopup || waWindowPopup.closed) {
-                    // فتح نافذة منفصلة (Popup) بحجم معين في نصف الشاشة
-                    waWindowPopup = window.open(link, 'RayaAutoWA', 'width=800,height=600,left=200,top=100,scrollbars=yes,resizable=yes');
+                    // فتح نافذة منفصلة (Popup) بحجم معين
+                    waWindowPopup = window.open(link, 'RayaAutoWA', 'width=800,height=650,left=200,top=100,scrollbars=yes,resizable=yes');
                 } else {
+                    // تحديث نفس النافذة المفتوحة مسبقاً برابط العميل الجديد
                     waWindowPopup.location.href = link;
                     waWindowPopup.focus();
                 }
             }
         }
-
-        // بدء الإرسال التلقائي
-        function startAutoWaSelected() {
-            if(selectedIndexes.size === 0) return;
-            sendingArray = Array.from(selectedIndexes);
-            sendingCurrentPointer = 0;
-            isSendingSession = true;
-            
-            document.getElementById('btnStartWaSelected').classList.add('hidden');
-            document.getElementById('btnStopWaSelected').classList.remove('hidden');
-            document.getElementById('waSendingInfo').classList.remove('hidden');
-            
-            // فتح النافذة لأول مرة حتى لو فارغة لتهيئة المتصفح
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (!isMobile) {
-                 waWindowPopup = window.open('', 'RayaAutoWA', 'width=800,height=600,left=200,top=100,scrollbars=yes,resizable=yes');
-            }
-
-            processNextAutoWa();
-        }
-
-        // الحلقة التلقائية لتغيير الرابط كل 8 ثواني
-        function processNextAutoWa() {
-            if(sendingCurrentPointer >= sendingArray.length) {
-                alert('🎉 تم الانتهاء من تجهيز جميع رسائل العملاء المحددين!');
-                clearSelection();
-                return;
-            }
-            
-            let clientIndex = sendingArray[sendingCurrentPointer];
-            let client = globalData[clientIndex];
-            
-            document.getElementById('currentWaName').innerText = (client.name && client.name !== '-') ? client.name : `+${client.phone}`;
-            
-            let link = generateWaLink(client);
-            openWAPopup(link);
-            
-            // تحويل الحالة لمرسل وتحديث الشكل
-            client.sent = true;
-            updateClientInCloud(client);
-            updateSingleRowDOM(clientIndex);
-            
-            sendingCurrentPointer++;
-            
-            // تأخير 8 ثواني قبل الانتقال للعميل التالي تلقائياً
-            autoSendInterval = setTimeout(processNextAutoWa, 8000);
-        }
-
-        // إيقاف الإرسال التلقائي يدوياً
-        function stopAutoWaSelected() {
-            clearTimeout(autoSendInterval);
-            alert("تم إيقاف الإرسال التلقائي بنجاح.");
-            clearSelection();
-        }
         
-        // زر الإرسال الفردي اليدوي يستخدم نفس النافذة
         function sendManual(index) {
             const client = globalData[index];
             const link = generateWaLink(client);
-            openWAPopup(link);
+            openWAPopup(link); 
+            
             client.sent = true;
             updateClientInCloud(client);
             updateSingleRowDOM(index);
@@ -1087,7 +1000,7 @@
             if (!text && product === 'all') return;
             const dateInput = document.getElementById(`comment-date-${index}`);
             const followUpDate = dateInput ? dateInput.value : '';
-            const actionDate = document.getElementById('datePicker').value;
+            const actionDate = getCairoToday(); // الكومنت يحفظ بتاريخ اليوم الفعلي دائما
             
             if (!globalData[index].history) globalData[index].history = [];
             globalData[index].history.push({
@@ -1097,6 +1010,7 @@
             
             updateClientInCloud(globalData[index]);
             updateSingleRowDOM(index);
+            checkTodayFollowUps();
         }
 
         function setFollowUpStatus(index, status, btnElement) {
@@ -1114,7 +1028,7 @@
             }
 
             setTimeout(() => {
-                const actionDate = document.getElementById('datePicker').value;
+                const actionDate = getCairoToday();
                 if (globalData[index].followUpStatus === status) {
                     globalData[index].followUpStatus = '';
                     globalData[index].statusDate = '';
