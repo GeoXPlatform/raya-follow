@@ -15,10 +15,8 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc }
         
-        /* تحديد أقصى عرض وتوسيط للمحتوى على الكمبيوتر */
-        .app-container { max-width: 1400px; margin: 0 auto; }
+        .app-container { max-width: 100%; width: 100%; margin: 0 auto; }
 
-        /* إطارات منفصلة وملونة لكل عميل */
         #dataTable { border-collapse: separate !important; border-spacing: 0 12px !important; }
         .client-row { box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.3s; }
         .client-row:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
@@ -39,7 +37,6 @@
             border-bottom-left-radius: 0.75rem; 
         }
 
-        /* ألوان الإطارات حسب الحالة */
         .row-default td { border-color: #cbd5e1; background-color: #ffffff; }
         .row-has-comment td { border-color: #c084fc; background-color: #f3e8ff !important; }
         .row-sent td { border-color: #4ade80; background-color: #f0fdf4 !important; }
@@ -47,7 +44,6 @@
         .row-done td { border-color: #10b981; background-color: #ecfdf5 !important; }
         .row-not-interested td { border-color: #f43f5e; background-color: #fff1f2 !important; opacity: 0.85; }
 
-        /* تأثير النبض والأزرار */
         .action-btn { transition: all 0.3s ease; position: relative; }
         .action-btn.glow-amber { box-shadow: 0 0 15px 5px rgba(251,191,36,0.6); transform: scale(1.05); z-index: 10; border-color: #f59e0b; }
         .action-btn.glow-emerald { box-shadow: 0 0 15px 5px rgba(16,185,129,0.6); transform: scale(1.05); z-index: 10; border-color: #059669; }
@@ -62,9 +58,13 @@
         
         .pulse-alert { animation: pulseAlert 2s infinite }
         @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(225,29,72,0.4) } 70% { box-shadow: 0 0 0 10px rgba(225,29,72,0) } 100% { box-shadow: 0 0 0 0 rgba(225,29,72,0) } }
+        
+        /* انيميشن لوحة الارسال المتسلسل */
+        .slide-up { animation: slideUp 0.4s ease-out forwards; }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
-<body class="p-1 md:p-4 min-h-screen text-sm md:text-base lg:text-lg"> <!-- تكبير الخط الأساسي للكمبيوتر -->
+<body class="p-1 md:p-4 min-h-screen text-sm md:text-base lg:text-lg">
     <div id="branchModal" class="fixed inset-0 bg-slate-900 bg-opacity-90 z-[100] flex items-center justify-center hidden">
         <div class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl max-w-md w-11/12 md:w-full text-center border-t-8 border-sky-600 relative overflow-hidden">
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-sky-100 rounded-full opacity-50"></div>
@@ -88,9 +88,8 @@
         </div>
     </div>
 
-    <!-- إضافة كلاس app-container لضبط العرض على الشاشات الكبيرة -->
     <div class="app-container bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 hidden" id="mainAppContainer">
-        <div class="bg-slate-900 p-2 md:p-4 text-white flex flex-col md:flex-row justify-between items-center gap-2 shadow-md border-b-4 border-sky-600">
+        <div class="bg-slate-900 p-2 md:p-4 text-white flex flex-col md:flex-row justify-between items-center gap-2 shadow-md border-b-4 border-sky-600 px-2 lg:px-6">
             <div class="flex items-center gap-2 w-full md:w-auto justify-between md:justify-start">
                 <div class="flex items-center gap-2">
                     <div class="bg-sky-600 p-1.5 md:p-2 rounded-lg shadow-inner"><i class="fas fa-headset text-lg md:text-xl text-white"></i></div>
@@ -126,7 +125,7 @@
             <button onclick="filterByToday()" class="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white font-bold py-1.5 px-4 rounded-lg shadow-sm text-[10px] md:text-xs lg:text-sm transition"><i class="fas fa-eye"></i> عرضهم الآن</button>
         </div>
 
-        <div class="p-2 md:p-4 grid grid-cols-1 xl:grid-cols-12 gap-3 lg:gap-4 relative">
+        <div class="p-2 md:p-4 grid grid-cols-1 xl:grid-cols-12 gap-3 lg:gap-4 relative px-2 lg:px-6">
             <div class="xl:col-span-3 space-y-2 md:space-y-3 bg-slate-50 p-2 md:p-3 lg:p-4 rounded-xl border border-slate-200 shadow-inner h-fit">
                 <div class="bg-amber-50 p-3 md:p-4 rounded-lg border-2 border-amber-400 shadow-md">
                     <h2 class="font-bold text-amber-800 text-sm md:text-base lg:text-lg mb-2 md:mb-3 flex items-center gap-1.5 border-b-2 border-amber-300 pb-1.5"><i class="fas fa-bullhorn text-amber-600 text-base md:text-lg"></i> عروض راية الحالية</h2>
@@ -138,7 +137,12 @@
                 </div>
                 <div class="bg-white p-2 md:p-3 lg:p-4 rounded-lg shadow-sm border border-slate-100">
                     <label class="block font-bold text-slate-700 text-[10px] md:text-xs lg:text-sm mb-1"><i class="fas fa-comment-dots text-sky-600"></i> رسالة الواتساب الثابتة:</label>
-                    <textarea id="messageText" rows="2" onchange="saveSettingsToFirebase()" class="w-full p-1.5 border border-slate-300 rounded focus:border-sky-500 outline-none transition resize-none text-[10px] md:text-[11px] lg:text-sm leading-relaxed" placeholder="نص الرسالة..."></textarea>
+                    <textarea id="messageText" rows="2" onchange="saveSettingsToFirebase()" class="w-full p-1.5 border border-slate-300 rounded focus:border-sky-500 outline-none transition resize-none text-[10px] md:text-[11px] lg:text-sm leading-relaxed mb-2" placeholder="نص الرسالة..."></textarea>
+                    
+                    <!-- الزر الذكي الجديد للإرسال المتسلسل -->
+                    <button onclick="startBulkSend()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-[11px] lg:text-sm shadow-md transition flex items-center justify-center gap-2">
+                        <i class="fas fa-rocket"></i> بدء الإرسال المتسلسل (نفس التاب)
+                    </button>
                 </div>
             </div>
 
@@ -241,8 +245,27 @@
         </div>
     </div>
 
-    <!-- هذا الرابط المخفي هو سر فتح الواتساب في تاب واحدة باستمرار -->
-    <a id="magic-wa-link" target="Raya_Unified_WhatsApp" style="display:none;"></a>
+    <!-- لوحة الإرسال المتسلسل العائمة (Smart Bulk Sender) -->
+    <div id="bulkSendPanel" class="fixed bottom-4 right-4 md:right-8 bg-white p-4 rounded-xl shadow-2xl border-t-4 border-emerald-500 z-[100] hidden w-[90%] md:w-80 transition-all">
+        <div class="flex justify-between items-center mb-3 border-b border-slate-200 pb-2">
+            <h3 class="font-bold text-emerald-700 text-sm lg:text-base"><i class="fas fa-paper-plane"></i> الإرسال المتسلسل</h3>
+            <button onclick="stopBulkSend()" class="text-rose-500 hover:text-rose-700 font-bold text-lg md:text-xl transition">&times;</button>
+        </div>
+        <p class="text-xs lg:text-sm text-slate-600 font-semibold mb-2">التقدم: <span id="bulkProgress" class="text-emerald-600 font-black">1 / 10</span></p>
+        <div class="bg-slate-50 p-2 lg:p-3 rounded border border-slate-200 mb-3 shadow-inner text-right">
+            <p id="bulkCurrentName" class="font-bold text-xs lg:text-sm truncate text-slate-800">محمد أحمد</p>
+            <p id="bulkCurrentPhone" class="text-[11px] lg:text-xs font-black text-slate-500 mt-1" dir="ltr">+2010...</p>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="sendBulkCurrent()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-lg font-bold text-[10px] lg:text-xs shadow-md transition flex items-center justify-center gap-1">
+                <i class="fab fa-whatsapp text-sm"></i> فتح المحادثة
+            </button>
+            <button onclick="nextBulkClient()" class="flex-1 bg-sky-500 hover:bg-sky-600 text-white py-2 rounded-lg font-bold text-[10px] lg:text-xs shadow-md transition flex items-center justify-center gap-1">
+                التالي <i class="fas fa-chevron-left text-[9px]"></i>
+            </button>
+        </div>
+        <p class="text-[9px] lg:text-[10px] text-slate-400 mt-3 text-center leading-tight">افتح المحادثة، اضغط إرسال في واتساب، ثم ارجع هنا واضغط التالي ليتم فتح نفس التاب للرقم الجديد.</p>
+    </div>
 
     <script>
         const firebaseConfig = {
@@ -258,8 +281,12 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const database = firebase.database();
         let globalData = [];
+        let filteredClientsArray = []; // مصفوفة العملاء في الفلتر الحالي للارسال المجمع
         let activeColumns = { name: false, nid: false, phone: false, status: false, company: false };
         let currentBranch = '';
+        
+        // متغير عالمي للتحكم في التاب الخاصة بالواتساب
+        let waWindow = null; 
         
         let branchClientsRef = null;
         let branchSettingsRef = null;
@@ -594,7 +621,7 @@
                 try {
                     document.execCommand("copy");
                     let originalText = btn.innerHTML;
-                    btn.innerHTML = `<i class="fas fa-check text-emerald-400"></i> تم نسخ الرقم القومي للعميل`;
+                    btn.innerHTML = `<i class="fas fa-check text-emerald-400"></i> تم نسخ الرقم القومي`;
                     setTimeout(() => { btn.innerHTML = originalText; }, 2000);
                 } catch (err) { console.error("Copy failed", err); }
                 document.body.removeChild(tempInput);
@@ -859,6 +886,8 @@
                 tbody.innerHTML = '';
                 let count = 0;
                 
+                filteredClientsArray = []; // تفريغ القائمة مع كل فلترة جديدة
+                
                 globalData.forEach((client, index) => {
                     let cName = client.name ? String(client.name) : "-";
                     let cPhone = client.phone ? String(client.phone) : "-";
@@ -895,6 +924,8 @@
                     
                     if (statusMatch && companyMatch && searchMatch && fuMatch && empMatch && dateMatch && productMatch) {
                         count++;
+                        filteredClientsArray.push(client); // تخزين العميل للارسال المجمع
+                        
                         const tr = document.createElement('tr');
                         tr.id = `row-${index}`;
                         const rowData = generateRowHTML(client, index);
@@ -908,6 +939,86 @@
                 document.getElementById('clientCount').innerText = count;
             } catch (error) { console.error("Error", error); }
         }
+
+        // ==========================================
+        // أكواد الإرسال المجمع الذكي المتسلسل
+        // ==========================================
+        let bulkClientsList = [];
+        let currentBulkIndex = 0;
+
+        function startBulkSend() {
+            if (filteredClientsArray.length === 0) {
+                alert("لا يوجد عملاء في الفلتر الحالي. الرجاء تصفية العملاء أولاً.");
+                return;
+            }
+            
+            bulkClientsList = [...filteredClientsArray];
+            currentBulkIndex = 0;
+            
+            const panel = document.getElementById('bulkSendPanel');
+            panel.classList.remove('hidden');
+            panel.classList.add('slide-up');
+            
+            updateBulkUI();
+        }
+
+        function stopBulkSend() {
+            document.getElementById('bulkSendPanel').classList.add('hidden');
+            bulkClientsList = [];
+            currentBulkIndex = 0;
+        }
+
+        function updateBulkUI() {
+            if (currentBulkIndex >= bulkClientsList.length) {
+                alert("🎉 تم الانتهاء من إرسال الرسائل لجميع العملاء في القائمة!");
+                stopBulkSend();
+                return;
+            }
+            
+            let client = bulkClientsList[currentBulkIndex];
+            document.getElementById('bulkProgress').innerText = `${currentBulkIndex + 1} / ${bulkClientsList.length}`;
+            document.getElementById('bulkCurrentName').innerText = client.name && client.name !== "-" ? client.name : "عميل بدون اسم";
+            document.getElementById('bulkCurrentPhone').innerText = `+${client.phone}`;
+        }
+
+        function sendBulkCurrent() {
+            if (currentBulkIndex >= bulkClientsList.length) return;
+            let client = bulkClientsList[currentBulkIndex];
+            
+            let msg = document.getElementById('messageText').value;
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            let link = isMobile ? `whatsapp://send?phone=${client.phone}&text=${encodeURIComponent(msg)}` : `https://web.whatsapp.com/send?phone=${client.phone}&text=${encodeURIComponent(msg)}`;
+            
+            if (isMobile) { 
+                window.location.href = link; 
+            } else { 
+                if (!waWindow || waWindow.closed) {
+                    waWindow = window.open(link, 'Raya_Unified_WhatsApp');
+                } else {
+                    waWindow.location.href = link;
+                    waWindow.focus();
+                }
+            }
+            
+            client.sent = true;
+            updateClientInCloud(client);
+            
+            let globalIndex = globalData.findIndex(c => c.phone === client.phone);
+            if(globalIndex !== -1) updateSingleRowDOM(globalIndex);
+        }
+
+        function nextBulkClient() {
+            currentBulkIndex++;
+            updateBulkUI();
+            
+            // إضافة حركة خفيفة للوحة لتوضيح التغيير
+            const panel = document.getElementById('bulkSendPanel');
+            panel.classList.remove('slide-up');
+            void panel.offsetWidth; // Trigger reflow
+            panel.classList.add('slide-up');
+        }
+
+        // ==========================================
 
         function addComment(index) {
             const empId = document.getElementById('empIdInput').value.trim();
@@ -983,12 +1094,16 @@
             if (isMobile) { 
                 window.location.href = link; 
             } else { 
-                let hiddenLink = document.getElementById('magic-wa-link');
-                hiddenLink.href = link; 
-                hiddenLink.click();
+                if (!waWindow || waWindow.closed) {
+                    waWindow = window.open(link, 'Raya_Unified_WhatsApp');
+                } else {
+                    waWindow.location.href = link;
+                    waWindow.focus();
+                }
             }
             client.sent = true;
             updateClientInCloud(client);
+            updateSingleRowDOM(index);
         }
     </script>
 </body>
