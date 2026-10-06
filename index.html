@@ -39,7 +39,7 @@
 
         .row-default td { border-color: #cbd5e1; background-color: #ffffff; }
         .row-has-comment td { border-color: #c084fc; background-color: #f3e8ff !important; }
-        .row-sent td { border-color: #4ade80; background-color: #f0fdf4 !important; }
+        /* تم إلغاء تغيير لون السطر بالكامل عند الإرسال بناء على طلبك */
         .row-interested td { border-color: #fbbf24; background-color: #fffbeb !important; }
         .row-done td { border-color: #10b981; background-color: #ecfdf5 !important; }
         .row-not-interested td { border-color: #f43f5e; background-color: #fff1f2 !important; opacity: 0.85; }
@@ -59,7 +59,6 @@
         .pulse-alert { animation: pulseAlert 2s infinite }
         @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(225,29,72,0.4) } 70% { box-shadow: 0 0 0 10px rgba(225,29,72,0) } 100% { box-shadow: 0 0 0 0 rgba(225,29,72,0) } }
         
-        /* تأثير ظهور شريط التحديد */
         .slide-up-bar { animation: slideUpBar 0.3s ease-out forwards; }
         @keyframes slideUpBar { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
@@ -137,7 +136,7 @@
                 </div>
                 <div class="bg-white p-2 md:p-3 lg:p-4 rounded-lg shadow-sm border border-slate-100">
                     <label class="block font-bold text-slate-700 text-[10px] md:text-xs lg:text-sm mb-1"><i class="fas fa-comment-dots text-sky-600"></i> رسالة الواتساب الثابتة:</label>
-                    <textarea id="messageText" rows="3" onchange="saveSettingsToFirebase()" class="w-full p-1.5 border border-slate-300 rounded focus:border-sky-500 outline-none transition resize-none text-[10px] md:text-[11px] lg:text-sm leading-relaxed" placeholder="اكتب نص الرسالة التي ستُرسل للعملاء..."></textarea>
+                    <textarea id="messageText" rows="3" onchange="saveSettingsToFirebase()" class="w-full p-1.5 border border-slate-300 rounded focus:border-sky-500 outline-none transition resize-none text-[10px] md:text-[11px] lg:text-sm leading-relaxed mb-2" placeholder="اكتب نص الرسالة التي ستُرسل للعملاء..."></textarea>
                 </div>
             </div>
 
@@ -226,7 +225,6 @@
                     <table class="w-full text-center min-w-[750px]" id="dataTable">
                         <thead class="bg-slate-200">
                             <tr id="tableHeader">
-                                <!-- عمود التحديد المتعدد -->
                                 <th class="p-2 lg:p-3 font-bold text-slate-700 w-10 lg:w-12 rounded-r-lg border-l border-slate-300">
                                     <input type="checkbox" id="selectAllCb" class="w-4 h-4 lg:w-5 lg:h-5 cursor-pointer text-sky-600 rounded" onchange="toggleSelectAllClients(this)">
                                 </th>
@@ -244,24 +242,24 @@
         </div>
     </div>
 
-    <!-- الشريط السفلي الذكي للإرسال المتعدد -->
+    <!-- الشريط السفلي الذكي للإرسال الأوتوماتيكي -->
     <div id="multiSelectBar" class="fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-3 lg:p-4 shadow-[0_-4px_25px_rgba(0,0,0,0.3)] z-[100] flex flex-col md:flex-row justify-between items-center gap-3 hidden slide-up-bar border-t-4 border-sky-500">
         <div class="flex items-center gap-3 w-full md:w-auto justify-between">
             <div class="bg-sky-600 px-3 lg:px-4 py-1.5 lg:py-2 rounded-full font-bold text-sm lg:text-base shadow-inner">
                 تم تحديد: <span id="selectedCountSpan" class="text-white text-base lg:text-lg">0</span> عملاء
             </div>
             <div id="waSendingInfo" class="hidden text-sm lg:text-base font-bold text-amber-400 bg-slate-800 px-3 py-1.5 rounded-lg border border-amber-500/30">
-                جاري إرسال: <span id="currentWaName" class="text-white ml-1"></span>
+                <i class="fas fa-spinner fa-spin mr-1"></i> إرسال آلي لـ: <span id="currentWaName" class="text-white ml-1"></span>
             </div>
         </div>
         <div class="flex gap-2 w-full md:w-auto">
-            <button id="btnStartWaSelected" onclick="startWaSelected()" class="w-full md:w-auto bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-lg font-bold text-sm lg:text-base shadow-lg flex items-center justify-center gap-2 transition">
-                <i class="fab fa-whatsapp text-lg"></i> إرسال للمحددين
+            <button id="btnStartWaSelected" onclick="startAutoWaSelected()" class="w-full md:w-auto bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-lg font-bold text-sm lg:text-base shadow-lg flex items-center justify-center gap-2 transition" title="سيقوم بتغيير الرقم تلقائياً كل 8 ثواني داخل نفس التاب">
+                <i class="fab fa-whatsapp text-lg"></i> إرسال آلي (كل 8 ثواني)
             </button>
-            <button id="btnNextWa" onclick="nextWaSelected()" class="w-full md:w-auto bg-sky-500 hover:bg-sky-600 px-5 py-2 rounded-lg font-bold text-sm lg:text-base shadow-lg items-center justify-center gap-2 transition hidden">
-                التالي <i class="fas fa-forward"></i>
+            <button id="btnStopWaSelected" onclick="stopAutoWaSelected()" class="w-full md:w-auto bg-rose-500 hover:bg-rose-600 px-5 py-2 rounded-lg font-bold text-sm lg:text-base shadow-lg items-center justify-center gap-2 transition hidden">
+                <i class="fas fa-stop"></i> إيقاف الإرسال
             </button>
-            <button onclick="clearSelection()" class="bg-rose-600 hover:bg-rose-700 px-3 py-2 rounded-lg font-bold text-sm lg:text-base shadow-lg transition" title="إلغاء التحديد">
+            <button onclick="clearSelection()" class="bg-slate-600 hover:bg-slate-700 px-3 py-2 rounded-lg font-bold text-sm lg:text-base shadow-lg transition" title="إلغاء التحديد">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -284,9 +282,9 @@
         let activeColumns = { name: false, nid: false, phone: false, status: false, company: false };
         let currentBranch = '';
         
-        // متغيرات التحديد والإرسال الموحد للواتساب
         let selectedIndexes = new Set();
-        let waPopup = null; 
+        let waWindowPopup = null; 
+        let autoSendInterval;
         let isSendingSession = false;
         let sendingCurrentPointer = 0;
         let sendingArray = [];
@@ -429,16 +427,17 @@
             }
         }
 
+        // الترتيب الجديد: مهتم -> كومنت -> فاضي -> تم -> غير مهتم
         function sortGlobalData() {
             globalData.sort((a, b) => {
                 const getPriority = (client) => {
                     if (client.followUpStatus === 'interested') return 1;
-                    if (client.followUpStatus === 'done') return 2;
                     let hasComment = client.history && client.history.some(h => h && h.type === 'comment');
-                    if (hasComment && !client.followUpStatus) return 3;
-                    if (!client.followUpStatus) return 4;
+                    if (hasComment && !client.followUpStatus) return 2;
+                    if (!client.followUpStatus) return 3;
+                    if (client.followUpStatus === 'done') return 4;
                     if (client.followUpStatus === 'not_interested') return 5;
-                    return 4;
+                    return 3;
                 };
                 return getPriority(a) - getPriority(b) || (a.orderId || 0) - (b.orderId || 0);
             });
@@ -539,7 +538,6 @@
                         saveSettingsToFirebase();
                         
                         let cloudClientsMap = {};
-                        // تحميل العملاء الموجودين أصلاً
                         globalData.forEach(c => {
                             if (c.phone) { cloudClientsMap[c.phone] = c; }
                         });
@@ -555,11 +553,9 @@
                             const phoneStr = cleanPhoneNumber(phoneRaw);
                             
                             if (phoneStr && phoneStr.length > 5) {
-                                // هنا يكمن الذكاء: إذا كان العميل موجوداً، لا نفعل له أي شيء (نتركه كما هو بكومنتاته)
                                 if (cloudClientsMap[phoneStr]) {
                                     continue; 
                                 } else {
-                                    // إضافة العميل الجديد فقط
                                     let st = activeColumns.status && row[cols.status] ? String(row[cols.status]).trim() : "بدون حالة";
                                     if (st === "" || st === "undefined") st = "بدون حالة";
                                     let comp = activeColumns.company && row[cols.company] ? String(row[cols.company]).trim() : "بدون شركة";
@@ -584,7 +580,7 @@
                         branchClientsRef.set(cloudClientsMap).then(() => {
                             document.getElementById('loadingIndicator').classList.add('hidden');
                             document.getElementById('excelFile').value = '';
-                            alert(`تم الرفع بنجاح! تمت إضافة ${newClientsAdded} عميل جديد دون المساس بالعملاء القدامى.`);
+                            alert(`تم الرفع بنجاح! تمت إضافة ${newClientsAdded} عميل جديد.`);
                             branchClientsRef.once('value', (snap) => {
                                 updateDataFromSnapshot(snap);
                                 applyFilters();
@@ -791,27 +787,23 @@
             let hasComment = clientHistory.some(h => h && h.type === 'comment');
             
             let rowClass = `client-row text-sm lg:text-base `;
+            // إزالة تغيير لون السطر بأكمله عند الإرسال والاعتماد فقط على الحالة
             if (client.followUpStatus === 'done') rowClass += `row-done`;
             else if (client.followUpStatus === 'interested') rowClass += `row-interested`;
             else if (client.followUpStatus === 'not_interested') rowClass += `row-not-interested`;
             else if (hasComment) rowClass += `row-has-comment`;
-            else if (client.sent) rowClass += `row-sent`;
             else rowClass += `row-default hover:bg-slate-50`;
             
             let html = '';
             
-            // عمود تحديد العميل
             let isChecked = selectedIndexes.has(index) ? 'checked' : '';
             html += `<td class="p-1 lg:p-2 align-middle border-l border-slate-200">
                         <input type="checkbox" class="client-cb w-4 h-4 lg:w-5 lg:h-5 cursor-pointer text-sky-600 rounded shadow-sm" value="${index}" onchange="toggleClientSelection(${index}, this)" ${isChecked}>
                      </td>`;
 
-            let displayName = cName;
-            if (client.sent) displayName += ' <i class="fas fa-check-circle text-emerald-500 text-[8px] lg:text-xs" title="تم الإرسال"></i>';
             let limitBtn = `<button onclick="copyAndOpenRaya('${cNid}', this)" class="mt-0.5 inline-block bg-slate-800 hover:bg-slate-700 text-white text-[8px] md:text-[9px] lg:text-xs font-bold px-1.5 lg:px-3 py-1 lg:py-1.5 rounded shadow-sm transition cursor-pointer w-full text-center"><i class="fas fa-credit-card text-sky-400 mr-0.5"></i> الليمت</button>`;
             
-            // إزالة القطع وجعل الاسم يلتف تلقائيا (break-words) ليظهر بالكامل
-            html += `<td class="p-1 md:p-1.5 lg:p-3 align-top pt-1.5 lg:pt-3"><div class="font-bold text-slate-800 text-[10px] md:text-xs lg:text-base break-words w-full" title="${displayName}">${displayName}</div><div class="text-slate-800 font-black text-[10px] md:text-xs lg:text-base mt-0.5 lg:mt-1" dir="ltr">+${cPhone}</div><div class="text-sky-900 font-black text-[11px] md:text-sm lg:text-lg mt-0.5 mb-0.5 lg:mt-1 lg:mb-1">${cNid}</div>${limitBtn}</td>`;
+            html += `<td class="p-1 md:p-1.5 lg:p-3 align-top pt-1.5 lg:pt-3"><div class="font-bold text-slate-800 text-[10px] md:text-xs lg:text-base break-words w-full" title="${cName}">${cName}</div><div class="text-slate-800 font-black text-[10px] md:text-xs lg:text-base mt-0.5 lg:mt-1" dir="ltr">+${cPhone}</div><div class="text-sky-900 font-black text-[11px] md:text-sm lg:text-lg mt-0.5 mb-0.5 lg:mt-1 lg:mb-1">${cNid}</div>${limitBtn}</td>`;
             
             let badgeStatus = cStatus === "-" ? 'text-slate-400 font-bold lg:text-sm' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 lg:px-2 py-0.5 lg:py-1 rounded text-[8px] md:text-[9px] lg:text-sm font-semibold block mb-1';
             let badgeCompany = cCompany === "-" ? 'text-slate-400 font-bold lg:text-sm' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 lg:px-2 py-0.5 lg:py-1 rounded text-[8px] md:text-[9px] lg:text-sm font-semibold block';
@@ -863,8 +855,9 @@
                 </div>
             </td>`;
             
-            let btnColor = client.sent ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-sky-600 hover:bg-sky-700';
-            let btnText = client.sent ? '<i class="fab fa-whatsapp text-lg lg:text-2xl"></i>' : '<i class="fab fa-whatsapp lg:text-xl"></i> إرسال';
+            // تغيير شكل زر الواتساب فقط دون تغيير لون السطر كله
+            let btnColor = 'bg-sky-600 hover:bg-sky-700';
+            let btnText = client.sent ? '<i class="fab fa-whatsapp lg:text-xl"></i> تم الإرسال ✔️' : '<i class="fab fa-whatsapp lg:text-xl"></i> إرسال';
             html += `<td class="p-1 md:p-1.5 lg:p-3 align-middle"><button onclick="sendManual(${index})" class="${btnColor} text-white px-1 lg:px-2 py-2 lg:py-3 rounded text-[11px] lg:text-sm font-bold shadow-md transition w-full flex items-center justify-center gap-1 lg:gap-2">${btnText}</button></td>`;
             
             return { html, rowClass };
@@ -895,7 +888,6 @@
                 tbody.innerHTML = '';
                 let count = 0;
                 
-                // مسح التحديد عند الفلترة
                 if(!isSendingSession) {
                     selectedIndexes.clear();
                     document.getElementById('selectAllCb').checked = false;
@@ -954,7 +946,7 @@
         }
 
         // ===============================================
-        // أكواد تحديد العملاء ونافذة الواتساب الموحدة
+        // أكواد الإرسال التلقائي المستقل (Popup Window)
         // ===============================================
         
         function toggleSelectAllClients(checkbox) {
@@ -988,48 +980,57 @@
         function clearSelection() {
             selectedIndexes.clear();
             isSendingSession = false;
+            clearTimeout(autoSendInterval); // إيقاف أي إرسال تلقائي شغال
             document.querySelectorAll('.client-cb').forEach(cb => cb.checked = false);
             document.getElementById('selectAllCb').checked = false;
             
             document.getElementById('btnStartWaSelected').classList.remove('hidden');
-            document.getElementById('btnNextWa').classList.add('hidden');
+            document.getElementById('btnStopWaSelected').classList.add('hidden');
             document.getElementById('waSendingInfo').classList.add('hidden');
             
             updateMultiSelectBar();
         }
 
-        // دالة العبقرية لحل مشكلة التابات الكثيرة (تفتح نافذة Popup واحدة ثابتة وتتحدث داخليا)
+        // دالة الفتح في نافذة Popup واحدة منفصلة عن التابات الأساسية
         function openWAPopup(link) {
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             if (isMobile) { 
                 window.location.href = link; 
             } else {
-                if (!waPopup || waPopup.closed) {
-                    waPopup = window.open(link, 'RayaWAPopup', 'width=850,height=650,scrollbars=yes,resizable=yes');
+                if (!waWindowPopup || waWindowPopup.closed) {
+                    // فتح نافذة منفصلة (Popup) بحجم معين في نصف الشاشة
+                    waWindowPopup = window.open(link, 'RayaAutoWA', 'width=800,height=600,left=200,top=100,scrollbars=yes,resizable=yes');
                 } else {
-                    waPopup.location.href = link;
-                    waPopup.focus();
+                    waWindowPopup.location.href = link;
+                    waWindowPopup.focus();
                 }
             }
         }
 
-        function startWaSelected() {
+        // بدء الإرسال التلقائي
+        function startAutoWaSelected() {
             if(selectedIndexes.size === 0) return;
             sendingArray = Array.from(selectedIndexes);
             sendingCurrentPointer = 0;
             isSendingSession = true;
             
             document.getElementById('btnStartWaSelected').classList.add('hidden');
-            document.getElementById('btnNextWa').classList.remove('hidden');
-            document.getElementById('btnNextWa').classList.add('flex');
+            document.getElementById('btnStopWaSelected').classList.remove('hidden');
             document.getElementById('waSendingInfo').classList.remove('hidden');
             
-            processWaSelected();
+            // فتح النافذة لأول مرة حتى لو فارغة لتهيئة المتصفح
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (!isMobile) {
+                 waWindowPopup = window.open('', 'RayaAutoWA', 'width=800,height=600,left=200,top=100,scrollbars=yes,resizable=yes');
+            }
+
+            processNextAutoWa();
         }
 
-        function processWaSelected() {
+        // الحلقة التلقائية لتغيير الرابط كل 8 ثواني
+        function processNextAutoWa() {
             if(sendingCurrentPointer >= sendingArray.length) {
-                alert('🎉 تم الإرسال لجميع العملاء المحددين بنجاح!');
+                alert('🎉 تم الانتهاء من تجهيز جميع رسائل العملاء المحددين!');
                 clearSelection();
                 return;
             }
@@ -1042,16 +1043,25 @@
             let link = generateWaLink(client);
             openWAPopup(link);
             
+            // تحويل الحالة لمرسل وتحديث الشكل
             client.sent = true;
             updateClientInCloud(client);
             updateSingleRowDOM(clientIndex);
+            
+            sendingCurrentPointer++;
+            
+            // تأخير 8 ثواني قبل الانتقال للعميل التالي تلقائياً
+            autoSendInterval = setTimeout(processNextAutoWa, 8000);
         }
 
-        function nextWaSelected() {
-            sendingCurrentPointer++;
-            processWaSelected();
+        // إيقاف الإرسال التلقائي يدوياً
+        function stopAutoWaSelected() {
+            clearTimeout(autoSendInterval);
+            alert("تم إيقاف الإرسال التلقائي بنجاح.");
+            clearSelection();
         }
         
+        // زر الإرسال الفردي اليدوي يستخدم نفس النافذة
         function sendManual(index) {
             const client = globalData[index];
             const link = generateWaLink(client);
