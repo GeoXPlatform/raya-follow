@@ -15,7 +15,7 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc }
         
-        /* التعديل الجديد: إطارات منفصلة وملونة لكل عميل */
+        /* إطارات منفصلة وملونة لكل عميل */
         #dataTable { border-collapse: separate !important; border-spacing: 0 12px !important; }
         .client-row { box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.3s; }
         .client-row:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
@@ -260,7 +260,6 @@
         let branchSettingsRef = null;
 
         window.onload = function() {
-            // جعل تاريخ اليوم هو الافتراضي بشكل دائم عند فتح الصفحة
             let currentDate = new Date().toISOString().split('T')[0];
             document.getElementById('datePicker').value = currentDate;
             
@@ -283,6 +282,8 @@
                 followUp: document.getElementById('followUpFilter').value,
                 product: document.getElementById('productFilter').value,
                 followUpDate: document.getElementById('followUpDateFilter').value,
+                statusCB: getCheckedValues('status'),
+                companyCB: getCheckedValues('company')
             };
             localStorage.setItem('raya_filters_state', JSON.stringify(filters));
         }
@@ -304,6 +305,11 @@
         function saveFiltersAndApply() {
             saveFiltersToLocal();
             applyFilters();
+        }
+
+        function toggleFilterAll(masterCheckbox, typeClass) {
+            document.querySelectorAll(`.${typeClass}-cb`).forEach(cb => cb.checked = masterCheckbox.checked);
+            saveFiltersAndApply();
         }
 
         function confirmBranchSelection() {
@@ -388,7 +394,6 @@
             }
         }
 
-        // التعديل: ترتيب (مهتم > تم > تعليق > بدون قرار > غير مهتم)
         function sortGlobalData() {
             globalData.sort((a, b) => {
                 const getPriority = (client) => {
@@ -637,51 +642,67 @@
             }
         }
 
-        function restoreUI() {
-            try {
-                restoreFiltersFromLocal(); // استرجاع الفلاتر المحفوظة
-                
-                let uniqueStatuses = new Set();
-                let uniqueCompanies = new Set();
-                globalData.forEach(client => {
-                    let cStatus = client.status ? String(client.status) : "بدون حالة";
-                    let cCompany = client.company ? String(client.company) : "بدون شركة";
-                    if (activeColumns.status) uniqueStatuses.add(cStatus);
-                    if (activeColumns.company && cCompany !== 'بدون شركة') uniqueCompanies.add(cCompany);
-                });
-                if (activeColumns.status && uniqueStatuses.size > 0) buildCheckboxes('statusCheckboxes', uniqueStatuses, 'status', true);
-                if (activeColumns.company) buildCheckboxes('companyCheckboxes', uniqueCompanies, 'company', true);
-                
-                document.getElementById('actionPanel').classList.remove('hidden');
-                applyFilters();
-            } catch (e) { console.error("Error UI", e); }
-        }
-
-        function buildCheckboxes(containerId, itemsSet, typeClass, addEmptyOption = false) {
+        function buildCheckboxes(containerId, itemsSet, typeClass) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
             document.getElementById(containerId.replace('Checkboxes', 'FilterContainer')).classList.remove('hidden');
+            
+            let savedChecked = [];
+            try {
+                const saved = localStorage.getItem('raya_filters_state');
+                if (saved) {
+                    const filters = JSON.parse(saved);
+                    if (typeClass === 'status' && filters.statusCB) savedChecked = filters.statusCB;
+                    if (typeClass === 'company' && filters.companyCB) savedChecked = filters.companyCB;
+                }
+            } catch(e) {}
+            const hasSavedState = savedChecked.length > 0;
+
             const allDiv = document.createElement('label');
             allDiv.className = 'checkbox-label bg-white text-slate-700 px-1 py-0.5 rounded border border-slate-300 flex items-center gap-0.5 font-bold text-[8px] md:text-[9px] shadow-sm cursor-pointer';
-            allDiv.innerHTML = `<input type="checkbox" onchange="toggleFilterAll(this, '${typeClass}')" checked class="w-2.5 h-2.5 text-sky-600 rounded"> <span>الكل</span>`;
+            allDiv.innerHTML = `<input type="checkbox" onchange="toggleFilterAll(this, '${typeClass}')" ${hasSavedState ? '' : 'checked'} class="w-2.5 h-2.5 text-sky-600 rounded"> <span>الكل</span>`;
             container.appendChild(allDiv);
             
-            if (addEmptyOption && typeClass === 'company') itemsSet.add("بدون شركة");
             itemsSet.forEach(item => {
                 if (item) {
                     let safeItem = String(item);
-                    let bgColor = safeItem.includes("بدون") ? "bg-rose-50 text-rose-800 border-rose-200" : "bg-slate-50 text-slate-800 border-slate-200";
+                    let isDash = (safeItem === "-" || safeItem.includes("بدون"));
+                    let displayItem = isDash ? "-" : safeItem;
+                    
+                    let bgColor = isDash ? "bg-rose-100 text-rose-900 border-rose-300" : "bg-slate-50 text-slate-800 border-slate-200";
+                    let isChecked = hasSavedState ? savedChecked.includes(displayItem) : true;
+                    
                     const lbl = document.createElement('label');
                     lbl.className = `checkbox-label ${bgColor} px-1 py-0.5 rounded text-[8px] md:text-[9px] border flex items-center gap-0.5 font-bold shadow-sm cursor-pointer`;
-                    lbl.innerHTML = `<input type="checkbox" class="${typeClass}-cb w-2.5 h-2.5 rounded" value="${safeItem}" checked onchange="applyFilters()"> <span>${safeItem}</span>`;
+                    lbl.innerHTML = `<input type="checkbox" class="${typeClass}-cb w-2.5 h-2.5 rounded" value="${displayItem}" ${isChecked ? 'checked' : ''} onchange="saveFiltersAndApply()"> <span>${displayItem}</span>`;
                     container.appendChild(lbl);
                 }
             });
         }
 
-        function toggleFilterAll(masterCheckbox, typeClass) {
-            document.querySelectorAll(`.${typeClass}-cb`).forEach(cb => cb.checked = masterCheckbox.checked);
-            applyFilters();
+        function restoreUI() {
+            try {
+                restoreFiltersFromLocal();
+                
+                let uniqueStatuses = new Set();
+                let uniqueCompanies = new Set();
+                globalData.forEach(client => {
+                    let cStatus = client.status ? String(client.status) : "-";
+                    let cCompany = client.company ? String(client.company) : "-";
+                    
+                    if(cStatus.includes("بدون")) cStatus = "-";
+                    if(cCompany.includes("بدون")) cCompany = "-";
+                    
+                    if (activeColumns.status) uniqueStatuses.add(cStatus);
+                    if (activeColumns.company) uniqueCompanies.add(cCompany);
+                });
+                
+                if (activeColumns.status && uniqueStatuses.size > 0) buildCheckboxes('statusCheckboxes', uniqueStatuses, 'status');
+                if (activeColumns.company && uniqueCompanies.size > 0) buildCheckboxes('companyCheckboxes', uniqueCompanies, 'company');
+                
+                document.getElementById('actionPanel').classList.remove('hidden');
+                applyFilters();
+            } catch (e) { console.error("Error UI", e); }
         }
 
         function getCheckedValues(typeClass) {
@@ -706,7 +727,6 @@
             });
             if (empSet.has(currentVal)) select.value = currentVal;
             
-            // استرجاع الموظف المفلتر إذا كان محفوظ
             const saved = localStorage.getItem('raya_filters_state');
             if (saved) {
                 const filters = JSON.parse(saved);
@@ -714,7 +734,6 @@
             }
         }
 
-        // التعديل: الأحدث فوق والأقدم تحت باستخدام slice().reverse()
         function renderHistory(historyArray) {
             if (!historyArray || !Array.isArray(historyArray)) return '<div class="text-slate-400 text-center py-1 text-[9px] font-bold">لا توجد تعليقات</div>';
             const commentsOnly = historyArray.filter(item => item && item.type === 'comment').slice().reverse();
@@ -731,8 +750,12 @@
             let cName = client.name ? String(client.name) : "-";
             let cPhone = client.phone ? String(client.phone) : "-";
             let cNid = client.nid ? String(client.nid) : "-";
-            let cStatus = client.status ? String(client.status) : "بدون حالة";
-            let cCompany = client.company ? String(client.company) : "بدون شركة";
+            let cStatus = client.status ? String(client.status) : "-";
+            let cCompany = client.company ? String(client.company) : "-";
+            
+            if(cStatus.includes("بدون")) cStatus = "-";
+            if(cCompany.includes("بدون")) cCompany = "-";
+
             let clientHistory = Array.isArray(client.history) ? client.history : [];
             let hasComment = clientHistory.some(h => h && h.type === 'comment');
             
@@ -750,28 +773,26 @@
             let limitBtn = `<button onclick="copyAndOpenRaya('${cNid}', this)" class="mt-0.5 inline-block bg-slate-800 hover:bg-slate-700 text-white text-[8px] md:text-[9px] font-bold px-1.5 py-1 rounded shadow-sm transition cursor-pointer w-full text-center"><i class="fas fa-credit-card text-sky-400 mr-0.5"></i> الليمت</button>`;
             html += `<td class="p-1 md:p-1.5 align-top pt-1.5"><div class="font-bold text-slate-800 text-[10px] md:text-xs truncate max-w-[140px]" title="${displayName}">${displayName}</div><div class="text-slate-800 font-black text-[10px] md:text-xs mt-0.5" dir="ltr">+${cPhone}</div><div class="text-sky-900 font-black text-[11px] md:text-sm mt-0.5 mb-0.5">${cNid}</div>${limitBtn}</td>`;
             
-            let displayStatus = cStatus.includes("بدون") ? '-' : cStatus;
-            let badgeStatus = cStatus.includes("بدون") ? 'text-slate-400 font-bold' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 py-0.5 rounded text-[8px] md:text-[9px] font-semibold block mb-1';
-            let displayCompany = cCompany === 'بدون شركة' ? '-' : cCompany;
-            let badgeCompany = cCompany === 'بدون شركة' ? 'text-slate-400 font-bold' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 py-0.5 rounded text-[8px] md:text-[9px] font-semibold block';
-            html += `<td class="p-1 md:p-1.5 align-top pt-2"><span class="${badgeStatus}">${displayStatus}</span><span class="${badgeCompany}">${displayCompany}</span></td>`;
+            let badgeStatus = cStatus === "-" ? 'text-slate-400 font-bold' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 py-0.5 rounded text-[8px] md:text-[9px] font-semibold block mb-1';
+            let badgeCompany = cCompany === "-" ? 'text-slate-400 font-bold' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 py-0.5 rounded text-[8px] md:text-[9px] font-semibold block';
+            html += `<td class="p-1 md:p-1.5 align-top pt-2"><span class="${badgeStatus}">${cStatus}</span><span class="${badgeCompany}">${cCompany}</span></td>`;
             
-            // التعديل: تصميم الكومنت ليكون بار متناسق وأصغر ومميز وزر حفظ أكبر
             html += `<td class="p-1 md:p-1.5 align-top">
-                <div class="h-20 md:h-24 overflow-y-auto mb-1.5 custom-scrollbar bg-slate-50/50 p-1.5 rounded border border-slate-200 shadow-inner" id="history-${index}">${renderHistory(clientHistory)}</div>
-                
-                <div class="flex gap-1 items-center justify-between bg-white p-1 rounded-lg border-2 border-slate-200 shadow-sm w-full">
-                    <select id="comment-product-${index}" class="w-16 border-none bg-slate-50 p-1 rounded outline-none text-[9px] font-bold text-sky-700 cursor-pointer">
-                        <option value="all">منتج</option>
-                        <option value="Handset">Handset</option><option value="TV">TV</option><option value="AC">AC</option>
-                        <option value="SDA">SDA</option><option value="HA">HA</option><option value="Acc">Acc</option><option value="أخرى">أخرى</option>
-                    </select>
-                    <input type="text" id="comment-input-${index}" class="w-full border-x-2 border-slate-100 px-1.5 py-1 outline-none text-[10px] md:text-[11px] font-semibold" placeholder="اكتب كومنت (كلمتين)...">
-                    <input type="date" id="comment-date-${index}" class="w-[70px] border-none bg-slate-50 p-1 rounded outline-none text-[9px] font-bold text-slate-600 cursor-pointer">
+                <div class="max-w-[240px] mx-auto">
+                    <div class="h-16 md:h-20 overflow-y-auto mb-1 custom-scrollbar bg-slate-50/80 p-1.5 rounded-lg border border-slate-200 shadow-inner text-right" id="history-${index}">${renderHistory(clientHistory)}</div>
                     
-                    <button onclick="addComment(${index})" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1.5 rounded-md text-[11px] md:text-xs font-bold shadow-md flex-shrink-0 transition">
-                        <i class="fas fa-save"></i> <span>حفظ</span>
-                    </button>
+                    <div class="flex flex-wrap gap-1 items-center justify-between bg-white p-1 rounded-lg border-2 border-slate-200 shadow-sm">
+                        <select id="comment-product-${index}" class="w-[55px] border-none bg-slate-50 p-1 rounded outline-none text-[9px] font-bold text-sky-700 cursor-pointer">
+                            <option value="all">منتج</option>
+                            <option value="Handset">Handset</option><option value="TV">TV</option><option value="AC">AC</option>
+                            <option value="SDA">SDA</option><option value="HA">HA</option><option value="Acc">Acc</option><option value="أخرى">أخرى</option>
+                        </select>
+                        <input type="text" id="comment-input-${index}" class="flex-grow min-w-[60px] border border-slate-100 px-1.5 py-1 rounded outline-none text-[10px] md:text-[11px] font-semibold" placeholder="كومنت...">
+                        <input type="date" id="comment-date-${index}" class="w-[20px] overflow-hidden border border-slate-100 bg-slate-50 p-1 rounded outline-none text-[9px] font-bold cursor-pointer" title="تاريخ المتابعة">
+                        <button onclick="addComment(${index})" class="bg-sky-600 hover:bg-sky-700 text-white px-2.5 py-1 rounded text-[10px] md:text-[11px] font-bold shadow flex-shrink-0 transition">
+                            <i class="fas fa-save"></i>
+                        </button>
+                    </div>
                 </div>
             </td>`;
             
@@ -781,7 +802,6 @@
                 dateBadge = `<div class="text-[8px] font-bold ${colorClass} mt-0.5 text-center"><i class="fas fa-history"></i> ${client.statusDate}</div>`;
             }
             
-            // إضافة تأثير التفاعل وتمرير this للتعرف على الزر
             html += `<td class="p-1 md:p-1.5 align-top">
                 <div class="flex flex-col gap-1 justify-center h-full">
                     <button onclick="setFollowUpStatus(${index}, 'interested', this)" class="action-btn ${client.followUpStatus === 'interested' ? 'bg-amber-500 text-white shadow-md border-amber-600' : 'bg-white text-slate-600 hover:bg-amber-50'} px-1 py-1 rounded text-[10px] font-bold border border-amber-300 w-full transition">⭐ مهتم</button>
@@ -805,7 +825,6 @@
                 tr.className = rowData.rowClass;
                 tr.innerHTML = rowData.html;
                 const hDiv = document.getElementById(`history-${index}`);
-                // لأن الأحدث أصبح فوق، نجعل التمرير للأعلى دائماً
                 if (hDiv) hDiv.scrollTop = 0; 
             }
         }
@@ -828,8 +847,12 @@
                     let cName = client.name ? String(client.name) : "-";
                     let cPhone = client.phone ? String(client.phone) : "-";
                     let cNid = client.nid ? String(client.nid) : "-";
-                    let cStatus = client.status ? String(client.status) : "بدون حالة";
-                    let cCompany = client.company ? String(client.company) : "بدون شركة";
+                    
+                    let cStatus = client.status ? String(client.status) : "-";
+                    let cCompany = client.company ? String(client.company) : "-";
+                    if(cStatus.includes("بدون")) cStatus = "-";
+                    if(cCompany.includes("بدون")) cCompany = "-";
+
                     let clientHistory = Array.isArray(client.history) ? client.history : [];
                     
                     let statusMatch = !activeColumns.status || selectedStatuses.includes(cStatus);
@@ -863,7 +886,7 @@
                         tr.innerHTML = rowData.html;
                         tbody.appendChild(tr);
                         const hDiv = document.getElementById(`history-${index}`);
-                        if (hDiv) hDiv.scrollTop = 0; // الأحدث أصبح فوق
+                        if (hDiv) hDiv.scrollTop = 0; 
                     }
                 });
                 document.getElementById('clientCount').innerText = count;
@@ -885,7 +908,7 @@
             if (!text && product === 'all') return;
             const dateInput = document.getElementById(`comment-date-${index}`);
             const followUpDate = dateInput ? dateInput.value : '';
-            const actionDate = document.getElementById('datePicker').value; // يستخدم التاريخ المختار في الأعلى
+            const actionDate = document.getElementById('datePicker').value;
             
             if (!globalData[index].history) globalData[index].history = [];
             globalData[index].history.push({
@@ -897,7 +920,6 @@
             updateSingleRowDOM(index);
         }
 
-        // التعديل: تفعيل الـ Animation للزر عند الضغط قبل التحديث
         function setFollowUpStatus(index, status, btnElement) {
             const empId = document.getElementById('empIdInput').value.trim();
             if (!empId) {
@@ -906,14 +928,12 @@
                 return;
             }
 
-            // إضافة تأثير الإضاءة بصرياً
             if (btnElement) {
                 if(status === 'interested') btnElement.classList.add('glow-amber');
                 if(status === 'done') btnElement.classList.add('glow-emerald');
                 if(status === 'not_interested') btnElement.classList.add('glow-rose');
             }
 
-            // تأخير التنفيذ لجزء من الثانية ليظهر التأثير للمستخدم
             setTimeout(() => {
                 const actionDate = document.getElementById('datePicker').value;
                 if (globalData[index].followUpStatus === status) {
@@ -929,7 +949,7 @@
                 sortGlobalData();
                 applyFilters();
                 window.scrollTo(0, currentScroll);
-            }, 300); // 300 ملي ثانية مدة التأثير
+            }, 300);
         }
 
         function generateWaLink(client) {
