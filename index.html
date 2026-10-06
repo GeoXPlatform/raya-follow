@@ -25,7 +25,7 @@
         .row-has-comment { background-color: #fdf4ff !important; border: 2px solid #d8b4fe !important; border-bottom: 5px solid #a855f7 !important; } 
         .row-sent { background-color: #f0fdf4 !important; border: 2px solid #86efac !important; border-bottom: 5px solid #22c55e !important; } 
         .row-interested { background-color: #fffbeb !important; border: 2px solid #fde68a !important; border-bottom: 5px solid #f59e0b !important; } 
-        .row-not-interested { background-color: #fff1f2 !important; border: 2px solid #fecdd3 !important; border-bottom: 5px solid #f43f5e !important; opacity: 0.9; } 
+        .row-not-interested { background-color: #fff1f2 !important; border: 2px solid #fecdd3 !important; border-bottom: 5px solid #f43f5e !important; opacity: 0.95; } 
         .row-done { background-color: #ecfdf5 !important; border: 2px solid #a7f3d0 !important; border-bottom: 5px solid #10b981 !important; opacity: 0.95; } 
 
         .checkbox-label { cursor: pointer; user-select: none; transition: all 0.2s; }
@@ -43,6 +43,9 @@
             70% { box-shadow: 0 0 0 10px transparent; }
             100% { box-shadow: 0 0 0 0 transparent; }
         }
+
+        /* تأثير التوهج للزراير */
+        .btn-active-glow { box-shadow: 0 0 12px 2px currentColor; transform: scale(0.95); transition: all 0.2s; }
     </style>
 </head>
 <body class="p-1 md:p-3 min-h-screen text-[11px] md:text-sm">
@@ -111,7 +114,7 @@
                 <p class="text-[9px] text-rose-600 font-bold">لديك (<span id="notificationCount" class="text-xs font-black"></span>) عملاء بموعد اليوم.</p>
             </div>
         </div>
-        <button onclick="filterByToday()" class="bg-rose-600 text-white font-bold py-1 px-2 rounded text-[9px] mt-1 sm:mt-0">
+        <button onclick="filterByToday()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-1 px-2 rounded text-[9px] mt-1 sm:mt-0 transition">
             <i class="fas fa-eye"></i> عرض
         </button>
     </div>
@@ -142,7 +145,6 @@
         <!-- لوحة التحكم والجدول -->
         <div class="xl:col-span-9 flex flex-col h-full hidden" id="actionPanel">
             
-            <!-- الفلاتر المتثبتة -->
             <div class="sticky-panel rounded-lg px-0.5">
                 <div class="bg-white p-1.5 rounded-lg border border-slate-300 shadow-sm">
                     <div class="grid grid-cols-2 lg:grid-cols-6 gap-1 items-end">
@@ -202,7 +204,7 @@
                                 </label>
                                 <div class="flex">
                                     <input type="date" id="followUpDateFilter" onchange="applyFilters()" class="bg-slate-50 border border-slate-300 text-[8px] rounded-r w-full p-1 outline-none">
-                                    <button onclick="clearDateFilter()" class="bg-slate-200 border border-r-0 border-slate-300 px-1 rounded-l text-[8px] hover:bg-slate-300 transition"><i class="fas fa-times"></i></button>
+                                    <button onclick="clearDateFilter()" class="bg-slate-200 hover:bg-slate-300 border border-r-0 border-slate-300 px-1 rounded-l text-[8px] transition"><i class="fas fa-times"></i></button>
                                 </div>
                             </div>
                             
@@ -213,7 +215,7 @@
                         </div>
                     </div>
 
-                    <button onclick="toggleAdvancedFilters()" class="w-full mt-1.5 bg-slate-100 text-slate-700 font-bold py-1 px-2 rounded text-[9px] border border-slate-300 flex justify-between outline-none">
+                    <button onclick="toggleAdvancedFilters()" class="w-full mt-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1 px-2 rounded text-[9px] border border-slate-300 flex justify-between transition">
                         <span><i class="fas fa-sliders-h text-sky-600"></i> فلاتر متقدمة (نظام وشركات)</span>
                         <i class="fas fa-chevron-down" id="advFilterIcon"></i>
                     </button>
@@ -238,17 +240,17 @@
                     <p class="font-bold text-slate-500 text-[9px]">جاري المزامنة مع السحابة...</p>
                 </div>
                 
-                <table class="w-full text-center border-collapse min-w-[700px] md:min-w-[900px] table-fixed" id="dataTable">
+                <table class="w-full text-center border-collapse min-w-[650px] md:min-w-[900px]" id="dataTable">
                     <thead class="bg-slate-200 border-b border-slate-300">
                         <tr id="tableHeader">
-                            <th class="p-1 font-bold text-slate-700 text-[9px] w-32">العميل</th>
-                            <th class="p-1 font-bold text-slate-700 text-[9px] w-20">البيانات</th>
+                            <th class="p-1 font-bold text-slate-700 text-[9px] w-1/4">العميل والموبايل</th>
+                            <th class="p-1 font-bold text-slate-700 text-[9px] w-1/6">البيانات</th>
                             <th class="p-1 font-bold text-slate-700 text-[9px] w-auto">السجل والتعليق</th>
                             <th class="p-1 font-bold text-slate-700 text-[9px] w-20">القرار</th>
                             <th class="p-1 font-bold text-slate-700 text-[9px] w-14">W</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody" class="bg-white p-1 block w-full table-row-group">
+                    <tbody id="tableBody" class="bg-white">
                         <!-- البيانات -->
                     </tbody>
                 </table>
@@ -257,7 +259,6 @@
     </div>
 </div>
 
-<!-- رابط الواتساب المخفي -->
 <a id="magic-wa-link" target="Raya_Unified_WhatsApp" style="display:none;"></a>
 
 <script>
@@ -287,7 +288,7 @@
     let activeColumns = { name: false, nid: false, phone: false, status: false, company: false };
     let currentBranch = '';
     
-    // فتح تاريخ الإجراء على تاريخ اليوم أوتوماتيك
+    // ضبط تاريخ اليوم أوتوماتيك
     document.getElementById('datePicker').value = new Date().toISOString().split('T')[0];
     
     let branchClientsRef = null;
@@ -354,7 +355,7 @@
                 document.getElementById('dataTable').classList.remove('hidden');
                 document.getElementById('actionPanel').classList.remove('hidden');
                 updateEmpDropdown();
-                loadFilters(); // استرجاع الفلاتر من الذاكرة عشان متطيرش مع الريفريش
+                loadFilters(); // استرجاع الفلاتر من الذاكرة
                 checkTodayFollowUps();
                 restoreUI();
             } else {
@@ -362,7 +363,6 @@
                 document.getElementById('notificationBanner').classList.add('hidden');
             }
 
-            // الاستماع للتغييرات بدون إزعاج باقي الموظفين
             branchClientsRef.on('child_changed', cs => {
                 const uc = cs.val(), i = globalData.findIndex(c => c.phone === uc.phone);
                 if (i !== -1) {
@@ -391,7 +391,7 @@
         sortGlobalData();
     }
 
-    // الترتيب الذكي: المهتم فوق، ثم اللي ليه كومنت، ثم الجديد، ثم تم التنفيذ، ثم غير مهتم
+    // الترتيب: المهتم فوق خالص -> كومنت -> جديد -> تم -> مش مهتم (في القاع)
     function sortGlobalData() {
         globalData.sort((a, b) => {
             const gp = c => {
@@ -420,7 +420,7 @@
         if (branchClientsRef) branchClientsRef.child(obj.phone).set(obj);
     }
 
-    // زرار الفورمات السحري 
+    // زرار الفورمات القوي
     function hardResetCloud() {
         if (!currentBranch) return;
         if (prompt("تحذير! هذا الإجراء سيمسح جميع بيانات الفرع نهائياً. للفرمتة اكتب 'نعم'") === 'نعم') {
@@ -428,7 +428,7 @@
             document.getElementById('dataTable').classList.add('hidden');
             branchClientsRef.remove().then(() => {
                 branchSettingsRef.remove();
-                localStorage.removeItem('raya_f'); // مسح الفلاتر
+                localStorage.removeItem('raya_f'); // مسح الفلاتر المتخزنة
                 alert("تم الفرمتة بنجاح!");
                 location.reload();
             });
@@ -436,7 +436,7 @@
     }
 
     // -----------------------------------------------------
-    // 4. قراءة الإكسيل المضمونة (البحث القوي للرقم القومي)
+    // 4. قراءة الإكسيل الجبرية (Ultra Phone/NID Parser)
     // -----------------------------------------------------
     function processExcel() {
         const f = document.getElementById('excelFile');
@@ -461,7 +461,7 @@
                     
                     let hri = -1, cols = { name: -1, nid: -1, phone: -1, status: -1, company: -1 };
                     
-                    // بحث واسع عن العناوين في أول 50 سطر
+                    // بحث واسع عن العناوين 
                     for (let i = 0; i < Math.min(ja.length, 50); i++) {
                         const rv = ja[i];
                         if (!rv || rv.length === 0) continue;
@@ -490,17 +490,8 @@
                         }
                     }
                     
-                    // إذا لم يجد العناوين سيقوم بوضع قيم افتراضية ومحاولة سحب الأرقام مباشرة
-                    let isFuzzyMode = (hri === -1);
-                    if (isFuzzyMode) {
-                        hri = 0; 
-                        cols.name = 0;
-                        cols.phone = 1;
-                        cols.nid = 2;
-                    }
-                    
                     activeColumns = {
-                        name: cols.name !== -1, nid: cols.nid !== -1, phone: cols.phone !== -1 || isFuzzyMode,
+                        name: cols.name !== -1, nid: cols.nid !== -1, phone: cols.phone !== -1,
                         status: cols.status !== -1, company: cols.company !== -1
                     };
                     saveSettingsToFirebase();
@@ -515,58 +506,68 @@
                     });
                     
                     let oc = Object.keys(cm).length;
+                    let addedCount = 0;
                     
-                    for (let i = hri + 1; i < ja.length; i++) {
+                    let startRow = (hri === -1) ? 0 : hri + 1;
+
+                    for (let i = startRow; i < ja.length; i++) {
                         const row = ja[i];
                         if (!row || row.length === 0) continue;
 
                         let ps = "", cn = "-", rn = "-", st = "-", cp = "-";
 
-                        if (!isFuzzyMode && cols.phone !== -1) {
-                            const phoneRaw = row[cols.phone];
-                            if (phoneRaw) ps = cleanPhoneNumber(phoneRaw);
-                            
-                            cn = (cols.name !== -1 && row[cols.name]) ? String(row[cols.name]).trim() : "-";
-                            rn = (cols.nid !== -1 && row[cols.nid]) ? String(row[cols.nid]).trim() : "-";
-                            st = (cols.status !== -1 && row[cols.status]) ? String(row[cols.status]).trim() : "-";
-                            cp = (cols.company !== -1 && row[cols.company]) ? String(row[cols.company]).trim() : "-";
-                            
-                            if (rn.toUpperCase().includes('E')) rn = Number(row[cols.nid]).toLocaleString('fullwide', { useGrouping: false });
-                            else rn = rn.replace(/[^0-9]/g, '') || "-";
-                        } else {
-                            // نظام استخراج الأرقام القوي لو العناوين متلخبطة
+                        // استخراج الداتا المباشر
+                        if (cols.phone !== -1 && row[cols.phone]) {
+                            ps = cleanPhoneNumber(row[cols.phone]);
+                        }
+                        if (cols.name !== -1 && row[cols.name]) cn = String(row[cols.name]).trim();
+                        if (cols.nid !== -1 && row[cols.nid]) rn = String(row[cols.nid]).trim();
+                        if (cols.status !== -1 && row[cols.status]) st = String(row[cols.status]).trim();
+                        if (cols.company !== -1 && row[cols.company]) cp = String(row[cols.company]).trim();
+
+                        // القوة الجبرية (لو العمود فاضي أو العناوين متلخبطة، بيبحث في السطر كله)
+                        if (!ps || ps.length <= 5) {
                             for (let j = 0; j < row.length; j++) {
                                 let cell = row[j];
                                 if (!cell) continue;
                                 let cStr = String(cell).trim();
                                 
+                                // إصلاح صيغة الإكسيل العلمية E+ للأرقام
                                 if (cStr.toUpperCase().includes('E') && !isNaN(cell)) {
                                     cStr = Number(cell).toLocaleString('fullwide', {useGrouping:false});
                                 }
                                 
                                 let cNum = cStr.replace(/[^0-9]/g, '');
 
-                                if (!ps && ((cNum.length === 11 && cNum.startsWith('01')) || (cNum.length === 10 && cNum.startsWith('1')) || (cNum.length === 12 && cNum.startsWith('201')))) {
+                                // اصطياد الموبايل
+                                if ((!ps || ps.length <= 5) && ((cNum.length === 11 && cNum.startsWith('01')) || (cNum.length === 10 && cNum.startsWith('1')) || (cNum.length === 12 && cNum.startsWith('201')))) {
                                     ps = cleanPhoneNumber(cNum);
-                                    continue;
-                                }
-                                if (rn === "-" && cNum.length === 14 && (cNum.startsWith('2') || cNum.startsWith('3'))) {
+                                } 
+                                // اصطياد الرقم القومي
+                                else if (rn === "-" && cNum.length === 14 && (cNum.startsWith('2') || cNum.startsWith('3'))) {
                                     rn = cNum;
-                                    continue;
-                                }
-                                let clow = cStr.toLowerCase();
-                                if (st === "-" && (clow.includes('pending') || clow.includes('approved') || clow.includes('rejected') || clow.includes('active') || clow.includes('cancel') || clow.includes('limit') || clow.includes('expired'))) {
-                                    st = cStr;
-                                    continue;
-                                }
-                                if (cn === "-" && isNaN(cStr) && cStr.length > 5 && !clow.includes('pending') && !cStr.includes('@')) {
-                                    cn = cStr;
-                                    continue;
+                                } 
+                                // اصطياد الباقي
+                                else {
+                                    let clow = cStr.toLowerCase();
+                                    if (st === "-" && (clow.includes('pending') || clow.includes('approved') || clow.includes('rejected') || clow.includes('active') || clow.includes('cancel') || clow.includes('limit') || clow.includes('expired'))) {
+                                        st = cStr;
+                                    } else if (cn === "-" && isNaN(cStr) && cStr.length > 5 && !clow.includes('pending') && !cStr.includes('@') && !cStr.includes('http')) {
+                                        cn = cStr;
+                                    }
                                 }
                             }
                         }
 
                         if (ps && ps.length > 5) {
+                            // تظبيط الرقم القومي
+                            if (rn.toUpperCase().includes('E')) rn = Number(rn).toLocaleString('fullwide', { useGrouping: false });
+                            else rn = rn.replace(/[^0-9]/g, '') || "-";
+                            
+                            if (cn === "") cn = "-";
+                            if (st === "") st = "-";
+                            if (cp === "") cp = "-";
+
                             if (cm[ps]) {
                                 if (cn !== "-") cm[ps].name = cn;
                                 if (rn !== "-") cm[ps].nid = rn;
@@ -577,6 +578,7 @@
                                     orderId: oc++, name: cn, nid: rn, phone: ps, status: st, company: cp,
                                     sent: false, history: [], followUpStatus: '', statusDate: ''
                                 };
+                                addedCount++;
                             }
                         }
                     }
@@ -592,16 +594,17 @@
                         document.getElementById('loadingIndicator').classList.add('hidden');
                         document.getElementById('excelFile').value = '';
                         
-                        // إظهار لوحة التحكم وإعادة بناء الفلاتر فوراً
+                        // إظهار لوحة التحكم والجدول فوراً
+                        document.getElementById('actionPanel').classList.remove('hidden');
+                        document.getElementById('dataTable').classList.remove('hidden');
+                        
                         branchClientsRef.once('value', s => {
                             updateDataFromSnapshot(s);
-                            document.getElementById('actionPanel').classList.remove('hidden');
-                            document.getElementById('dataTable').classList.remove('hidden');
                             updateEmpDropdown();
                             checkTodayFollowUps();
                             restoreUI(); 
                         });
-                        alert("تم رفع ودمج الشيت بنجاح!");
+                        alert(`تم الرفع بنجاح! تم التقاط ${addedCount} عميل جديد.`);
                     }).catch(err => {
                         document.getElementById('loadingIndicator').classList.add('hidden');
                         alert("خطأ أثناء الاتصال بالسحابة: " + err);
@@ -617,7 +620,12 @@
 
     function cleanPhoneNumber(p) {
         if (!p || String(p).trim() === "" || p === "undefined") return "";
-        let f = String(p).replace(/[^0-9]/g, '');
+        let cStr = String(p).trim();
+        // إصلاح الأرقام العلمية E+
+        if (cStr.toUpperCase().includes('E') && !isNaN(p)) {
+            cStr = Number(p).toLocaleString('fullwide', {useGrouping:false});
+        }
+        let f = cStr.replace(/[^0-9]/g, '');
         if (f.startsWith('1') && f.length === 10) return '20' + f;
         if (f.startsWith('01') && f.length === 11) return '2' + f;
         if (!f.startsWith('20') && f.length > 0) return '20' + f;
@@ -628,7 +636,7 @@
     // 5. الوظائف المتنوعة والفلاتر
     // -----------------------------------------------------
     
-    // نسخ الرقم وفتح تاب راية الموحدة
+    // نسخ الرقم وفتح تاب راية (بدون تكرار)
     window.copyAndOpenRaya = function(nid, btn) {
         if (nid && String(nid).trim() !== "-" && String(nid).trim() !== "") {
             const ti = document.createElement("input");
@@ -711,8 +719,8 @@
         let us = new Set(), uc = new Set();
         globalData.forEach(c => {
             let st = c.status ? String(c.status) : "-", co = c.company ? String(c.company) : "-";
-            if (activeColumns.status) us.add(st);
-            if (activeColumns.company && co !== '-') uc.add(co);
+            us.add(st);
+            if (co !== '-') uc.add(co);
         });
         
         buildCheckboxes('statusCheckboxes', us, 'status', true);
@@ -772,14 +780,14 @@
     }
 
     // -----------------------------------------------------
-    // 6. رسم الجدول (أزرار كبيرة للكومنت وصغيرة للكتابة)
+    // 6. رسم الجدول 
     // -----------------------------------------------------
     function renderHistory(ha) {
-        if (!ha || !Array.isArray(ha)) return '<div class="text-slate-400 text-center py-1 text-[8px]">لا توجد تعليقات</div>';
+        if (!ha || !Array.isArray(ha)) return '<div class="text-slate-400 text-center py-1 text-[8px]">لا يوجد سجل</div>';
         const co = ha.filter(i => i && i.type === 'comment');
-        if (co.length === 0) return '<div class="text-slate-400 text-center py-1 text-[8px]">لا توجد تعليقات</div>';
+        if (co.length === 0) return '<div class="text-slate-400 text-center py-1 text-[8px]">لا يوجد سجل</div>';
         
-        // الأجدد فوق والأقدم تحت
+        // الأحدث فوق
         return co.slice().reverse().map(i => {
             let fb = i.followUpDate ? `<span class="text-[7px] text-rose-600 bg-rose-50 px-1 border border-rose-100 rounded mr-1"><i class="fas fa-clock"></i> متابعة: ${i.followUpDate}</span>` : '';
             let pb = i.product && i.product !== 'all' ? `<span class="text-[7px] text-sky-700 bg-sky-100 px-1 rounded ml-1 border border-sky-200">${i.product}</span>` : '';
@@ -809,11 +817,11 @@
         let dn = cn;
         if (c.sent) dn += ' <i class="fas fa-check-circle text-emerald-500 text-[8px]"></i>';
         
-        let lb = `<button onclick="copyAndOpenRaya('${cd}', this)" class="mt-1 bg-slate-800 hover:bg-slate-700 text-white text-[8px] font-bold px-1.5 py-1 rounded w-full"><i class="fas fa-credit-card text-sky-400"></i> عرض الليمت</button>`;
+        let lb = `<button onclick="copyAndOpenRaya('${cd}', this)" class="mt-1 bg-slate-800 hover:bg-slate-700 text-white text-[8px] font-bold px-1.5 py-1 rounded w-full"><i class="fas fa-credit-card text-sky-400 mr-1"></i> عرض الليمت</button>`;
         
         html += `<td class="p-1 align-top pt-1.5">
             <div class="font-bold text-slate-800 text-[10px] truncate max-w-[120px]">${dn}</div>
-            <div class="text-slate-800 font-black text-[9px] mt-0.5" dir="ltr">+${cp}</div>
+            <div class="text-slate-800 font-black text-[10px] mt-0.5" dir="ltr">+${cp}</div>
             <div class="text-sky-900 font-black text-[12px] bg-sky-100 p-0.5 rounded border border-sky-300 mt-1 mb-1 shadow-sm">${cd}</div>
             ${lb}
         </td>`;
@@ -823,7 +831,7 @@
         
         html += `<td class="p-1 align-top pt-2"><span class="${bgs}">${cs}</span><span class="${bgc}">${cc}</span></td>`;
         
-        // خانات ضيقة للإدخال، وزرار حفظ كبير
+        // مساحة الكومنت متصغرة وزرار الحفظ كبير
         html += `<td class="p-1 border-r border-l border-slate-200 align-top bg-slate-50/30">
             <div class="h-24 overflow-y-auto mb-1.5 custom-scrollbar bg-white p-1 rounded border border-slate-200" id="history-${idx}">
                 ${renderHistory(ch)}
@@ -841,7 +849,7 @@
                 </select>
                 <input type="date" id="comment-date-${idx}" class="w-20 border border-slate-300 p-1 rounded text-[8px] outline-none">
                 <input type="text" id="comment-input-${idx}" class="w-24 border border-slate-300 p-1 rounded text-[10px] outline-none" placeholder="كلمتين هنا...">
-                <button onclick="addComment(${idx}, this)" class="bg-sky-600 text-white p-1 px-3 rounded text-[11px] font-bold shadow-md transition-transform active:scale-95"><i class="fas fa-save"></i> حفظ 💾</button>
+                <button onclick="addComment(${idx}, this)" class="bg-sky-600 hover:bg-sky-700 text-white p-1 px-4 rounded text-[12px] font-bold shadow-md transition-transform active:scale-95"><i class="fas fa-save"></i> حفظ 💾</button>
             </div>
         </td>`;
         
@@ -885,9 +893,13 @@
 
     function applyFilters() {
         try {
-            // حل مشكلة الفلاتر اللي بتخفي الجدول لو العواميد مش موجودة (Fallback)
-            const ss = (activeColumns.status) ? getCheckedValues('status') : [];
-            const sc = (activeColumns.company) ? getCheckedValues('company') : [];
+            // إضافة حماية قوية للفلاتر
+            const sCb = document.querySelectorAll('.status-cb:checked');
+            const cCb = document.querySelectorAll('.company-cb:checked');
+            
+            const ss = sCb.length > 0 ? Array.from(sCb).map(c => c.value) : [];
+            const sc = cCb.length > 0 ? Array.from(cCb).map(c => c.value) : [];
+            
             const s = document.getElementById('searchInput').value.toLowerCase().trim();
             const f = document.getElementById('followUpFilter').value;
             const p = document.getElementById('productFilter').value;
@@ -898,13 +910,16 @@
             tb.innerHTML = '';
             let ct = 0;
             
+            // التأكد إن الفلاتر لو فاضية يعتبرها مختارة الكل
+            const allStatus = document.querySelectorAll('.status-cb').length === 0;
+            const allCompany = document.querySelectorAll('.company-cb').length === 0;
+            
             globalData.forEach((c, i) => {
                 let cn = c.name ? String(c.name) : "-", cp = c.phone ? String(c.phone) : "-", cd = c.nid ? String(c.nid) : "-", cs = c.status ? String(c.status) : "-", cc = c.company ? String(c.company) : "-";
                 let ch = Array.isArray(c.history) ? c.history : [];
                 
-                // شرط الأمان (لو الفلاتر فاضية، اعتبره متطابق)
-                let sm = (ss.length === 0) || ss.includes(cs);
-                let cm = (sc.length === 0) || sc.includes(cc);
+                let sm = allStatus || ss.includes(cs);
+                let cm = allCompany || sc.includes(cc);
                 let sch = true;
                 
                 if (s) {
@@ -933,14 +948,14 @@
                 }
             });
             document.getElementById('clientCount').innerText = ct;
-            saveFilters(); // الحفاظ على الفلاتر مع الريفريش
+            saveFilters();
         } catch (err) { console.log(err); }
     }
 
-    // --- الإجراءات والتحديث (توهج وثبات الشاشة) ---
+    // --- الإجراءات والتحديث (توهج الأزرار وثبات الشاشة) ---
     function addComment(i, btn) {
         const ei = document.getElementById('empIdInput').value.trim();
-        if (!ei) { alert("أدخل ID الموظف!"); document.getElementById('empIdInput').focus(); return; }
+        if (!ei) { alert("أدخل ID الموظف أولاً من أعلى الشاشة!"); document.getElementById('empIdInput').focus(); return; }
         
         const t = document.getElementById(`comment-input-${i}`).value.trim(),
               ps = document.getElementById(`comment-product-${i}`),
@@ -948,7 +963,6 @@
               
         if (!t && p === 'all') return;
         
-        // تأثير ضغطة الزر الواضح
         btn.classList.add('btn-active-glow');
         setTimeout(() => btn.classList.remove('btn-active-glow'), 300);
 
@@ -958,7 +972,7 @@
         if (!globalData[i].history) globalData[i].history = [];
         globalData[i].history.push({ date: ad, empId: ei, type: 'comment', text: t || "تحديد منتج", product: p, followUpDate: fd });
         
-        // الشاشة مش هتتحرك خالص
+        // حفظ مكان التمرير
         let cs = window.scrollY;
         updateClientInCloud(globalData[i]);
         sortGlobalData();
@@ -968,7 +982,7 @@
 
     function setFollowUpStatus(i, st, btn) {
         const ei = document.getElementById('empIdInput').value.trim();
-        if (!ei) { alert("أدخل ID الموظف!"); document.getElementById('empIdInput').focus(); return; }
+        if (!ei) { alert("أدخل ID الموظف أولاً من أعلى الشاشة!"); document.getElementById('empIdInput').focus(); return; }
         
         btn.classList.add('btn-active-glow');
         setTimeout(() => btn.classList.remove('btn-active-glow'), 300);
@@ -980,11 +994,12 @@
             globalData[i].followUpStatus = st; globalData[i].statusDate = ad;
         }
         
+        // حفظ مكان التمرير 
         let cs = window.scrollY;
         updateClientInCloud(globalData[i]);
-        sortGlobalData(); // يرتب العميل في الخلفية
-        applyFilters(); // ينفذ الترتيب
-        window.scrollTo(0, cs); // يحافظ على مكان عينك
+        sortGlobalData();
+        applyFilters();
+        window.scrollTo(0, cs);
     }
 
     function sendManual(i) {
