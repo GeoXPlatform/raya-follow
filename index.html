@@ -243,7 +243,7 @@
                     <p class="font-bold text-slate-500 text-[9px]">جاري المزامنة مع السحابة...</p>
                 </div>
                 
-                <table class="w-full text-center border-collapse min-w-[700px] md:min-w-[900px]" id="dataTable">
+                <table class="w-full text-center border-collapse min-w-[700px] md:min-w-[900px] table-fixed" id="dataTable">
                     <thead class="bg-slate-200 border-b border-slate-300">
                         <tr id="tableHeader">
                             <th class="p-1 font-bold text-slate-700 text-[9px] w-32">العميل والموبايل</th>
@@ -359,7 +359,7 @@
                 document.getElementById('dataTable').classList.remove('hidden');
                 document.getElementById('actionPanel').classList.remove('hidden');
                 updateEmpDropdown();
-                loadFilters(); // استرجاع الفلاتر من الذاكرة
+                loadFilters(); // استرجاع الفلاتر من الذاكرة 
                 checkTodayFollowUps();
                 restoreUI();
             } else {
@@ -369,8 +369,7 @@
 
             // الاستماع للتغييرات بدون إزعاج باقي الموظفين
             branchClientsRef.on('child_changed', cs => {
-                const uc = cs.val();
-                const i = globalData.findIndex(c => c.phone === uc.phone);
+                const uc = cs.val(), i = globalData.findIndex(c => c.phone === uc.phone);
                 if (i !== -1) {
                     globalData[i] = uc;
                     updateSingleRowDOM(i);
@@ -397,7 +396,7 @@
         sortGlobalData();
     }
 
-    // الترتيب الذكي
+    // الترتيب الذكي: المهتم فوق، ثم اللي ليه كومنت، ثم الجديد، ثم تم التنفيذ، ثم غير مهتم
     function sortGlobalData() {
         globalData.sort((a, b) => {
             const gp = c => {
@@ -442,7 +441,7 @@
     }
 
     // -----------------------------------------------------
-    // 4. قراءة الإكسيل الجبرية (Ultra Scavenger) كاسحة الألغام الشاملة
+    // 4. قراءة الإكسيل الجبرية (Ultra Phone/NID Parser + Raw Data)
     // -----------------------------------------------------
     function processExcel() {
         const f = document.getElementById('excelFile');
@@ -462,7 +461,8 @@
                         let ja = [];
                         // دمج شامل لكل الشيتات الموجودة في الملف 
                         wb.SheetNames.forEach(sheetName => {
-                            let sheetData = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1, defval: "" });
+                            // استخدام raw: true لاستخراج الأرقام كما هي دون تحويلها لصيغة علمية E+ بسبب ضيق العمود
+                            let sheetData = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1, raw: true, defval: "" });
                             ja = ja.concat(sheetData);
                         });
                               
@@ -483,47 +483,85 @@
                         let oc = Object.keys(cm).length;
                         let addedCount = 0;
                         
-                        // الاستخراج الجبري القوي جداً (سطر سطر)
-                        for (let i = 0; i < ja.length; i++) {
+                        let hri = -1, cols = { name: -1, nid: -1, phone: -1, status: -1, company: -1 };
+                        
+                        // محاولة البحث عن العناوين في أول 50 سطر
+                        for (let i = 0; i < Math.min(ja.length, 50); i++) {
+                            const rv = ja[i];
+                            if (!rv || rv.length === 0) continue;
+                            
+                            const hs = rv.map(x => String(x).replace(/[\u200B-\u200D\uFEFF\n\r\t]/g, '').trim().toLowerCase()
+                                                 .replace('أ', 'ا').replace('إ', 'ا').replace('ة', 'ه'));
+                                                 
+                            let foundPhone = false;
+                            for (let j = 0; j < hs.length; j++) {
+                                if (hs[j].includes("موبايل") || hs[j].includes("تليفون") || hs[j].includes("هاتف") || hs[j].includes("phone") || hs[j].includes("mobile") || hs[j].includes("رقم")) {
+                                    foundPhone = true; break;
+                                }
+                            }
+                            
+                            if (foundPhone) {
+                                hri = i;
+                                for (let j = 0; j < hs.length; j++) {
+                                    let h = hs[j];
+                                    if (h.includes("قومي") || h.includes("بطاقه") || h.includes("بطاقة") || h.includes("national") || h.includes("id")) cols.nid = j;
+                                    else if (h.includes("اسم") || h.includes("عميل") || h.includes("name") || h.includes("customer")) cols.name = j;
+                                    else if (h.includes("موبايل") || h.includes("تليفون") || h.includes("هاتف") || h.includes("phone") || h.includes("mobile") || h.includes("رقم")) cols.phone = j;
+                                    else if (h.includes("حاله") || h.includes("حالة") || h.includes("status")) cols.status = j;
+                                    else if (h.includes("شركه") || h.includes("شركة") || h.includes("company") || h.includes("جهه")) cols.company = j;
+                                }
+                                break;
+                            }
+                        }
+
+                        let isFuzzyMode = (hri === -1);
+                        let startRow = isFuzzyMode ? 0 : hri + 1;
+
+                        // الاستخراج الشامل
+                        for (let i = startRow; i < ja.length; i++) {
                             const row = ja[i];
                             if (!row || !Array.isArray(row) || row.length === 0) continue;
 
                             let ps = "", cn = "-", rn = "-", st = "-", cp = "-";
 
-                            for (let j = 0; j < row.length; j++) {
-                                let cellValue = row[j];
-                                if (cellValue === null || cellValue === undefined || cellValue === "") continue;
-                                
-                                let cStr = String(cellValue).trim();
-                                
-                                let cNum = cStr.replace(/[^0-9]/g, '');
+                            if (!isFuzzyMode && cols.phone !== -1 && row[cols.phone]) {
+                                ps = cleanPhoneNumber(row[cols.phone]);
+                                cn = (cols.name !== -1 && row[cols.name]) ? safeString(row[cols.name]) : "-";
+                                rn = (cols.nid !== -1 && row[cols.nid]) ? cleanNID(row[cols.nid]) : "-";
+                                st = (cols.status !== -1 && row[cols.status]) ? safeString(row[cols.status]) : "-";
+                                cp = (cols.company !== -1 && row[cols.company]) ? safeString(row[cols.company]) : "-";
+                            } else {
+                                // الاستخراج الحر (Fuzzy) لكل خلية
+                                for (let j = 0; j < row.length; j++) {
+                                    let cellValue = row[j];
+                                    if (cellValue === null || cellValue === undefined || cellValue === "") continue;
+                                    
+                                    let cStr = safeString(cellValue);
+                                    let cNum = cStr.replace(/[^0-9]/g, '');
 
-                                // اصطياد الموبايل
-                                if (!ps && (cNum.length >= 10 && cNum.length <= 13)) {
-                                    if (cNum.startsWith('01') || cNum.startsWith('1') || cNum.startsWith('201')) {
+                                    // اصطياد الموبايل (طوله 10 وبادي بـ 1 أو طوله 11 وبادي بـ 01)
+                                    if (!ps && ((cNum.length === 10 && cNum.startsWith('1')) || (cNum.length === 11 && cNum.startsWith('01')) || (cNum.length === 12 && cNum.startsWith('201')))) {
                                         ps = cleanPhoneNumber(cNum);
                                         continue;
                                     }
-                                }
-                                // اصطياد الرقم القومي
-                                if (rn === "-" && cNum.length === 14 && (cNum.startsWith('2') || cNum.startsWith('3'))) {
-                                    rn = cNum;
-                                    continue;
-                                }
-                                // اصطياد الحالة
-                                let clow = cStr.toLowerCase();
-                                if (st === "-" && (clow.includes('pending') || clow.includes('approved') || clow.includes('rejected') || clow.includes('active') || clow.includes('cancel') || clow.includes('limit') || clow.includes('expired') || clow.includes('مرفوض') || clow.includes('مقبول') || clow.includes('معلق'))) {
-                                    st = cStr;
-                                    continue;
-                                }
-                                // اصطياد الشركة
-                                if (cp === "-" && (clow.includes('company') || clow.includes('telecom') || clow.includes('bank') || clow.includes('شركة') || clow.includes('بنك') || clow.includes('foods') || clow.includes('services'))) {
-                                    cp = cStr;
-                                    continue;
-                                }
-                                // اصطياد الاسم (نص بدون أرقام)
-                                if (cn === "-" && cStr.length > 5 && isNaN(cStr) && !clow.includes('pending') && !cStr.includes('@') && !cStr.includes('http') && !cStr.match(/\d/)) {
-                                    cn = cStr;
+                                    // اصطياد الرقم القومي (14 رقم)
+                                    if (rn === "-" && cNum.length >= 14 && (cNum.startsWith('2') || cNum.startsWith('3'))) {
+                                        rn = cNum.substring(0, 14);
+                                        continue;
+                                    }
+                                    
+                                    let clow = cStr.toLowerCase();
+                                    if (st === "-" && (clow.includes('pending') || clow.includes('approved') || clow.includes('rejected') || clow.includes('active') || clow.includes('cancel') || clow.includes('limit') || clow.includes('expired') || clow.includes('مرفوض') || clow.includes('مقبول') || clow.includes('معلق'))) {
+                                        st = cStr;
+                                        continue;
+                                    }
+                                    if (cp === "-" && (clow.includes('company') || clow.includes('telecom') || clow.includes('bank') || clow.includes('شركة') || clow.includes('بنك') || clow.includes('foods') || clow.includes('services'))) {
+                                        cp = cStr;
+                                        continue;
+                                    }
+                                    if (cn === "-" && cStr.length > 5 && isNaN(cStr) && !clow.includes('pending') && !cStr.includes('@') && !cStr.includes('http') && !cStr.match(/\d/)) {
+                                        cn = cStr;
+                                    }
                                 }
                             }
 
@@ -547,10 +585,10 @@
                             document.getElementById('loadingIndicator').classList.add('hidden');
                             document.getElementById('actionPanel').classList.remove('hidden');
                             document.getElementById('dataTable').classList.remove('hidden');
-                            return alert("تحذير: لم أتمكن من إيجاد أرقام هواتف عملاء في هذا الشيت! تأكد من المحتوى.");
+                            return alert("لم يتم العثور على أرقام هواتف لعملاء في هذا الشيت! تأكد من محتوى الشيت.");
                         }
 
-                        // إجبار إظهار كل الأعمدة
+                        // إجبار الفلاتر إنها تظهر دايماً
                         activeColumns = { name: true, nid: true, phone: true, status: true, company: true };
                         saveSettingsToFirebase();
 
@@ -585,14 +623,30 @@
         }, 150);
     }
 
+    function safeString(val) {
+        if (val === null || val === undefined) return "";
+        if (typeof val === 'number') {
+            return val.toLocaleString('fullwide', {useGrouping: false});
+        }
+        return String(val).trim();
+    }
+
     function cleanPhoneNumber(p) {
-        if (!p || String(p).trim() === "" || p === "undefined") return "";
-        let cStr = String(p).trim();
+        let cStr = safeString(p);
         let f = cStr.replace(/[^0-9]/g, '');
-        if (f.startsWith('1') && f.length === 10) return '20' + f;
-        if (f.startsWith('01') && f.length === 11) return '2' + f;
-        if (!f.startsWith('20') && f.length > 0) return '20' + f;
-        return f;
+        if (f.length === 10 && f.startsWith('1')) return '20' + f;
+        if (f.length === 11 && f.startsWith('01')) return '2' + f;
+        if (f.length === 12 && f.startsWith('201')) return f;
+        if (f.length > 5) return f;
+        return "";
+    }
+
+    function cleanNID(nid) {
+        let cStr = safeString(nid);
+        let f = cStr.replace(/[^0-9]/g, '');
+        if (f.length >= 14) return f.substring(0, 14);
+        if (f.length > 0) return f;
+        return "-";
     }
 
     // -----------------------------------------------------
