@@ -59,9 +59,9 @@
         .pulse-alert { animation: pulseAlert 2s infinite }
         @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(225,29,72,0.4) } 70% { box-shadow: 0 0 0 10px rgba(225,29,72,0) } 100% { box-shadow: 0 0 0 0 rgba(225,29,72,0) } }
         
-        /* انيميشن لوحة الارسال المتسلسل */
-        .slide-up { animation: slideUp 0.4s ease-out forwards; }
-        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        /* تأثير ظهور شريط التحديد */
+        .slide-up-bar { animation: slideUpBar 0.3s ease-out forwards; }
+        @keyframes slideUpBar { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body class="p-1 md:p-4 min-h-screen text-sm md:text-base lg:text-lg">
@@ -132,17 +132,12 @@
                     <textarea id="offersText" rows="5" onchange="saveSettingsToFirebase()" class="w-full p-2.5 bg-amber-100/60 border border-amber-300 rounded-lg focus:border-amber-500 outline-none transition resize-none text-xs md:text-base lg:text-lg font-black text-amber-900 leading-relaxed shadow-inner" placeholder="اكتب العروض هنا..."></textarea>
                 </div>
                 <div class="bg-white p-2 md:p-3 lg:p-4 rounded-lg shadow-sm border border-slate-100">
-                    <label class="block font-bold text-slate-700 text-[10px] md:text-xs lg:text-sm mb-1"><i class="fas fa-file-excel text-sky-600"></i> رفع شيت عملاء:</label>
+                    <label class="block font-bold text-slate-700 text-[10px] md:text-xs lg:text-sm mb-1"><i class="fas fa-file-excel text-sky-600"></i> رفع شيت عملاء جديد (يتم إضافة الجديد فقط):</label>
                     <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" onchange="processExcel()" class="w-full border border-slate-300 p-1 rounded bg-slate-50 text-[10px] lg:text-sm cursor-pointer file:mr-1 file:py-0.5 file:px-2 file:rounded file:border-0 file:font-bold file:bg-sky-50 file:text-sky-700 transition">
                 </div>
                 <div class="bg-white p-2 md:p-3 lg:p-4 rounded-lg shadow-sm border border-slate-100">
                     <label class="block font-bold text-slate-700 text-[10px] md:text-xs lg:text-sm mb-1"><i class="fas fa-comment-dots text-sky-600"></i> رسالة الواتساب الثابتة:</label>
-                    <textarea id="messageText" rows="2" onchange="saveSettingsToFirebase()" class="w-full p-1.5 border border-slate-300 rounded focus:border-sky-500 outline-none transition resize-none text-[10px] md:text-[11px] lg:text-sm leading-relaxed mb-2" placeholder="نص الرسالة..."></textarea>
-                    
-                    <!-- الزر الذكي الجديد للإرسال المتسلسل -->
-                    <button onclick="startBulkSend()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-[11px] lg:text-sm shadow-md transition flex items-center justify-center gap-2">
-                        <i class="fas fa-rocket"></i> بدء الإرسال المتسلسل (نفس التاب)
-                    </button>
+                    <textarea id="messageText" rows="3" onchange="saveSettingsToFirebase()" class="w-full p-1.5 border border-slate-300 rounded focus:border-sky-500 outline-none transition resize-none text-[10px] md:text-[11px] lg:text-sm leading-relaxed" placeholder="اكتب نص الرسالة التي ستُرسل للعملاء..."></textarea>
                 </div>
             </div>
 
@@ -228,10 +223,14 @@
                         <i class="fas fa-spinner fa-spin text-2xl text-sky-500 mb-1"></i>
                         <p class="font-bold text-slate-500 text-[10px] lg:text-sm">مزامنة السحابة...</p>
                     </div>
-                    <table class="w-full text-center min-w-[700px]" id="dataTable">
+                    <table class="w-full text-center min-w-[750px]" id="dataTable">
                         <thead class="bg-slate-200">
                             <tr id="tableHeader">
-                                <th class="p-2 lg:p-3 font-bold text-slate-700 text-[10px] md:text-[11px] lg:text-sm w-32 md:w-48 lg:w-56 rounded-r-lg">العميل والموبايل</th>
+                                <!-- عمود التحديد المتعدد -->
+                                <th class="p-2 lg:p-3 font-bold text-slate-700 w-10 lg:w-12 rounded-r-lg border-l border-slate-300">
+                                    <input type="checkbox" id="selectAllCb" class="w-4 h-4 lg:w-5 lg:h-5 cursor-pointer text-sky-600 rounded" onchange="toggleSelectAllClients(this)">
+                                </th>
+                                <th class="p-2 lg:p-3 font-bold text-slate-700 text-[10px] md:text-[11px] lg:text-sm w-32 md:w-48 lg:w-56">العميل والموبايل</th>
                                 <th class="p-2 lg:p-3 font-bold text-slate-700 text-[10px] md:text-[11px] lg:text-sm w-16 md:w-24 lg:w-32">النظام والشركة</th>
                                 <th class="p-2 lg:p-3 font-bold text-slate-700 text-[10px] md:text-[11px] lg:text-sm min-w-[220px] md:min-w-[300px]">السجل والتعليقات</th>
                                 <th class="p-2 lg:p-3 font-bold text-slate-700 text-[10px] md:text-[11px] lg:text-sm w-20 md:w-32 lg:w-40">القرار</th>
@@ -245,26 +244,27 @@
         </div>
     </div>
 
-    <!-- لوحة الإرسال المتسلسل العائمة (Smart Bulk Sender) -->
-    <div id="bulkSendPanel" class="fixed bottom-4 right-4 md:right-8 bg-white p-4 rounded-xl shadow-2xl border-t-4 border-emerald-500 z-[100] hidden w-[90%] md:w-80 transition-all">
-        <div class="flex justify-between items-center mb-3 border-b border-slate-200 pb-2">
-            <h3 class="font-bold text-emerald-700 text-sm lg:text-base"><i class="fas fa-paper-plane"></i> الإرسال المتسلسل</h3>
-            <button onclick="stopBulkSend()" class="text-rose-500 hover:text-rose-700 font-bold text-lg md:text-xl transition">&times;</button>
+    <!-- الشريط السفلي الذكي للإرسال المتعدد -->
+    <div id="multiSelectBar" class="fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-3 lg:p-4 shadow-[0_-4px_25px_rgba(0,0,0,0.3)] z-[100] flex flex-col md:flex-row justify-between items-center gap-3 hidden slide-up-bar border-t-4 border-sky-500">
+        <div class="flex items-center gap-3 w-full md:w-auto justify-between">
+            <div class="bg-sky-600 px-3 lg:px-4 py-1.5 lg:py-2 rounded-full font-bold text-sm lg:text-base shadow-inner">
+                تم تحديد: <span id="selectedCountSpan" class="text-white text-base lg:text-lg">0</span> عملاء
+            </div>
+            <div id="waSendingInfo" class="hidden text-sm lg:text-base font-bold text-amber-400 bg-slate-800 px-3 py-1.5 rounded-lg border border-amber-500/30">
+                جاري إرسال: <span id="currentWaName" class="text-white ml-1"></span>
+            </div>
         </div>
-        <p class="text-xs lg:text-sm text-slate-600 font-semibold mb-2">التقدم: <span id="bulkProgress" class="text-emerald-600 font-black">1 / 10</span></p>
-        <div class="bg-slate-50 p-2 lg:p-3 rounded border border-slate-200 mb-3 shadow-inner text-right">
-            <p id="bulkCurrentName" class="font-bold text-xs lg:text-sm truncate text-slate-800">محمد أحمد</p>
-            <p id="bulkCurrentPhone" class="text-[11px] lg:text-xs font-black text-slate-500 mt-1" dir="ltr">+2010...</p>
-        </div>
-        <div class="flex gap-2">
-            <button onclick="sendBulkCurrent()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-lg font-bold text-[10px] lg:text-xs shadow-md transition flex items-center justify-center gap-1">
-                <i class="fab fa-whatsapp text-sm"></i> فتح المحادثة
+        <div class="flex gap-2 w-full md:w-auto">
+            <button id="btnStartWaSelected" onclick="startWaSelected()" class="w-full md:w-auto bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-lg font-bold text-sm lg:text-base shadow-lg flex items-center justify-center gap-2 transition">
+                <i class="fab fa-whatsapp text-lg"></i> إرسال للمحددين
             </button>
-            <button onclick="nextBulkClient()" class="flex-1 bg-sky-500 hover:bg-sky-600 text-white py-2 rounded-lg font-bold text-[10px] lg:text-xs shadow-md transition flex items-center justify-center gap-1">
-                التالي <i class="fas fa-chevron-left text-[9px]"></i>
+            <button id="btnNextWa" onclick="nextWaSelected()" class="w-full md:w-auto bg-sky-500 hover:bg-sky-600 px-5 py-2 rounded-lg font-bold text-sm lg:text-base shadow-lg items-center justify-center gap-2 transition hidden">
+                التالي <i class="fas fa-forward"></i>
+            </button>
+            <button onclick="clearSelection()" class="bg-rose-600 hover:bg-rose-700 px-3 py-2 rounded-lg font-bold text-sm lg:text-base shadow-lg transition" title="إلغاء التحديد">
+                <i class="fas fa-times"></i>
             </button>
         </div>
-        <p class="text-[9px] lg:text-[10px] text-slate-400 mt-3 text-center leading-tight">افتح المحادثة، اضغط إرسال في واتساب، ثم ارجع هنا واضغط التالي ليتم فتح نفس التاب للرقم الجديد.</p>
     </div>
 
     <script>
@@ -281,13 +281,16 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const database = firebase.database();
         let globalData = [];
-        let filteredClientsArray = []; // مصفوفة العملاء في الفلتر الحالي للارسال المجمع
         let activeColumns = { name: false, nid: false, phone: false, status: false, company: false };
         let currentBranch = '';
         
-        // متغير عالمي للتحكم في التاب الخاصة بالواتساب
-        let waWindow = null; 
-        
+        // متغيرات التحديد والإرسال الموحد للواتساب
+        let selectedIndexes = new Set();
+        let waPopup = null; 
+        let isSendingSession = false;
+        let sendingCurrentPointer = 0;
+        let sendingArray = [];
+
         let branchClientsRef = null;
         let branchSettingsRef = null;
 
@@ -536,16 +539,13 @@
                         saveSettingsToFirebase();
                         
                         let cloudClientsMap = {};
+                        // تحميل العملاء الموجودين أصلاً
                         globalData.forEach(c => {
-                            if (c.phone) {
-                                c.name = c.name || "-"; c.status = c.status || "بدون حالة";
-                                c.company = c.company || "بدون شركة"; c.nid = c.nid || "-";
-                                c.history = Array.isArray(c.history) ? c.history : [];
-                                cloudClientsMap[c.phone] = c;
-                            }
+                            if (c.phone) { cloudClientsMap[c.phone] = c; }
                         });
                         
                         let orderCounter = Object.keys(cloudClientsMap).length;
+                        let newClientsAdded = 0;
                         
                         for (let i = headerRowIndex + 1; i < jsonArray.length; i++) {
                             const row = jsonArray[i];
@@ -555,28 +555,28 @@
                             const phoneStr = cleanPhoneNumber(phoneRaw);
                             
                             if (phoneStr && phoneStr.length > 5) {
-                                let st = activeColumns.status && row[cols.status] ? String(row[cols.status]).trim() : "بدون حالة";
-                                if (st === "" || st === "undefined") st = "بدون حالة";
-                                let comp = activeColumns.company && row[cols.company] ? String(row[cols.company]).trim() : "بدون شركة";
-                                if (comp === "" || comp === "undefined") comp = "بدون شركة";
-                                let rawNid = activeColumns.nid && row[cols.nid] ? String(row[cols.nid]).trim() : "-";
-                                if (rawNid.toUpperCase().includes('E')) {
-                                    rawNid = Number(row[cols.nid]).toLocaleString('fullwide', { useGrouping: false });
-                                } else {
-                                    rawNid = rawNid.replace(/[^0-9]/g, '') || "-";
-                                }
-                                let cName = activeColumns.name && row[cols.name] ? String(row[cols.name]).trim() : "-";
-                                
+                                // هنا يكمن الذكاء: إذا كان العميل موجوداً، لا نفعل له أي شيء (نتركه كما هو بكومنتاته)
                                 if (cloudClientsMap[phoneStr]) {
-                                    cloudClientsMap[phoneStr].name = cName;
-                                    cloudClientsMap[phoneStr].nid = rawNid;
-                                    cloudClientsMap[phoneStr].status = st;
-                                    cloudClientsMap[phoneStr].company = comp;
+                                    continue; 
                                 } else {
+                                    // إضافة العميل الجديد فقط
+                                    let st = activeColumns.status && row[cols.status] ? String(row[cols.status]).trim() : "بدون حالة";
+                                    if (st === "" || st === "undefined") st = "بدون حالة";
+                                    let comp = activeColumns.company && row[cols.company] ? String(row[cols.company]).trim() : "بدون شركة";
+                                    if (comp === "" || comp === "undefined") comp = "بدون شركة";
+                                    let rawNid = activeColumns.nid && row[cols.nid] ? String(row[cols.nid]).trim() : "-";
+                                    if (rawNid.toUpperCase().includes('E')) {
+                                        rawNid = Number(row[cols.nid]).toLocaleString('fullwide', { useGrouping: false });
+                                    } else {
+                                        rawNid = rawNid.replace(/[^0-9]/g, '') || "-";
+                                    }
+                                    let cName = activeColumns.name && row[cols.name] ? String(row[cols.name]).trim() : "-";
+                                    
                                     cloudClientsMap[phoneStr] = {
                                         orderId: orderCounter++, name: cName, nid: rawNid, phone: phoneStr,
                                         status: st, company: comp, sent: false, history: [], followUpStatus: '', statusDate: ''
                                     };
+                                    newClientsAdded++;
                                 }
                             }
                         }
@@ -584,7 +584,7 @@
                         branchClientsRef.set(cloudClientsMap).then(() => {
                             document.getElementById('loadingIndicator').classList.add('hidden');
                             document.getElementById('excelFile').value = '';
-                            alert("تم الرفع بنجاح!");
+                            alert(`تم الرفع بنجاح! تمت إضافة ${newClientsAdded} عميل جديد دون المساس بالعملاء القدامى.`);
                             branchClientsRef.once('value', (snap) => {
                                 updateDataFromSnapshot(snap);
                                 applyFilters();
@@ -799,10 +799,19 @@
             else rowClass += `row-default hover:bg-slate-50`;
             
             let html = '';
+            
+            // عمود تحديد العميل
+            let isChecked = selectedIndexes.has(index) ? 'checked' : '';
+            html += `<td class="p-1 lg:p-2 align-middle border-l border-slate-200">
+                        <input type="checkbox" class="client-cb w-4 h-4 lg:w-5 lg:h-5 cursor-pointer text-sky-600 rounded shadow-sm" value="${index}" onchange="toggleClientSelection(${index}, this)" ${isChecked}>
+                     </td>`;
+
             let displayName = cName;
             if (client.sent) displayName += ' <i class="fas fa-check-circle text-emerald-500 text-[8px] lg:text-xs" title="تم الإرسال"></i>';
             let limitBtn = `<button onclick="copyAndOpenRaya('${cNid}', this)" class="mt-0.5 inline-block bg-slate-800 hover:bg-slate-700 text-white text-[8px] md:text-[9px] lg:text-xs font-bold px-1.5 lg:px-3 py-1 lg:py-1.5 rounded shadow-sm transition cursor-pointer w-full text-center"><i class="fas fa-credit-card text-sky-400 mr-0.5"></i> الليمت</button>`;
-            html += `<td class="p-1 md:p-1.5 lg:p-3 align-top pt-1.5 lg:pt-3"><div class="font-bold text-slate-800 text-[10px] md:text-xs lg:text-base truncate max-w-[140px] lg:max-w-[200px]" title="${displayName}">${displayName}</div><div class="text-slate-800 font-black text-[10px] md:text-xs lg:text-base mt-0.5 lg:mt-1" dir="ltr">+${cPhone}</div><div class="text-sky-900 font-black text-[11px] md:text-sm lg:text-lg mt-0.5 mb-0.5 lg:mt-1 lg:mb-1">${cNid}</div>${limitBtn}</td>`;
+            
+            // إزالة القطع وجعل الاسم يلتف تلقائيا (break-words) ليظهر بالكامل
+            html += `<td class="p-1 md:p-1.5 lg:p-3 align-top pt-1.5 lg:pt-3"><div class="font-bold text-slate-800 text-[10px] md:text-xs lg:text-base break-words w-full" title="${displayName}">${displayName}</div><div class="text-slate-800 font-black text-[10px] md:text-xs lg:text-base mt-0.5 lg:mt-1" dir="ltr">+${cPhone}</div><div class="text-sky-900 font-black text-[11px] md:text-sm lg:text-lg mt-0.5 mb-0.5 lg:mt-1 lg:mb-1">${cNid}</div>${limitBtn}</td>`;
             
             let badgeStatus = cStatus === "-" ? 'text-slate-400 font-bold lg:text-sm' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 lg:px-2 py-0.5 lg:py-1 rounded text-[8px] md:text-[9px] lg:text-sm font-semibold block mb-1';
             let badgeCompany = cCompany === "-" ? 'text-slate-400 font-bold lg:text-sm' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 lg:px-2 py-0.5 lg:py-1 rounded text-[8px] md:text-[9px] lg:text-sm font-semibold block';
@@ -886,7 +895,12 @@
                 tbody.innerHTML = '';
                 let count = 0;
                 
-                filteredClientsArray = []; // تفريغ القائمة مع كل فلترة جديدة
+                // مسح التحديد عند الفلترة
+                if(!isSendingSession) {
+                    selectedIndexes.clear();
+                    document.getElementById('selectAllCb').checked = false;
+                    updateMultiSelectBar();
+                }
                 
                 globalData.forEach((client, index) => {
                     let cName = client.name ? String(client.name) : "-";
@@ -924,7 +938,6 @@
                     
                     if (statusMatch && companyMatch && searchMatch && fuMatch && empMatch && dateMatch && productMatch) {
                         count++;
-                        filteredClientsArray.push(client); // تخزين العميل للارسال المجمع
                         
                         const tr = document.createElement('tr');
                         tr.id = `row-${index}`;
@@ -940,85 +953,114 @@
             } catch (error) { console.error("Error", error); }
         }
 
-        // ==========================================
-        // أكواد الإرسال المجمع الذكي المتسلسل
-        // ==========================================
-        let bulkClientsList = [];
-        let currentBulkIndex = 0;
+        // ===============================================
+        // أكواد تحديد العملاء ونافذة الواتساب الموحدة
+        // ===============================================
+        
+        function toggleSelectAllClients(checkbox) {
+            const checkboxes = document.querySelectorAll('.client-cb');
+            checkboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+                if(cb.checked) selectedIndexes.add(parseInt(cb.value));
+                else selectedIndexes.delete(parseInt(cb.value));
+            });
+            updateMultiSelectBar();
+        }
 
-        function startBulkSend() {
-            if (filteredClientsArray.length === 0) {
-                alert("لا يوجد عملاء في الفلتر الحالي. الرجاء تصفية العملاء أولاً.");
-                return;
+        function toggleClientSelection(index, checkbox) {
+            if(checkbox.checked) selectedIndexes.add(index);
+            else selectedIndexes.delete(index);
+            updateMultiSelectBar();
+        }
+
+        function updateMultiSelectBar() {
+            const bar = document.getElementById('multiSelectBar');
+            const countSpan = document.getElementById('selectedCountSpan');
+            
+            if(selectedIndexes.size > 0 || isSendingSession) {
+                bar.classList.remove('hidden');
+                countSpan.innerText = selectedIndexes.size;
+            } else {
+                bar.classList.add('hidden');
             }
-            
-            bulkClientsList = [...filteredClientsArray];
-            currentBulkIndex = 0;
-            
-            const panel = document.getElementById('bulkSendPanel');
-            panel.classList.remove('hidden');
-            panel.classList.add('slide-up');
-            
-            updateBulkUI();
         }
 
-        function stopBulkSend() {
-            document.getElementById('bulkSendPanel').classList.add('hidden');
-            bulkClientsList = [];
-            currentBulkIndex = 0;
+        function clearSelection() {
+            selectedIndexes.clear();
+            isSendingSession = false;
+            document.querySelectorAll('.client-cb').forEach(cb => cb.checked = false);
+            document.getElementById('selectAllCb').checked = false;
+            
+            document.getElementById('btnStartWaSelected').classList.remove('hidden');
+            document.getElementById('btnNextWa').classList.add('hidden');
+            document.getElementById('waSendingInfo').classList.add('hidden');
+            
+            updateMultiSelectBar();
         }
 
-        function updateBulkUI() {
-            if (currentBulkIndex >= bulkClientsList.length) {
-                alert("🎉 تم الانتهاء من إرسال الرسائل لجميع العملاء في القائمة!");
-                stopBulkSend();
-                return;
-            }
-            
-            let client = bulkClientsList[currentBulkIndex];
-            document.getElementById('bulkProgress').innerText = `${currentBulkIndex + 1} / ${bulkClientsList.length}`;
-            document.getElementById('bulkCurrentName').innerText = client.name && client.name !== "-" ? client.name : "عميل بدون اسم";
-            document.getElementById('bulkCurrentPhone').innerText = `+${client.phone}`;
-        }
-
-        function sendBulkCurrent() {
-            if (currentBulkIndex >= bulkClientsList.length) return;
-            let client = bulkClientsList[currentBulkIndex];
-            
-            let msg = document.getElementById('messageText').value;
+        // دالة العبقرية لحل مشكلة التابات الكثيرة (تفتح نافذة Popup واحدة ثابتة وتتحدث داخليا)
+        function openWAPopup(link) {
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            let link = isMobile ? `whatsapp://send?phone=${client.phone}&text=${encodeURIComponent(msg)}` : `https://web.whatsapp.com/send?phone=${client.phone}&text=${encodeURIComponent(msg)}`;
-            
             if (isMobile) { 
                 window.location.href = link; 
-            } else { 
-                if (!waWindow || waWindow.closed) {
-                    waWindow = window.open(link, 'Raya_Unified_WhatsApp');
+            } else {
+                if (!waPopup || waPopup.closed) {
+                    waPopup = window.open(link, 'RayaWAPopup', 'width=850,height=650,scrollbars=yes,resizable=yes');
                 } else {
-                    waWindow.location.href = link;
-                    waWindow.focus();
+                    waPopup.location.href = link;
+                    waPopup.focus();
                 }
             }
+        }
+
+        function startWaSelected() {
+            if(selectedIndexes.size === 0) return;
+            sendingArray = Array.from(selectedIndexes);
+            sendingCurrentPointer = 0;
+            isSendingSession = true;
+            
+            document.getElementById('btnStartWaSelected').classList.add('hidden');
+            document.getElementById('btnNextWa').classList.remove('hidden');
+            document.getElementById('btnNextWa').classList.add('flex');
+            document.getElementById('waSendingInfo').classList.remove('hidden');
+            
+            processWaSelected();
+        }
+
+        function processWaSelected() {
+            if(sendingCurrentPointer >= sendingArray.length) {
+                alert('🎉 تم الإرسال لجميع العملاء المحددين بنجاح!');
+                clearSelection();
+                return;
+            }
+            
+            let clientIndex = sendingArray[sendingCurrentPointer];
+            let client = globalData[clientIndex];
+            
+            document.getElementById('currentWaName').innerText = (client.name && client.name !== '-') ? client.name : `+${client.phone}`;
+            
+            let link = generateWaLink(client);
+            openWAPopup(link);
             
             client.sent = true;
             updateClientInCloud(client);
-            
-            let globalIndex = globalData.findIndex(c => c.phone === client.phone);
-            if(globalIndex !== -1) updateSingleRowDOM(globalIndex);
+            updateSingleRowDOM(clientIndex);
         }
 
-        function nextBulkClient() {
-            currentBulkIndex++;
-            updateBulkUI();
-            
-            // إضافة حركة خفيفة للوحة لتوضيح التغيير
-            const panel = document.getElementById('bulkSendPanel');
-            panel.classList.remove('slide-up');
-            void panel.offsetWidth; // Trigger reflow
-            panel.classList.add('slide-up');
+        function nextWaSelected() {
+            sendingCurrentPointer++;
+            processWaSelected();
         }
-
-        // ==========================================
+        
+        function sendManual(index) {
+            const client = globalData[index];
+            const link = generateWaLink(client);
+            openWAPopup(link);
+            client.sent = true;
+            updateClientInCloud(client);
+            updateSingleRowDOM(index);
+        }
+        // ===============================================
 
         function addComment(index) {
             const empId = document.getElementById('empIdInput').value.trim();
@@ -1084,26 +1126,6 @@
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             if (isMobile) { return `whatsapp://send?phone=${client.phone}&text=${encodeURIComponent(msg)}`; } 
             else { return `https://web.whatsapp.com/send?phone=${client.phone}&text=${encodeURIComponent(msg)}`; }
-        }
-
-        function sendManual(index) {
-            const client = globalData[index];
-            const link = generateWaLink(client);
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
-            if (isMobile) { 
-                window.location.href = link; 
-            } else { 
-                if (!waWindow || waWindow.closed) {
-                    waWindow = window.open(link, 'Raya_Unified_WhatsApp');
-                } else {
-                    waWindow.location.href = link;
-                    waWindow.focus();
-                }
-            }
-            client.sent = true;
-            updateClientInCloud(client);
-            updateSingleRowDOM(index);
         }
     </script>
 </body>
