@@ -19,14 +19,14 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; }
         
-        /* إطارات ملونة لكل عميل لتوضيح حالته */
-        .client-row { border: 2px solid #cbd5e1; border-bottom: 6px solid #94a3b8; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        /* إطارات واضحة لكل عميل */
+        .client-row { border: 2px solid #cbd5e1; border-bottom: 5px solid #94a3b8; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: background-color 0.3s ease; }
         .row-default { background-color: #ffffff; }
-        .row-has-comment { background-color: #fdf4ff !important; border: 2px solid #c084fc !important; border-bottom: 6px solid #a855f7 !important; } 
-        .row-sent { background-color: #f0fdf4 !important; border: 2px solid #4ade80 !important; border-bottom: 6px solid #22c55e !important; } 
-        .row-interested { background-color: #fffbeb !important; border: 2px solid #fbbf24 !important; border-bottom: 6px solid #f59e0b !important; } 
-        .row-not-interested { background-color: #fff1f2 !important; border: 2px solid #fda4af !important; border-bottom: 6px solid #f43f5e !important; opacity: 0.85; } 
-        .row-done { background-color: #ecfdf5 !important; border: 2px solid #6ee7b7 !important; border-bottom: 6px solid #10b981 !important; opacity: 0.9; } 
+        .row-has-comment { background-color: #fdf4ff !important; border: 2px solid #d8b4fe !important; border-bottom: 5px solid #a855f7 !important; } 
+        .row-sent { background-color: #f0fdf4 !important; border: 2px solid #86efac !important; border-bottom: 5px solid #22c55e !important; } 
+        .row-interested { background-color: #fffbeb !important; border: 2px solid #fde68a !important; border-bottom: 5px solid #f59e0b !important; } 
+        .row-not-interested { background-color: #fff1f2 !important; border: 2px solid #fecdd3 !important; border-bottom: 5px solid #f43f5e !important; opacity: 0.9; } 
+        .row-done { background-color: #ecfdf5 !important; border: 2px solid #a7f3d0 !important; border-bottom: 5px solid #10b981 !important; opacity: 0.95; } 
 
         .checkbox-label { cursor: pointer; user-select: none; transition: all 0.2s; }
         .checkbox-label:hover { transform: translateY(-1px); }
@@ -43,9 +43,6 @@
             70% { box-shadow: 0 0 0 10px transparent; }
             100% { box-shadow: 0 0 0 0 transparent; }
         }
-
-        /* توهج الزراير عند الضغط لبيان الأكشن */
-        .btn-active-glow { box-shadow: 0 0 12px 3px currentColor; transform: scale(0.96); transition: all 0.2s; }
     </style>
 </head>
 <body class="p-1 md:p-3 min-h-screen text-[11px] md:text-sm">
@@ -99,7 +96,7 @@
                 <option value="gazayer">Gazayer</option>
                 <option value="city_center">City Center</option>
             </select>
-            <button onclick="hardResetCloud()" class="bg-red-600 text-white px-1.5 py-0.5 rounded font-bold text-[8px]">
+            <button onclick="hardResetCloud()" class="bg-red-600 hover:bg-red-700 text-white px-1.5 py-0.5 rounded font-bold text-[8px] transition">
                 <i class="fas fa-radiation-alt"></i> فورمات
             </button>
         </div>
@@ -128,45 +125,46 @@
                 <h2 class="font-bold text-amber-800 text-[11px] mb-1.5 border-b border-amber-300 pb-1">
                     <i class="fas fa-bullhorn text-amber-600"></i> عروض راية
                 </h2>
-                <textarea id="offersText" rows="4" onchange="saveSettingsToFirebase()" class="w-full p-1.5 bg-amber-100/50 border border-amber-300 rounded focus:border-amber-500 outline-none text-[11px] font-black text-amber-900" placeholder="اكتب العروض هنا ليراها الجميع..."></textarea>
+                <textarea id="offersText" rows="4" onchange="saveSettingsToFirebase()" class="w-full p-1.5 bg-amber-100/50 border border-amber-300 rounded focus:border-amber-500 outline-none text-[11px] font-black text-amber-900" placeholder="اكتب العروض هنا..."></textarea>
             </div>
 
-            <div class="bg-white p-2 rounded-lg border border-slate-100">
+            <div class="bg-white p-2 rounded-lg border border-slate-100 shadow-sm">
                 <label class="block font-bold text-slate-700 text-[9px] mb-1"><i class="fas fa-file-excel text-sky-600"></i> رفع شيت عملاء:</label>
-                <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" onchange="processExcel()" class="w-full border border-slate-300 p-0.5 rounded bg-slate-50 text-[8px] file:mr-1 file:py-0.5 file:px-1 file:rounded file:border-0 file:font-bold file:bg-sky-100 file:text-sky-700">
+                <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" onchange="processExcel()" class="w-full border border-slate-300 p-0.5 rounded bg-slate-50 text-[8px] file:mr-1 file:py-0.5 file:px-1 file:rounded file:border-0 file:font-bold file:bg-sky-100 file:text-sky-700 cursor-pointer">
             </div>
 
-            <div class="bg-white p-2 rounded-lg border border-slate-100">
-                <label class="block font-bold text-slate-700 text-[9px] mb-1"><i class="fas fa-comment-dots text-sky-600"></i> رسالة الواتساب:</label>
-                <textarea id="messageText" rows="2" onchange="saveSettingsToFirebase()" class="w-full p-1 border border-slate-300 rounded text-[9px]" placeholder="نص الرسالة الثابت..."></textarea>
+            <div class="bg-white p-2 rounded-lg border border-slate-100 shadow-sm">
+                <label class="block font-bold text-slate-700 text-[9px] mb-1"><i class="fas fa-comment-dots text-sky-600"></i> رسالة الواتساب الثابتة:</label>
+                <textarea id="messageText" rows="2" onchange="saveSettingsToFirebase()" class="w-full p-1 border border-slate-300 rounded text-[9px] outline-none" placeholder="نص الرسالة..."></textarea>
             </div>
         </div>
 
         <!-- لوحة التحكم والجدول -->
         <div class="xl:col-span-9 flex flex-col h-full hidden" id="actionPanel">
             
+            <!-- الفلاتر المتثبتة -->
             <div class="sticky-panel rounded-lg px-0.5">
                 <div class="bg-white p-1.5 rounded-lg border border-slate-300 shadow-sm">
                     <div class="grid grid-cols-2 lg:grid-cols-6 gap-1 items-end">
                         
                         <div class="col-span-2 lg:col-span-1">
                             <label class="block text-[8px] font-bold text-slate-500 mb-0.5">بحث عام:</label>
-                            <input type="text" id="searchInput" oninput="applyFilters()" class="bg-slate-50 border border-slate-300 text-[9px] rounded w-full p-1" placeholder="بحث بالاسم، موبايل...">
+                            <input type="text" id="searchInput" oninput="applyFilters()" class="bg-slate-50 border border-slate-300 text-[9px] rounded w-full p-1 outline-none focus:border-sky-500" placeholder="ابحث...">
                         </div>
                         
                         <div>
                             <label class="block text-[8px] font-bold text-slate-500 mb-0.5">تاريخ الإجراء:</label>
-                            <input type="date" id="datePicker" class="w-full border border-slate-300 p-1 rounded font-bold text-[8px]">
+                            <input type="date" id="datePicker" class="w-full border border-slate-300 p-1 rounded font-bold text-[8px] outline-none">
                         </div>
                         
                         <div>
                             <label class="block text-[8px] font-bold text-slate-500 mb-0.5">ID الموظف:</label>
-                            <input type="text" id="empIdInput" class="w-full border border-slate-300 p-1 rounded font-bold text-[8px] text-center" placeholder="رقمك">
+                            <input type="text" id="empIdInput" class="w-full border border-slate-300 p-1 rounded font-bold text-[8px] text-center outline-none focus:border-sky-500" placeholder="رقمك">
                         </div>
                         
                         <div>
                             <label class="block text-[8px] font-bold text-slate-500 mb-0.5">قرار العميل:</label>
-                            <select id="followUpFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1 rounded font-bold text-[8px]">
+                            <select id="followUpFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1 rounded font-bold text-[8px] outline-none">
                                 <option value="all">الكل</option>
                                 <option value="interested">⭐ مهتم</option>
                                 <option value="not_interested">🚫 غير مهتم</option>
@@ -177,7 +175,7 @@
                         
                         <div>
                             <label class="block text-[8px] font-bold text-slate-500 mb-0.5">المنتجات:</label>
-                            <select id="productFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1 rounded font-bold text-[8px] bg-sky-50">
+                            <select id="productFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1 rounded font-bold text-[8px] bg-sky-50 outline-none">
                                 <option value="all">الكل</option>
                                 <option value="Handset">Handset</option>
                                 <option value="TV">TV</option>
@@ -191,7 +189,7 @@
                         
                         <div>
                             <label class="block text-[8px] font-bold text-slate-500 mb-0.5">الموظفين:</label>
-                            <select id="empDropdownFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1 rounded font-bold text-[8px]">
+                            <select id="empDropdownFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1 rounded font-bold text-[8px] outline-none">
                                 <option value="">الكل</option>
                             </select>
                         </div>
@@ -203,8 +201,8 @@
                                     <span id="miniTodayCountBadge" class="hidden text-rose-700 font-black"><span id="miniTodayCount">0</span>يوم</span>
                                 </label>
                                 <div class="flex">
-                                    <input type="date" id="followUpDateFilter" onchange="applyFilters()" class="bg-slate-50 border border-slate-300 text-[8px] rounded-r w-full p-1">
-                                    <button onclick="clearDateFilter()" class="bg-slate-200 border border-r-0 border-slate-300 px-1 rounded-l text-[8px]"><i class="fas fa-times"></i></button>
+                                    <input type="date" id="followUpDateFilter" onchange="applyFilters()" class="bg-slate-50 border border-slate-300 text-[8px] rounded-r w-full p-1 outline-none">
+                                    <button onclick="clearDateFilter()" class="bg-slate-200 border border-r-0 border-slate-300 px-1 rounded-l text-[8px] hover:bg-slate-300 transition"><i class="fas fa-times"></i></button>
                                 </div>
                             </div>
                             
@@ -215,7 +213,7 @@
                         </div>
                     </div>
 
-                    <button onclick="toggleAdvancedFilters()" class="w-full mt-1.5 bg-slate-100 text-slate-700 font-bold py-1 px-2 rounded text-[9px] border border-slate-300 flex justify-between">
+                    <button onclick="toggleAdvancedFilters()" class="w-full mt-1.5 bg-slate-100 text-slate-700 font-bold py-1 px-2 rounded text-[9px] border border-slate-300 flex justify-between outline-none">
                         <span><i class="fas fa-sliders-h text-sky-600"></i> فلاتر متقدمة (نظام وشركات)</span>
                         <i class="fas fa-chevron-down" id="advFilterIcon"></i>
                     </button>
@@ -237,17 +235,17 @@
             <div class="overflow-x-auto bg-white flex-grow pt-0.5 rounded-b-xl">
                 <div id="loadingIndicator" class="text-center py-5 hidden">
                     <i class="fas fa-spinner fa-spin text-xl text-sky-500 mb-1"></i>
-                    <p class="font-bold text-slate-500 text-[9px]">مزامنة...</p>
+                    <p class="font-bold text-slate-500 text-[9px]">جاري المزامنة مع السحابة...</p>
                 </div>
                 
-                <table class="w-full text-center border-collapse min-w-[600px] md:min-w-[900px] table-fixed" id="dataTable">
+                <table class="w-full text-center border-collapse min-w-[700px] md:min-w-[900px] table-fixed" id="dataTable">
                     <thead class="bg-slate-200 border-b border-slate-300">
                         <tr id="tableHeader">
-                            <th class="p-1 font-bold text-slate-700 text-[9px] w-28">العميل</th>
+                            <th class="p-1 font-bold text-slate-700 text-[9px] w-32">العميل</th>
                             <th class="p-1 font-bold text-slate-700 text-[9px] w-20">البيانات</th>
                             <th class="p-1 font-bold text-slate-700 text-[9px] w-auto">السجل والتعليق</th>
                             <th class="p-1 font-bold text-slate-700 text-[9px] w-20">القرار</th>
-                            <th class="p-1 font-bold text-slate-700 text-[9px] w-12">W</th>
+                            <th class="p-1 font-bold text-slate-700 text-[9px] w-14">W</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody" class="bg-white p-1 block w-full table-row-group">
@@ -276,6 +274,7 @@
         appId: "1:691272759644:web:4f693b005708f94def6999",
         measurementId: "G-LYKE4FPZVS"
     };
+
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
@@ -288,10 +287,11 @@
     let activeColumns = { name: false, nid: false, phone: false, status: false, company: false };
     let currentBranch = '';
     
-    // ضبط تاريخ اليوم أوتوماتيك أول ما تفتح
+    // فتح تاريخ الإجراء على تاريخ اليوم أوتوماتيك
     document.getElementById('datePicker').value = new Date().toISOString().split('T')[0];
     
-    let branchClientsRef = null, branchSettingsRef = null;
+    let branchClientsRef = null;
+    let branchSettingsRef = null;
 
     window.onload = () => {
         const saved = localStorage.getItem('raya_activeBranch');
@@ -362,7 +362,7 @@
                 document.getElementById('notificationBanner').classList.add('hidden');
             }
 
-            // الاستماع للتغييرات
+            // الاستماع للتغييرات بدون إزعاج باقي الموظفين
             branchClientsRef.on('child_changed', cs => {
                 const uc = cs.val(), i = globalData.findIndex(c => c.phone === uc.phone);
                 if (i !== -1) {
@@ -391,6 +391,7 @@
         sortGlobalData();
     }
 
+    // الترتيب الذكي: المهتم فوق، ثم اللي ليه كومنت، ثم الجديد، ثم تم التنفيذ، ثم غير مهتم
     function sortGlobalData() {
         globalData.sort((a, b) => {
             const gp = c => {
@@ -419,6 +420,7 @@
         if (branchClientsRef) branchClientsRef.child(obj.phone).set(obj);
     }
 
+    // زرار الفورمات السحري 
     function hardResetCloud() {
         if (!currentBranch) return;
         if (prompt("تحذير! هذا الإجراء سيمسح جميع بيانات الفرع نهائياً. للفرمتة اكتب 'نعم'") === 'نعم') {
@@ -434,7 +436,7 @@
     }
 
     // -----------------------------------------------------
-    // 4. قراءة الإكسيل بالقوة الجبرية (Ultra Scanner)
+    // 4. قراءة الإكسيل المضمونة (البحث القوي للرقم القومي)
     // -----------------------------------------------------
     function processExcel() {
         const f = document.getElementById('excelFile');
@@ -459,12 +461,11 @@
                     
                     let hri = -1, cols = { name: -1, nid: -1, phone: -1, status: -1, company: -1 };
                     
-                    // البحث في أول 50 سطر لاستكشاف العناوين
+                    // بحث واسع عن العناوين في أول 50 سطر
                     for (let i = 0; i < Math.min(ja.length, 50); i++) {
                         const rv = ja[i];
                         if (!rv || rv.length === 0) continue;
                         
-                        // تنظيف ذكي للعناوين
                         const hs = rv.map(x => String(x).replace(/[\u200B-\u200D\uFEFF\n\r\t]/g, '').trim().toLowerCase()
                                              .replace('أ', 'ا').replace('إ', 'ا').replace('ة', 'ه'));
                                              
@@ -489,8 +490,14 @@
                         }
                     }
                     
-                    // القوة الجبرية (Ultimate Fallback): لو ملقاش عناوين هيدور على الأرقام في كل سطر
+                    // إذا لم يجد العناوين سيقوم بوضع قيم افتراضية ومحاولة سحب الأرقام مباشرة
                     let isFuzzyMode = (hri === -1);
+                    if (isFuzzyMode) {
+                        hri = 0; 
+                        cols.name = 0;
+                        cols.phone = 1;
+                        cols.nid = 2;
+                    }
                     
                     activeColumns = {
                         name: cols.name !== -1, nid: cols.nid !== -1, phone: cols.phone !== -1 || isFuzzyMode,
@@ -508,11 +515,8 @@
                     });
                     
                     let oc = Object.keys(cm).length;
-                    let addedCount = 0;
                     
-                    let startRow = isFuzzyMode ? 0 : hri + 1;
-
-                    for (let i = startRow; i < ja.length; i++) {
+                    for (let i = hri + 1; i < ja.length; i++) {
                         const row = ja[i];
                         if (!row || row.length === 0) continue;
 
@@ -530,13 +534,12 @@
                             if (rn.toUpperCase().includes('E')) rn = Number(row[cols.nid]).toLocaleString('fullwide', { useGrouping: false });
                             else rn = rn.replace(/[^0-9]/g, '') || "-";
                         } else {
-                            // نظام الاستكشاف الحر (Fuzzy) بيمسح السطر كله
+                            // نظام استخراج الأرقام القوي لو العناوين متلخبطة
                             for (let j = 0; j < row.length; j++) {
                                 let cell = row[j];
                                 if (!cell) continue;
                                 let cStr = String(cell).trim();
                                 
-                                // إصلاح الأرقام العلمية للرقم القومي E+
                                 if (cStr.toUpperCase().includes('E') && !isNaN(cell)) {
                                     cStr = Number(cell).toLocaleString('fullwide', {useGrouping:false});
                                 }
@@ -574,21 +577,22 @@
                                     orderId: oc++, name: cn, nid: rn, phone: ps, status: st, company: cp,
                                     sent: false, history: [], followUpStatus: '', statusDate: ''
                                 };
-                                addedCount++;
                             }
                         }
                     }
                     
                     if (Object.keys(cm).length === 0) {
                         document.getElementById('loadingIndicator').classList.add('hidden');
-                        return alert("لم يتم العثور على أي عملاء في الشيت المرفوع! تأكد من أن الشيت يحتوي على أرقام هواتف صحيحة.");
+                        document.getElementById('actionPanel').classList.remove('hidden');
+                        document.getElementById('dataTable').classList.remove('hidden');
+                        return alert("لم يتم العثور على أرقام هواتف لعملاء في هذا الشيت! تأكد من الشيت المرفوع.");
                     }
 
                     branchClientsRef.set(cm).then(() => {
                         document.getElementById('loadingIndicator').classList.add('hidden');
                         document.getElementById('excelFile').value = '';
                         
-                        // إظهار لوحة التحكم وإعادة بناء الفلاتر فوراً بدون ريفريش
+                        // إظهار لوحة التحكم وإعادة بناء الفلاتر فوراً
                         branchClientsRef.once('value', s => {
                             updateDataFromSnapshot(s);
                             document.getElementById('actionPanel').classList.remove('hidden');
@@ -597,7 +601,7 @@
                             checkTodayFollowUps();
                             restoreUI(); 
                         });
-                        alert(`تم الرفع والدمج بنجاح! تم التقاط ${addedCount} عميل جديد.`);
+                        alert("تم رفع ودمج الشيت بنجاح!");
                     }).catch(err => {
                         document.getElementById('loadingIndicator').classList.add('hidden');
                         alert("خطأ أثناء الاتصال بالسحابة: " + err);
@@ -623,6 +627,8 @@
     // -----------------------------------------------------
     // 5. الوظائف المتنوعة والفلاتر
     // -----------------------------------------------------
+    
+    // نسخ الرقم وفتح تاب راية الموحدة
     window.copyAndOpenRaya = function(nid, btn) {
         if (nid && String(nid).trim() !== "-" && String(nid).trim() !== "") {
             const ti = document.createElement("input");
@@ -766,13 +772,14 @@
     }
 
     // -----------------------------------------------------
-    // 6. رسم الجدول
+    // 6. رسم الجدول (أزرار كبيرة للكومنت وصغيرة للكتابة)
     // -----------------------------------------------------
     function renderHistory(ha) {
         if (!ha || !Array.isArray(ha)) return '<div class="text-slate-400 text-center py-1 text-[8px]">لا توجد تعليقات</div>';
         const co = ha.filter(i => i && i.type === 'comment');
         if (co.length === 0) return '<div class="text-slate-400 text-center py-1 text-[8px]">لا توجد تعليقات</div>';
         
+        // الأجدد فوق والأقدم تحت
         return co.slice().reverse().map(i => {
             let fb = i.followUpDate ? `<span class="text-[7px] text-rose-600 bg-rose-50 px-1 border border-rose-100 rounded mr-1"><i class="fas fa-clock"></i> متابعة: ${i.followUpDate}</span>` : '';
             let pb = i.product && i.product !== 'all' ? `<span class="text-[7px] text-sky-700 bg-sky-100 px-1 rounded ml-1 border border-sky-200">${i.product}</span>` : '';
@@ -802,7 +809,7 @@
         let dn = cn;
         if (c.sent) dn += ' <i class="fas fa-check-circle text-emerald-500 text-[8px]"></i>';
         
-        let lb = `<button onclick="copyAndOpenRaya('${cd}', this)" class="mt-1 bg-slate-800 text-white text-[8px] font-bold px-1.5 py-1 rounded w-full"><i class="fas fa-credit-card text-sky-400"></i> عرض الليمت</button>`;
+        let lb = `<button onclick="copyAndOpenRaya('${cd}', this)" class="mt-1 bg-slate-800 hover:bg-slate-700 text-white text-[8px] font-bold px-1.5 py-1 rounded w-full"><i class="fas fa-credit-card text-sky-400"></i> عرض الليمت</button>`;
         
         html += `<td class="p-1 align-top pt-1.5">
             <div class="font-bold text-slate-800 text-[10px] truncate max-w-[120px]">${dn}</div>
@@ -816,12 +823,13 @@
         
         html += `<td class="p-1 align-top pt-2"><span class="${bgs}">${cs}</span><span class="${bgc}">${cc}</span></td>`;
         
+        // خانات ضيقة للإدخال، وزرار حفظ كبير
         html += `<td class="p-1 border-r border-l border-slate-200 align-top bg-slate-50/30">
             <div class="h-24 overflow-y-auto mb-1.5 custom-scrollbar bg-white p-1 rounded border border-slate-200" id="history-${idx}">
                 ${renderHistory(ch)}
             </div>
             <div class="flex flex-wrap gap-0.5 justify-end items-stretch">
-                <select id="comment-product-${idx}" class="w-16 border border-slate-300 p-1 rounded text-[9px] font-bold text-sky-700 bg-sky-50">
+                <select id="comment-product-${idx}" class="w-16 border border-slate-300 p-1 rounded text-[9px] font-bold text-sky-700 bg-sky-50 outline-none">
                     <option value="all">منتج</option>
                     <option value="Handset">Handset</option>
                     <option value="TV">TV</option>
@@ -831,9 +839,9 @@
                     <option value="Acc">Acc</option>
                     <option value="أخرى">أخرى</option>
                 </select>
-                <input type="date" id="comment-date-${idx}" class="w-20 border border-slate-300 p-1 rounded text-[8px]">
-                <input type="text" id="comment-input-${idx}" class="w-24 border border-slate-300 p-1 rounded text-[10px]" placeholder="كلمتين هنا...">
-                <button onclick="addComment(${idx}, this)" class="bg-sky-600 text-white p-1 px-3 rounded text-[11px] font-bold shadow-md"><i class="fas fa-save"></i> حفظ 💾</button>
+                <input type="date" id="comment-date-${idx}" class="w-20 border border-slate-300 p-1 rounded text-[8px] outline-none">
+                <input type="text" id="comment-input-${idx}" class="w-24 border border-slate-300 p-1 rounded text-[10px] outline-none" placeholder="كلمتين هنا...">
+                <button onclick="addComment(${idx}, this)" class="bg-sky-600 text-white p-1 px-3 rounded text-[11px] font-bold shadow-md transition-transform active:scale-95"><i class="fas fa-save"></i> حفظ 💾</button>
             </div>
         </td>`;
         
@@ -877,14 +885,15 @@
 
     function applyFilters() {
         try {
-            const ss = getCheckedValues('status'),
-                  sc = getCheckedValues('company'),
-                  s = document.getElementById('searchInput').value.toLowerCase().trim(),
-                  f = document.getElementById('followUpFilter').value,
-                  p = document.getElementById('productFilter').value,
-                  e = document.getElementById('empDropdownFilter').value,
-                  d = document.getElementById('followUpDateFilter').value,
-                  tb = document.getElementById('tableBody');
+            // حل مشكلة الفلاتر اللي بتخفي الجدول لو العواميد مش موجودة (Fallback)
+            const ss = (activeColumns.status) ? getCheckedValues('status') : [];
+            const sc = (activeColumns.company) ? getCheckedValues('company') : [];
+            const s = document.getElementById('searchInput').value.toLowerCase().trim();
+            const f = document.getElementById('followUpFilter').value;
+            const p = document.getElementById('productFilter').value;
+            const e = document.getElementById('empDropdownFilter').value;
+            const d = document.getElementById('followUpDateFilter').value;
+            const tb = document.getElementById('tableBody');
                   
             tb.innerHTML = '';
             let ct = 0;
@@ -893,7 +902,7 @@
                 let cn = c.name ? String(c.name) : "-", cp = c.phone ? String(c.phone) : "-", cd = c.nid ? String(c.nid) : "-", cs = c.status ? String(c.status) : "-", cc = c.company ? String(c.company) : "-";
                 let ch = Array.isArray(c.history) ? c.history : [];
                 
-                // تعديل الفلتر ليكون أكثر أماناً وتجاهل نقص الفلاتر (Fallback)
+                // شرط الأمان (لو الفلاتر فاضية، اعتبره متطابق)
                 let sm = (ss.length === 0) || ss.includes(cs);
                 let cm = (sc.length === 0) || sc.includes(cc);
                 let sch = true;
@@ -924,7 +933,7 @@
                 }
             });
             document.getElementById('clientCount').innerText = ct;
-            saveFilters();
+            saveFilters(); // الحفاظ على الفلاتر مع الريفريش
         } catch (err) { console.log(err); }
     }
 
@@ -939,6 +948,7 @@
               
         if (!t && p === 'all') return;
         
+        // تأثير ضغطة الزر الواضح
         btn.classList.add('btn-active-glow');
         setTimeout(() => btn.classList.remove('btn-active-glow'), 300);
 
@@ -948,6 +958,7 @@
         if (!globalData[i].history) globalData[i].history = [];
         globalData[i].history.push({ date: ad, empId: ei, type: 'comment', text: t || "تحديد منتج", product: p, followUpDate: fd });
         
+        // الشاشة مش هتتحرك خالص
         let cs = window.scrollY;
         updateClientInCloud(globalData[i]);
         sortGlobalData();
@@ -971,9 +982,9 @@
         
         let cs = window.scrollY;
         updateClientInCloud(globalData[i]);
-        sortGlobalData();
-        applyFilters();
-        window.scrollTo(0, cs);
+        sortGlobalData(); // يرتب العميل في الخلفية
+        applyFilters(); // ينفذ الترتيب
+        window.scrollTo(0, cs); // يحافظ على مكان عينك
     }
 
     function sendManual(i) {
