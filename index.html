@@ -55,7 +55,6 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8 }
         .sticky-panel { position: sticky; top: 0; z-index: 50; background-color: #f8fafc; padding-top: 10px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0 }
         
-        /* جعل الجزء الأيمن ثابتا عند النزول */
         .sticky-sidebar { position: sticky; top: 20px; z-index: 40; }
         
         .pulse-alert { animation: pulseAlert 2s infinite }
@@ -126,7 +125,6 @@
         </div>
 
         <div class="p-2 md:p-4 grid grid-cols-1 xl:grid-cols-12 gap-3 lg:gap-4 relative px-2 lg:px-6 items-start">
-            <!-- الشريط الجانبي الثابت -->
             <div class="xl:col-span-3 space-y-2 md:space-y-3 bg-slate-50 p-2 md:p-3 lg:p-4 rounded-xl border border-slate-200 shadow-inner h-fit sticky-sidebar">
                 <div class="bg-amber-50 p-3 md:p-4 rounded-lg border-2 border-amber-400 shadow-md">
                     <h2 class="font-bold text-amber-800 text-sm md:text-base lg:text-lg mb-2 md:mb-3 flex items-center gap-1.5 border-b-2 border-amber-300 pb-1.5"><i class="fas fa-bullhorn text-amber-600 text-base md:text-lg"></i> عروض راية الحالية</h2>
@@ -136,14 +134,9 @@
                     <label class="block font-bold text-slate-700 text-[10px] md:text-xs lg:text-sm mb-1"><i class="fas fa-file-excel text-sky-600"></i> رفع شيت عملاء جديد (تحديث + دمج):</label>
                     <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" onchange="processExcel()" class="w-full border border-slate-300 p-1 rounded bg-slate-50 text-[10px] lg:text-sm cursor-pointer file:mr-1 file:py-0.5 file:px-2 file:rounded file:border-0 file:font-bold file:bg-sky-50 file:text-sky-700 transition">
                     
-                    <!-- الزر الجديد لحفظ الشيت المرفوع في السحابة -->
                     <button id="saveExcelBtn" onclick="saveExcelData()" class="hidden w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-[11px] lg:text-sm shadow-md transition items-center justify-center gap-2">
-                        <i class="fas fa-save"></i> حفظ الشيت في السحابة
+                        <i class="fas fa-save"></i> حفظ العملاء
                     </button>
-                </div>
-                <div class="bg-white p-2 md:p-3 lg:p-4 rounded-lg shadow-sm border border-slate-100">
-                    <label class="block font-bold text-slate-700 text-[10px] md:text-xs lg:text-sm mb-1"><i class="fas fa-comment-dots text-sky-600"></i> رسالة الواتساب الثابتة:</label>
-                    <textarea id="messageText" rows="3" onchange="saveSettingsToFirebase()" class="w-full p-1.5 border border-slate-300 rounded focus:border-sky-500 outline-none transition resize-none text-[10px] md:text-[11px] lg:text-sm leading-relaxed mb-2" placeholder="اكتب نص الرسالة التي ستُرسل للعملاء..."></textarea>
                 </div>
             </div>
 
@@ -263,7 +256,7 @@
         let activeColumns = { name: false, nid: false, phone: false, status: false, company: false };
         let currentBranch = '';
         
-        let pendingExcelData = null; // متغير لحفظ بيانات الشيت قبل الرفع
+        let pendingExcelData = null;
 
         let branchClientsRef = null;
         let branchSettingsRef = null;
@@ -358,7 +351,6 @@
             branchSettingsRef.on('value', (snapshot) => {
                 const settings = snapshot.val();
                 if (settings) {
-                    if (settings.messageText !== undefined) document.getElementById('messageText').value = settings.messageText;
                     if (settings.offersText !== undefined) document.getElementById('offersText').value = settings.offersText;
                     if (settings.activeColumns !== undefined) activeColumns = settings.activeColumns;
                 }
@@ -385,6 +377,7 @@
                         globalData[index] = updatedClient;
                         updateSingleRowDOM(index);
                         checkTodayFollowUps();
+                        updateEmpDropdown();
                     }
                 });
                 
@@ -395,6 +388,7 @@
                         sortGlobalData();
                         applyFilters();
                         checkTodayFollowUps();
+                        updateEmpDropdown();
                     }
                 });
             });
@@ -411,7 +405,6 @@
             }
         }
 
-        // الترتيب: مهتم -> لديه كومنت (وليس له قرار) -> الباقي (بدون قرار) -> تم -> غير مهتم
         function sortGlobalData() {
             globalData.sort((a, b) => {
                 const getPriority = (client) => {
@@ -430,7 +423,6 @@
         function saveSettingsToFirebase() {
             if (!branchSettingsRef) return;
             branchSettingsRef.update({
-                messageText: document.getElementById('messageText').value,
                 offersText: document.getElementById('offersText').value,
                 activeColumns: activeColumns
             });
@@ -465,6 +457,7 @@
             if (!currentBranch) return alert("حدد الفرع");
             
             document.getElementById('loadingIndicator').classList.remove('hidden');
+            document.getElementById('dataTable').classList.add('hidden');
             
             setTimeout(() => {
                 try {
@@ -569,13 +562,12 @@
                             }
                         }
                         
-                        // حفظ البيانات في المتغير وتفعيل الزر
                         pendingExcelData = cloudClientsMap;
                         document.getElementById('loadingIndicator').classList.add('hidden');
                         document.getElementById('saveExcelBtn').classList.remove('hidden');
                         document.getElementById('saveExcelBtn').classList.add('flex');
                         
-                        alert(`تم تجهيز الشيت! سيتم إضافة ${newClientsAdded} عميل جديد مع تحديث الترتيب. اضغط على "حفظ الشيت في السحابة" لتأكيد الرفع.`);
+                        alert(`تم تجهيز الشيت! سيتم إضافة ${newClientsAdded} عميل جديد مع تحديث الترتيب. اضغط على "حفظ العملاء" لتأكيد الرفع.`);
                         
                     };
                     reader.readAsArrayBuffer(fileInput.files[0]);
@@ -586,7 +578,6 @@
             }, 150);
         }
 
-        // الدالة الجديدة لحفظ الشيت في السحابة
         function saveExcelData() {
             if (!pendingExcelData) return;
             
@@ -596,11 +587,9 @@
             document.getElementById('saveExcelBtn').classList.remove('flex');
             
             branchClientsRef.set(pendingExcelData).then(() => {
-                document.getElementById('loadingIndicator').classList.add('hidden');
-                document.getElementById('excelFile').value = '';
-                pendingExcelData = null; // تفريغ بعد النجاح
-                alert(`تم الحفظ في السحابة بنجاح!`);
-                // سيتم التحديث تلقائيا عبر child_changed / child_added
+                pendingExcelData = null;
+                // الريفريش المباشر بعد حفظ العملاء لإنزالهم فورا وبدون أخطاء
+                window.location.reload();
             }).catch(err => {
                 document.getElementById('loadingIndicator').classList.add('hidden');
                 document.getElementById('saveExcelBtn').classList.remove('hidden');
@@ -758,10 +747,10 @@
         }
 
         function updateEmpDropdown() {
-            let empClients = {}; // استخدمنا كائن عشان نعد كل موظف كلم كام عميل
+            let empClients = {};
             globalData.forEach(client => {
                 let clientHistory = Array.isArray(client.history) ? client.history : [];
-                let empsForThisClient = new Set(); // عشان نضمن إن العميل يتحسب مرة واحدة للموظف حتى لو كتبله 5 كومنتات
+                let empsForThisClient = new Set();
                 clientHistory.forEach(h => { if (h && h.empId) empsForThisClient.add(h.empId); });
                 
                 empsForThisClient.forEach(emp => {
@@ -777,7 +766,7 @@
                 if (emp && String(emp).trim() !== '') {
                     const opt = document.createElement('option');
                     opt.value = emp; 
-                    opt.textContent = `${emp} (${empClients[emp]} عميل)`; // عرض الاسم وعدد العملاء
+                    opt.textContent = `${emp} (${empClients[emp]} عميل)`;
                     select.appendChild(opt);
                 }
             });
@@ -803,7 +792,6 @@
             }).join('');
         }
 
-        // استخراج تاريخ آخر تحديث فقط ليعرض تحت القرار
         function getLastCommentText(client) {
             let lastActionDate = '';
             
@@ -996,14 +984,12 @@
         }
 
         // ===============================================
-        // دالة الفتح في تاب عادية باستخدام target موحد
-        // ===============================================
         function openWAPopup(link) {
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             if (isMobile) { 
                 window.location.href = link; 
             } else {
-                // فتح رابط الواتساب في تاب عادية لها اسم محدد عشان المتصفح يحدث نفس التاب دايما
+                // فتح رابط الواتساب في تاب عادية لها اسم محدد
                 window.open(link, 'Raya_Unified_WA_Tab'); 
             }
         }
@@ -1045,6 +1031,7 @@
             updateClientInCloud(globalData[index]);
             updateSingleRowDOM(index);
             checkTodayFollowUps();
+            updateEmpDropdown(); // التحديث المباشر للموظفين
         }
 
         function setFollowUpStatus(index, status, btnElement) {
@@ -1080,10 +1067,10 @@
         }
 
         function generateWaLink(client) {
-            let msg = document.getElementById('messageText').value;
+            // تم إزالة قراءة رسالة الواتساب الثابتة بناء على طلبك
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (isMobile) { return `whatsapp://send?phone=${client.phone}&text=${encodeURIComponent(msg)}`; } 
-            else { return `https://web.whatsapp.com/send?phone=${client.phone}&text=${encodeURIComponent(msg)}`; }
+            if (isMobile) { return `whatsapp://send?phone=${client.phone}`; } 
+            else { return `https://web.whatsapp.com/send?phone=${client.phone}`; }
         }
     </script>
 </body>
