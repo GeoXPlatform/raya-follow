@@ -135,6 +135,11 @@
                 <div class="bg-white p-2 md:p-3 lg:p-4 rounded-lg shadow-sm border border-slate-100">
                     <label class="block font-bold text-slate-700 text-[10px] md:text-xs lg:text-sm mb-1"><i class="fas fa-file-excel text-sky-600"></i> رفع شيت عملاء جديد (تحديث + دمج):</label>
                     <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" onchange="processExcel()" class="w-full border border-slate-300 p-1 rounded bg-slate-50 text-[10px] lg:text-sm cursor-pointer file:mr-1 file:py-0.5 file:px-2 file:rounded file:border-0 file:font-bold file:bg-sky-50 file:text-sky-700 transition">
+                    
+                    <!-- الزر الجديد لحفظ الشيت المرفوع في السحابة -->
+                    <button id="saveExcelBtn" onclick="saveExcelData()" class="hidden w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-[11px] lg:text-sm shadow-md transition items-center justify-center gap-2">
+                        <i class="fas fa-save"></i> حفظ الشيت في السحابة
+                    </button>
                 </div>
                 <div class="bg-white p-2 md:p-3 lg:p-4 rounded-lg shadow-sm border border-slate-100">
                     <label class="block font-bold text-slate-700 text-[10px] md:text-xs lg:text-sm mb-1"><i class="fas fa-comment-dots text-sky-600"></i> رسالة الواتساب الثابتة:</label>
@@ -258,7 +263,7 @@
         let activeColumns = { name: false, nid: false, phone: false, status: false, company: false };
         let currentBranch = '';
         
-        let waWindowPopup = null; 
+        let pendingExcelData = null; // متغير لحفظ بيانات الشيت قبل الرفع
 
         let branchClientsRef = null;
         let branchSettingsRef = null;
@@ -340,6 +345,9 @@
             document.getElementById('dataTable').classList.add('hidden');
             document.getElementById('loadingIndicator').classList.remove('hidden');
             document.getElementById('excelFile').value = '';
+            document.getElementById('saveExcelBtn').classList.add('hidden');
+            document.getElementById('saveExcelBtn').classList.remove('flex');
+            pendingExcelData = null;
             
             if (branchClientsRef) branchClientsRef.off();
             if (branchSettingsRef) branchSettingsRef.off();
@@ -457,7 +465,6 @@
             if (!currentBranch) return alert("حدد الفرع");
             
             document.getElementById('loadingIndicator').classList.remove('hidden');
-            document.getElementById('dataTable').classList.add('hidden');
             
             setTimeout(() => {
                 try {
@@ -562,19 +569,14 @@
                             }
                         }
                         
-                        branchClientsRef.set(cloudClientsMap).then(() => {
-                            document.getElementById('loadingIndicator').classList.add('hidden');
-                            document.getElementById('excelFile').value = '';
-                            alert(`تم الرفع بنجاح! تمت إضافة ${newClientsAdded} عميل جديد مع تحديث الترتيب.`);
-                            branchClientsRef.once('value', (snap) => {
-                                updateDataFromSnapshot(snap);
-                                applyFilters();
-                                document.getElementById('dataTable').classList.remove('hidden');
-                            });
-                        }).catch(err => {
-                            document.getElementById('loadingIndicator').classList.add('hidden');
-                            alert("خطأ: " + err);
-                        });
+                        // حفظ البيانات في المتغير وتفعيل الزر
+                        pendingExcelData = cloudClientsMap;
+                        document.getElementById('loadingIndicator').classList.add('hidden');
+                        document.getElementById('saveExcelBtn').classList.remove('hidden');
+                        document.getElementById('saveExcelBtn').classList.add('flex');
+                        
+                        alert(`تم تجهيز الشيت! سيتم إضافة ${newClientsAdded} عميل جديد مع تحديث الترتيب. اضغط على "حفظ الشيت في السحابة" لتأكيد الرفع.`);
+                        
                     };
                     reader.readAsArrayBuffer(fileInput.files[0]);
                 } catch (error) {
@@ -582,6 +584,29 @@
                     alert("خطأ: " + error.message);
                 }
             }, 150);
+        }
+
+        // الدالة الجديدة لحفظ الشيت في السحابة
+        function saveExcelData() {
+            if (!pendingExcelData) return;
+            
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+            document.getElementById('dataTable').classList.add('hidden');
+            document.getElementById('saveExcelBtn').classList.add('hidden');
+            document.getElementById('saveExcelBtn').classList.remove('flex');
+            
+            branchClientsRef.set(pendingExcelData).then(() => {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                document.getElementById('excelFile').value = '';
+                pendingExcelData = null; // تفريغ بعد النجاح
+                alert(`تم الحفظ في السحابة بنجاح!`);
+                // سيتم التحديث تلقائيا عبر child_changed / child_added
+            }).catch(err => {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                document.getElementById('saveExcelBtn').classList.remove('hidden');
+                document.getElementById('saveExcelBtn').classList.add('flex');
+                alert("خطأ أثناء الحفظ: " + err);
+            });
         }
 
         function cleanPhoneNumber(phone) {
@@ -733,27 +758,36 @@
         }
 
         function updateEmpDropdown() {
-            const empSet = new Set();
+            let empClients = {}; // استخدمنا كائن عشان نعد كل موظف كلم كام عميل
             globalData.forEach(client => {
                 let clientHistory = Array.isArray(client.history) ? client.history : [];
-                clientHistory.forEach(h => { if (h && h.empId) empSet.add(h.empId); });
+                let empsForThisClient = new Set(); // عشان نضمن إن العميل يتحسب مرة واحدة للموظف حتى لو كتبله 5 كومنتات
+                clientHistory.forEach(h => { if (h && h.empId) empsForThisClient.add(h.empId); });
+                
+                empsForThisClient.forEach(emp => {
+                    empClients[emp] = (empClients[emp] || 0) + 1;
+                });
             });
+            
             const select = document.getElementById('empDropdownFilter');
             const currentVal = select.value;
             select.innerHTML = '<option value="">الكل</option>';
-            empSet.forEach(emp => {
+            
+            Object.keys(empClients).forEach(emp => {
                 if (emp && String(emp).trim() !== '') {
                     const opt = document.createElement('option');
-                    opt.value = emp; opt.textContent = emp;
+                    opt.value = emp; 
+                    opt.textContent = `${emp} (${empClients[emp]} عميل)`; // عرض الاسم وعدد العملاء
                     select.appendChild(opt);
                 }
             });
-            if (empSet.has(currentVal)) select.value = currentVal;
+            
+            if (empClients[currentVal]) select.value = currentVal;
             
             const saved = localStorage.getItem('raya_filters_state');
             if (saved) {
                 const filters = JSON.parse(saved);
-                if (filters.empDropdown && empSet.has(filters.empDropdown)) select.value = filters.empDropdown;
+                if (filters.empDropdown && empClients[filters.empDropdown]) select.value = filters.empDropdown;
             }
         }
 
@@ -769,9 +803,8 @@
             }).join('');
         }
 
-        // استخراج آخر تحديث بالتاريخ (للكومنتات أو القرارات)
+        // استخراج تاريخ آخر تحديث فقط ليعرض تحت القرار
         function getLastCommentText(client) {
-            let lastActionText = '';
             let lastActionDate = '';
             
             let historyArray = Array.isArray(client.history) ? client.history : [];
@@ -779,17 +812,14 @@
             
             if (commentsOnly.length > 0) {
                 const lastComment = commentsOnly[commentsOnly.length - 1];
-                lastActionText = lastComment.text || '';
                 lastActionDate = lastComment.date || '';
             } else if (client.statusDate) {
-                // إذا لم يكن هناك كومنت ولكن تم اتخاذ قرار
-                lastActionText = "تم تغيير القرار";
                 lastActionDate = client.statusDate;
             } else {
                 return '';
             }
             
-            return `<div class="text-[9px] lg:text-[11px] font-semibold text-slate-600 mt-1 border-t border-slate-200 pt-1 leading-tight break-words text-right"><b>آخر تحديث:</b> ${lastActionText}<br><span class="text-rose-600"><i class="fas fa-calendar-day"></i> ${lastActionDate}</span></div>`;
+            return `<div class="text-[9px] lg:text-[11px] font-semibold text-slate-600 mt-1 border-t border-slate-200 pt-1 leading-tight break-words text-center"><b>آخر تحديث</b><br><span class="text-rose-600"><i class="fas fa-calendar-day"></i> ${lastActionDate}</span></div>`;
         }
 
         function generateRowHTML(client, index) {
@@ -938,7 +968,6 @@
                     let empMatch = true;
                     if (empDropdownFilter) { empMatch = clientHistory.some(h => h && h.empId === empDropdownFilter); }
                     
-                    // التعديل: فلتر التاريخ بيجيب أي حاجة حصلت للعميل في التاريخ ده (كومنت أو قرار أو متابعة)
                     let dateMatch = true;
                     if (targetDateFilter) {
                         let historyMatch = clientHistory.some(h => h && h.type === 'comment' && (h.date === targetDateFilter || h.followUpDate === targetDateFilter));
@@ -967,17 +996,15 @@
         }
 
         // ===============================================
+        // دالة الفتح في تاب عادية باستخدام target موحد
+        // ===============================================
         function openWAPopup(link) {
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             if (isMobile) { 
                 window.location.href = link; 
             } else {
-                if (!waWindowPopup || waWindowPopup.closed) {
-                    waWindowPopup = window.open(link, 'RayaAutoWA', 'width=800,height=650,left=200,top=100,scrollbars=yes,resizable=yes');
-                } else {
-                    waWindowPopup.location.href = link;
-                    waWindowPopup.focus();
-                }
+                // فتح رابط الواتساب في تاب عادية لها اسم محدد عشان المتصفح يحدث نفس التاب دايما
+                window.open(link, 'Raya_Unified_WA_Tab'); 
             }
         }
         
