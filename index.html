@@ -777,21 +777,35 @@
             let badgeCompany = cCompany === "-" ? 'text-slate-400 font-bold' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 py-0.5 rounded text-[8px] md:text-[9px] font-semibold block';
             html += `<td class="p-1 md:p-1.5 align-top pt-2"><span class="${badgeStatus}">${cStatus}</span><span class="${badgeCompany}">${cCompany}</span></td>`;
             
-            html += `<td class="p-1 md:p-1.5 align-top">
-                <div class="max-w-[240px] mx-auto">
-                    <div class="h-16 md:h-20 overflow-y-auto mb-1 custom-scrollbar bg-slate-50/80 p-1.5 rounded-lg border border-slate-200 shadow-inner text-right" id="history-${index}">${renderHistory(clientHistory)}</div>
+            /* التعديل الجذري على قسم التعليقات: استغلال كامل المساحة وتنسيق البار */
+            html += `<td class="p-1 md:p-1.5 align-top w-full md:w-auto">
+                <div class="w-full flex flex-col gap-1.5">
+                    <!-- سجل الكومنتات أكبر وأوضح -->
+                    <div class="h-28 md:h-36 overflow-y-auto custom-scrollbar bg-slate-50/90 p-1.5 rounded-lg border border-slate-200 shadow-inner text-right" id="history-${index}">
+                        ${renderHistory(clientHistory)}
+                    </div>
                     
-                    <div class="flex flex-wrap gap-1 items-center justify-between bg-white p-1 rounded-lg border-2 border-slate-200 shadow-sm">
-                        <select id="comment-product-${index}" class="w-[55px] border-none bg-slate-50 p-1 rounded outline-none text-[9px] font-bold text-sky-700 cursor-pointer">
+                    <!-- بار واحد للكومنت والمنتج والتاريخ والحفظ لا ينكسر على سطرين -->
+                    <div class="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-300 shadow-sm w-full overflow-hidden">
+                        
+                        <select id="comment-product-${index}" class="w-[55px] md:w-[65px] bg-sky-50 border border-sky-100 p-1 rounded outline-none text-[9px] font-bold text-sky-800 cursor-pointer shrink-0">
                             <option value="all">منتج</option>
                             <option value="Handset">Handset</option><option value="TV">TV</option><option value="AC">AC</option>
                             <option value="SDA">SDA</option><option value="HA">HA</option><option value="Acc">Acc</option><option value="أخرى">أخرى</option>
                         </select>
-                        <input type="text" id="comment-input-${index}" class="flex-grow min-w-[60px] border border-slate-100 px-1.5 py-1 rounded outline-none text-[10px] md:text-[11px] font-semibold" placeholder="كومنت...">
-                        <input type="date" id="comment-date-${index}" class="w-[20px] overflow-hidden border border-slate-100 bg-slate-50 p-1 rounded outline-none text-[9px] font-bold cursor-pointer" title="تاريخ المتابعة">
-                        <button onclick="addComment(${index})" class="bg-sky-600 hover:bg-sky-700 text-white px-2.5 py-1 rounded text-[10px] md:text-[11px] font-bold shadow flex-shrink-0 transition">
+                        
+                        <input type="text" id="comment-input-${index}" class="w-full min-w-[50px] border-none px-1 py-1 outline-none text-[10px] md:text-[11px] font-semibold bg-transparent" placeholder="اكتب كومنت...">
+                        
+                        <div class="flex items-center bg-rose-50 border border-rose-200 rounded px-1 shrink-0" title="تاريخ المتابعة">
+                            <span class="text-[8px] font-bold text-rose-700 ml-0.5 hidden md:inline">متابعة:</span>
+                            <i class="fas fa-calendar-alt text-rose-500 text-[8px] ml-0.5 md:hidden"></i>
+                            <input type="date" id="comment-date-${index}" class="bg-transparent border-none outline-none text-[9px] font-bold text-rose-800 w-[70px] md:w-[85px] cursor-pointer p-0.5">
+                        </div>
+                        
+                        <button onclick="addComment(${index})" class="bg-sky-600 hover:bg-sky-700 text-white px-2.5 md:px-3 py-1.5 rounded text-[10px] md:text-[11px] font-bold shadow shrink-0 transition">
                             <i class="fas fa-save"></i>
                         </button>
+                        
                     </div>
                 </div>
             </td>`;
