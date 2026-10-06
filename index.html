@@ -1,1 +1,1028 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>متابعة عملاء راية | Raya CRM</title><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script><script src="https://cdn.tailwindcss.com"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><style>body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f8fafc}.client-row{border-bottom:8px solid #f8fafc;box-shadow:0 1px 3px rgba(0,0,0,0.05)}.row-default{background-color:#ffffff}.row-has-comment{background-color:#f3e8ff!important;border-color:#d8b4fe!important;border-bottom:8px solid #f8fafc!important}.row-sent{background-color:#f0fdf4!important;border-color:#4ade80!important;border-bottom:8px solid #f8fafc!important}.row-interested{background-color:#fffbeb!important;border-color:#fcd34d!important;border-bottom:8px solid #f8fafc!important}.row-not-interested{background-color:#fff1f2!important;border-color:#fb7185!important;border-bottom:8px solid #f8fafc!important;opacity:0.75}.row-done{background-color:#ecfdf5!important;border-color:#34d399!important;border-bottom:8px solid #f8fafc!important;opacity:0.85}.checkbox-label{cursor:pointer;user-select:none;transition:all 0.2s}.checkbox-label:hover{transform:translateY(-1px)}.custom-scrollbar::-webkit-scrollbar{width:6px;height:6px}.custom-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}.custom-scrollbar::-webkit-scrollbar-thumb:hover{background:#94a3b8}.sticky-panel{position:sticky;top:0;z-index:50;background-color:#f8fafc;padding-top:10px;padding-bottom:10px;border-bottom:2px solid #e2e8f0}.pulse-alert{animation:pulseAlert 2s infinite}@keyframes pulseAlert{0%{box-shadow:0 0 0 0 rgba(225,29,72,0.4)}70%{box-shadow:0 0 0 10px rgba(225,29,72,0)}100%{box-shadow:0 0 0 0 rgba(225,29,72,0)}}</style></head><body class="p-1 md:p-4 min-h-screen text-sm md:text-base"><div id="branchModal" class="fixed inset-0 bg-slate-900 bg-opacity-90 z-[100] flex items-center justify-center hidden"><div class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl max-w-md w-11/12 md:w-full text-center border-t-8 border-sky-600 relative overflow-hidden"><div class="absolute -top-10 -right-10 w-32 h-32 bg-sky-100 rounded-full opacity-50"></div><div class="absolute -bottom-10 -left-10 w-24 h-24 bg-sky-100 rounded-full opacity-50"></div><i class="fas fa-building text-5xl text-sky-600 mb-4 relative z-10"></i><h2 class="text-2xl font-bold text-slate-800 mb-2 relative z-10">متابعة عملاء راية</h2><p class="text-slate-500 font-semibold mb-6 relative z-10">يرجى تحديد فرعك للوصول للسحابة</p><select id="branchSelectModal" class="w-full border-2 border-slate-300 p-3 rounded-xl mb-6 text-lg font-bold text-slate-700 outline-none focus:border-sky-600 relative z-10"><option value="" disabled selected>-- اختر الفرع --</option><option value="mega_helwan">Mega Helwan</option><option value="samsung_mokattam">Samsung Mokattam</option><option value="samsung_zahraa_elmaadi">Samsung Zahraa Elmaadi</option><option value="samsung_maadi_helwan">Samsung Maadi Helwan</option><option value="jehan_elsadat">Jehan Elsadat</option><option value="obour">Obour</option><option value="mega_sayeda_zeinab">Mega Sayeda Zeinab</option><option value="gazayer">Gazayer</option><option value="city_center">City Center</option></select><button onclick="confirmBranchSelection()" class="w-full bg-sky-600 text-white font-bold py-3.5 rounded-xl hover:bg-sky-700 text-lg shadow-lg transition transform hover:-translate-y-1 relative z-10">دخول للفرع <i class="fas fa-sign-in-alt mr-2"></i></button></div></div><div class="max-w-[1600px] mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 hidden" id="mainAppContainer"><div class="bg-slate-900 p-2 md:p-4 text-white flex flex-col md:flex-row justify-between items-center gap-2 shadow-md border-b-4 border-sky-600"><div class="flex items-center gap-2 w-full md:w-auto justify-between md:justify-start"><div class="flex items-center gap-2"><div class="bg-sky-600 p-1.5 md:p-2 rounded-lg shadow-inner"><i class="fas fa-headset text-lg md:text-xl text-white"></i></div><h1 class="text-base md:text-xl font-extrabold tracking-wide">متابعة عملاء راية</h1></div><span id="cloudStatus" class="bg-emerald-500 text-white text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse"><i class="fas fa-cloud text-white"></i> متصل</span></div><div class="flex flex-wrap items-center justify-between w-full md:w-auto gap-1.5 bg-slate-800 p-1 md:p-1.5 rounded-xl border border-slate-700"><span class="text-[10px] md:text-xs font-bold text-slate-300 ml-1">فرع:</span><select id="headerBranchSelect" onchange="changeBranchHeader()" class="bg-slate-900 text-sky-400 font-bold border border-slate-600 p-1 rounded-lg outline-none text-[10px] md:text-xs cursor-pointer"><option value="mega_helwan">Mega Helwan</option><option value="samsung_mokattam">Samsung Mokattam</option><option value="samsung_zahraa_elmaadi">Samsung Zahraa Elmaadi</option><option value="samsung_maadi_helwan">Samsung Maadi Helwan</option><option value="jehan_elsadat">Jehan Elsadat</option><option value="obour">Obour</option><option value="mega_sayeda_zeinab">Mega Sayeda Zeinab</option><option value="gazayer">Gazayer</option><option value="city_center">City Center</option></select><button onclick="hardResetCloud()" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-lg font-bold text-[9px] md:text-[10px] shadow-md transition" title="مسح جميع بيانات الفرع"><i class="fas fa-radiation-alt"></i> ⚠ فورمات</button></div></div><div id="notificationBanner" class="hidden bg-rose-50 border-r-4 border-rose-600 p-2 md:p-3 mx-2 md:mx-4 mt-2 md:mt-4 rounded-lg shadow-sm flex-col sm:flex-row justify-between items-center pulse-alert"><div class="flex items-center gap-2 mb-2 sm:mb-0"><div class="bg-rose-600 p-1.5 md:p-2 rounded-full"><i class="fas fa-bell text-white text-xs md:text-sm animate-bounce"></i></div><div><h3 class="font-black text-rose-800 text-xs md:text-sm">تنبيه متابعة هام!</h3><p class="text-[10px] md:text-xs text-rose-600 font-bold">لديك (<span id="notificationCount" class="text-sm md:text-base font-black text-rose-900"></span>) عملاء بموعد <span class="bg-rose-200 px-1 rounded">اليوم</span>.</p></div></div><button onclick="filterByToday()" class="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white font-bold py-1.5 px-4 rounded-lg shadow-sm text-[10px] md:text-xs transition"><i class="fas fa-eye"></i> عرضهم الآن</button></div><div class="p-2 md:p-4 grid grid-cols-1 xl:grid-cols-12 gap-3 relative"><div class="xl:col-span-3 space-y-2 md:space-y-3 bg-slate-50 p-2 md:p-3 rounded-xl border border-slate-200 shadow-inner h-fit"><div class="bg-amber-50 p-3 md:p-4 rounded-lg border-2 border-amber-400 shadow-md"><h2 class="font-bold text-amber-800 text-sm md:text-base mb-2 md:mb-3 flex items-center gap-1.5 border-b-2 border-amber-300 pb-1.5"><i class="fas fa-bullhorn text-amber-600 text-base md:text-lg"></i> عروض راية الحالية</h2><textarea id="offersText" rows="5" onchange="saveSettingsToFirebase()" class="w-full p-2.5 bg-amber-100/60 border border-amber-300 rounded-lg focus:border-amber-500 outline-none transition resize-none text-xs md:text-base font-black text-amber-900 leading-relaxed shadow-inner" placeholder="اكتب العروض هنا..."></textarea></div><div class="bg-white p-2 md:p-3 rounded-lg shadow-sm border border-slate-100"><label class="block font-bold text-slate-700 text-[10px] md:text-xs mb-1"><i class="fas fa-file-excel text-sky-600"></i> رفع شيت عملاء:</label><input type="file" id="excelFile" accept=".xlsx, .xls, .csv" onchange="processExcel()" class="w-full border border-slate-300 p-1 rounded bg-slate-50 text-[10px] cursor-pointer file:mr-1 file:py-0.5 file:px-2 file:rounded file:border-0 file:font-bold file:bg-sky-50 file:text-sky-700 transition"></div><div class="bg-white p-2 md:p-3 rounded-lg shadow-sm border border-slate-100"><label class="block font-bold text-slate-700 text-[10px] md:text-xs mb-1"><i class="fas fa-comment-dots text-sky-600"></i> رسالة الواتساب الثابتة:</label><textarea id="messageText" rows="2" onchange="saveSettingsToFirebase()" class="w-full p-1.5 border border-slate-300 rounded focus:border-sky-500 outline-none transition resize-none text-[10px] md:text-[11px] leading-relaxed" placeholder="نص الرسالة..."></textarea></div></div><div class="xl:col-span-9 flex flex-col h-full hidden" id="actionPanel"><div class="sticky-panel rounded-t-xl px-1"><div class="bg-white p-1.5 md:p-2.5 rounded-xl border border-slate-300 shadow-sm mb-1.5"><div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1.5 items-end"><div class="relative col-span-2 md:col-span-1 lg:col-span-1"><label class="block text-[9px] md:text-[10px] font-bold text-slate-500 mb-0.5"><i class="fas fa-search"></i> بحث عام:</label><input type="text" id="searchInput" oninput="applyFilters()" class="bg-slate-50 border border-slate-300 text-slate-900 text-[10px] md:text-[11px] rounded focus:border-sky-500 block w-full p-1.5 shadow-sm" placeholder="ابحث..."></div><div class="w-full"><label class="block text-[9px] md:text-[10px] font-bold text-slate-500 mb-0.5"><i class="fas fa-calendar-alt"></i> تاريخ:</label><input type="date" id="datePicker" class="w-full border border-slate-300 p-1.5 rounded font-bold text-slate-700 outline-none text-[9px] md:text-[10px] shadow-sm"></div><div class="w-full"><label class="block text-[9px] md:text-[10px] font-bold text-slate-500 mb-0.5"><i class="fas fa-id-badge"></i> ID الموظف:</label><input type="text" id="empIdInput" class="w-full border border-slate-300 p-1.5 rounded font-bold text-slate-700 outline-none focus:ring-1 focus:ring-sky-300 text-[9px] md:text-[10px] text-center shadow-sm" placeholder="رقمك"></div><div class="w-full"><label class="block text-[9px] md:text-[10px] font-bold text-slate-500 mb-0.5"><i class="fas fa-filter"></i> قرار:</label><select id="followUpFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1.5 rounded font-bold text-slate-700 outline-none text-[9px] md:text-[10px] shadow-sm"><option value="all">الكل</option><option value="interested">⭐ مهتم</option><option value="not_interested">🚫 غير مهتم</option><option value="done">✅ تم</option><option value="has_comment">💬 كومنت</option></select></div><div class="w-full"><label class="block text-[9px] md:text-[10px] font-bold text-slate-500 mb-0.5"><i class="fas fa-box"></i> منتج:</label><select id="productFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1.5 rounded font-bold text-slate-700 outline-none text-[9px] md:text-[10px] shadow-sm bg-sky-50"><option value="all">الكل</option><option value="Handset">Handset</option><option value="TV">TV</option><option value="AC">AC</option><option value="SDA">SDA</option><option value="HA">HA</option><option value="Acc">Acc</option><option value="أخرى">أخرى</option></select></div><div class="w-full"><label class="block text-[9px] md:text-[10px] font-bold text-slate-500 mb-0.5"><i class="fas fa-users"></i> الموظفين:</label><select id="empDropdownFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1.5 rounded font-bold text-slate-700 outline-none text-[9px] md:text-[10px] shadow-sm"><option value="">الكل</option></select></div><div class="relative col-span-2 md:col-span-1"><label class="block text-[9px] md:text-[10px] font-bold text-slate-500 mb-0.5 flex items-center justify-between"><span><i class="fas fa-clock"></i> بموعد:</span><span id="miniTodayCountBadge" class="hidden bg-rose-100 text-rose-700 px-1 py-0.5 rounded text-[8px] font-black"><span id="miniTodayCount">0</span> اليوم</span></label><div class="flex"><input type="date" id="followUpDateFilter" onchange="applyFilters()" class="bg-slate-50 border border-slate-300 text-slate-900 text-[10px] rounded-r focus:border-sky-500 block w-full p-1.5 shadow-sm outline-none font-bold"><button onclick="clearDateFilter()" class="bg-slate-200 hover:bg-slate-300 border border-r-0 border-slate-300 px-2 rounded-l text-slate-600 transition" title="إلغاء التاريخ"><i class="fas fa-times text-[9px]"></i></button></div></div><div class="flex flex-col justify-center items-center bg-sky-50 rounded border border-sky-200 h-[30px] md:h-[34px] mt-auto shadow-sm col-span-2 md:col-span-1"><div class="text-[7px] md:text-[8px] font-bold text-sky-600 leading-none mb-0.5">بالفلتر</div><div id="clientCount" class="text-sky-700 font-black text-xs md:text-sm leading-none">0</div></div></div><button onclick="toggleAdvancedFilters()" class="w-full mt-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1.5 px-2 rounded-lg text-[10px] md:text-[11px] border border-slate-300 flex justify-between items-center transition shadow-sm"><span><i class="fas fa-sliders-h mr-1 text-sky-600"></i> فلاتر النظام والشركات</span><i class="fas fa-chevron-down text-slate-400" id="advFilterIcon"></i></button><div id="originalFiltersSection" class="mt-1.5 pt-1.5 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-2 hidden"><div id="statusFilterContainer" class="hidden bg-slate-50 p-1.5 rounded border border-slate-200"><span class="block text-[9px] font-bold text-slate-500 mb-0.5"><i class="fas fa-tags text-sky-500"></i> تصفية بحالة النظام:</span><div id="statusCheckboxes" class="flex flex-wrap gap-1"></div></div><div id="companyFilterContainer" class="hidden bg-slate-50 p-1.5 rounded border border-slate-200"><span class="block text-[9px] font-bold text-slate-500 mb-0.5"><i class="fas fa-building text-sky-500"></i> تصفية بالشركة:</span><div id="companyCheckboxes" class="flex flex-wrap gap-1"></div></div></div></div></div><div class="overflow-x-auto bg-white flex-grow pt-0.5 rounded-b-xl border border-t-0 border-slate-200"><div id="loadingIndicator" class="text-center py-5 hidden"><i class="fas fa-spinner fa-spin text-2xl text-sky-500 mb-1"></i><p class="font-bold text-slate-500 text-[10px]">مزامنة السحابة...</p></div><table class="w-full text-center border-collapse min-w-[700px] md:min-w-[1000px]" id="dataTable"><thead class="bg-slate-200 border-b border-slate-300"><tr id="tableHeader"><th class="p-1 md:p-1.5 font-bold text-slate-700 text-[10px] md:text-[11px] w-32 md:w-48">العميل والموبايل</th><th class="p-1 md:p-1.5 font-bold text-slate-700 text-[10px] md:text-[11px] w-16 md:w-24">النظام والشركة</th><th class="p-1 md:p-1.5 font-bold text-slate-700 text-[10px] md:text-[11px] min-w-[220px] md:min-w-[300px]">السجل والتعليقات</th><th class="p-1 md:p-1.5 font-bold text-slate-700 text-[10px] md:text-[11px] w-20 md:w-32">القرار</th><th class="p-1 md:p-1.5 font-bold text-slate-700 text-[10px] md:text-[11px] w-16 md:w-20">الواتساب</th></tr></thead><tbody id="tableBody" class="divide-y divide-slate-100 bg-slate-50"></tbody></table></div></div></div><a id="magic-wa-link" target="Raya_Unified_WhatsApp" style="display:none;"></a><script>const firebaseConfig={apiKey:"AIzaSyAkSD8k1Q4_gSwar3mwfDPVpUPWzHJevNk",authDomain:"geox-platform.firebaseapp.com",databaseURL:"https://geox-platform-default-rtdb.firebaseio.com",projectId:"geox-platform",storageBucket:"geox-platform.firebasestorage.app",messagingSenderId:"691272759644",appId:"1:691272759644:web:4f693b005708f94def6999",measurementId:"G-LYKE4FPZVS"};if(!firebase.apps.length){firebase.initializeApp(firebaseConfig);}const database=firebase.database();let globalData=[];let activeColumns={name:false,nid:false,phone:false,status:false,company:false};let currentBranch='';let currentDate=new Date().toISOString().split('T')[0];document.getElementById('datePicker').value=currentDate;let branchClientsRef=null;let branchSettingsRef=null;window.onload=function(){const savedBranch=localStorage.getItem('raya_activeBranch');if(savedBranch){currentBranch=savedBranch;document.getElementById('headerBranchSelect').value=currentBranch;document.getElementById('branchModal').classList.add('hidden');document.getElementById('mainAppContainer').classList.remove('hidden');loadCloudData();}else{document.getElementById('branchModal').classList.remove('hidden');}};function confirmBranchSelection(){const select=document.getElementById('branchSelectModal');if(!select.value){alert("يجب اختيار الفرع أولاً!");return;}currentBranch=select.value;localStorage.setItem('raya_activeBranch',currentBranch);document.getElementById('headerBranchSelect').value=currentBranch;document.getElementById('branchModal').classList.add('hidden');document.getElementById('mainAppContainer').classList.remove('hidden');loadCloudData();}function changeBranchHeader(){currentBranch=document.getElementById('headerBranchSelect').value;localStorage.setItem('raya_activeBranch',currentBranch);loadCloudData();}function loadCloudData(){document.getElementById('dataTable').classList.add('hidden');document.getElementById('loadingIndicator').classList.remove('hidden');document.getElementById('excelFile').value='';if(branchClientsRef)branchClientsRef.off();if(branchSettingsRef)branchSettingsRef.off();branchClientsRef=database.ref(`rayaCRM/branches/${currentBranch}/clients`);branchSettingsRef=database.ref(`rayaCRM/branches/${currentBranch}/settings`);branchSettingsRef.on('value',(snapshot)=>{const settings=snapshot.val();if(settings){if(settings.messageText!==undefined)document.getElementById('messageText').value=settings.messageText;if(settings.offersText!==undefined)document.getElementById('offersText').value=settings.offersText;if(settings.activeColumns!==undefined)activeColumns=settings.activeColumns;}});branchClientsRef.once('value',(snapshot)=>{updateDataFromSnapshot(snapshot);document.getElementById('loadingIndicator').classList.add('hidden');document.getElementById('dataTable').classList.remove('hidden');if(globalData.length>0){updateEmpDropdown();checkTodayFollowUps();restoreUI();}else{document.getElementById('actionPanel').classList.add('hidden');document.getElementById('notificationBanner').classList.add('hidden');}branchClientsRef.on('child_changed',(childSnapshot)=>{const updatedClient=childSnapshot.val();const index=globalData.findIndex(c=>c.phone===updatedClient.phone);if(index!==-1){globalData[index]=updatedClient;updateSingleRowDOM(index);}});branchClientsRef.on('child_added',(childSnapshot)=>{const newClient=childSnapshot.val();if(!globalData.some(c=>c.phone===newClient.phone)){globalData.push(newClient);sortGlobalData();applyFilters();}});});}function updateDataFromSnapshot(snapshot){const data=snapshot.val();globalData=[];if(data){for(let phone in data){globalData.push(data[phone]);}sortGlobalData();}}function sortGlobalData(){globalData.sort((a,b)=>{const getPriority=(client)=>{if(client.followUpStatus==='interested')return 1;let hasComment=client.history&&client.history.some(h=>h&&h.type==='comment');if(hasComment&&!client.followUpStatus)return 2;if(!client.followUpStatus)return 3;if(client.followUpStatus==='not_interested'||client.followUpStatus==='done')return 4;return 3;};return getPriority(a)-getPriority(b)||(a.orderId||0)-(b.orderId||0);});}function saveSettingsToFirebase(){if(!branchSettingsRef)return;branchSettingsRef.update({messageText:document.getElementById('messageText').value,offersText:document.getElementById('offersText').value,activeColumns:activeColumns});}function updateClientInCloud(clientObj){if(!branchClientsRef)return;branchClientsRef.child(clientObj.phone).set(clientObj);}function hardResetCloud(){if(!currentBranch)return;let p=prompt("تحذير! سيمسح جميع البيانات. للفرمتة اكتب 'نعم':");if(p==='نعم'){document.getElementById('loadingIndicator').classList.remove('hidden');document.getElementById('dataTable').classList.add('hidden');branchClientsRef.remove().then(()=>{branchSettingsRef.remove();alert("تم الفرمتة!");location.reload();}).catch(err=>{alert("خطأ: "+err);document.getElementById('loadingIndicator').classList.add('hidden');});}}function processExcel(){const fileInput=document.getElementById('excelFile');if(!fileInput.files.length)return;if(!currentBranch)return alert("حدد الفرع");document.getElementById('loadingIndicator').classList.remove('hidden');document.getElementById('dataTable').classList.add('hidden');setTimeout(()=>{try{const reader=new FileReader();reader.onload=function(e){const data=new Uint8Array(e.target.result);const workbook=XLSX.read(data,{type:'array'});const worksheet=workbook.Sheets[workbook.SheetNames[0]];const jsonArray=XLSX.utils.sheet_to_json(worksheet,{header:1,defval:""});if(jsonArray.length<2){document.getElementById('loadingIndicator').classList.add('hidden');return alert("الملف فارغ!");}let headerRowIndex=-1;let cols={name:-1,nid:-1,phone:-1,status:-1,company:-1};for(let r=0;r<Math.min(jsonArray.length,15);r++){const rowValues=jsonArray[r];if(!rowValues||rowValues.length===0)continue;const headers=rowValues.map(h=>String(h).trim().toLowerCase());let foundPhone=false;for(let i=0;i<headers.length;i++){if(headers[i].includes("موبايل")||headers[i].includes("تليفون")||headers[i].includes("هاتف")||headers[i].includes("phone")){foundPhone=true;break;}}if(foundPhone){headerRowIndex=r;for(let i=0;i<headers.length;i++){let h=headers[i];if(h.includes("قومي")||h.includes("بطاقة")||h.includes("national"))cols.nid=i;else if(h.includes("اسم")||h.includes("إسم")||h.includes("عميل")||h.includes("name"))cols.name=i;else if(h.includes("موبايل")||h.includes("تليفون")||h.includes("هاتف")||h.includes("phone"))cols.phone=i;else if(h.includes("حالة")||h.includes("حاله")||h.includes("status"))cols.status=i;else if(h.includes("شركة")||h.includes("شركه")||h.includes("company"))cols.company=i;}break;}}if(headerRowIndex===-1){document.getElementById('loadingIndicator').classList.add('hidden');return alert("مشكلة في الشيت");}activeColumns={name:cols.name!==-1,nid:cols.nid!==-1,phone:cols.phone!==-1,status:cols.status!==-1,company:cols.company!==-1};saveSettingsToFirebase();let cloudClientsMap={};globalData.forEach(c=>{if(c.phone){c.name=c.name||"-";c.status=c.status||"بدون حالة";c.company=c.company||"بدون شركة";c.nid=c.nid||"-";c.history=Array.isArray(c.history)?c.history:[];cloudClientsMap[c.phone]=c;}});let orderCounter=Object.keys(cloudClientsMap).length;for(let i=headerRowIndex+1;i<jsonArray.length;i++){const row=jsonArray[i];if(!row||row.length===0)continue;const phoneRaw=row[cols.phone];if(!phoneRaw)continue;const phoneStr=cleanPhoneNumber(phoneRaw);if(phoneStr&&phoneStr.length>5){let st=activeColumns.status&&row[cols.status]?String(row[cols.status]).trim():"بدون حالة";if(st===""||st==="undefined")st="بدون حالة";let comp=activeColumns.company&&row[cols.company]?String(row[cols.company]).trim():"بدون شركة";if(comp===""||comp==="undefined")comp="بدون شركة";let rawNid=activeColumns.nid&&row[cols.nid]?String(row[cols.nid]).trim():"-";if(rawNid.toUpperCase().includes('E')){rawNid=Number(row[cols.nid]).toLocaleString('fullwide',{useGrouping:false});}else{rawNid=rawNid.replace(/[^0-9]/g,'')||"-";}let cName=activeColumns.name&&row[cols.name]?String(row[cols.name]).trim():"-";if(cloudClientsMap[phoneStr]){cloudClientsMap[phoneStr].name=cName;cloudClientsMap[phoneStr].nid=rawNid;cloudClientsMap[phoneStr].status=st;cloudClientsMap[phoneStr].company=comp;}else{cloudClientsMap[phoneStr]={orderId:orderCounter++,name:cName,nid:rawNid,phone:phoneStr,status:st,company:comp,sent:false,history:[],followUpStatus:'',statusDate:''};}}}branchClientsRef.set(cloudClientsMap).then(()=>{document.getElementById('loadingIndicator').classList.add('hidden');document.getElementById('excelFile').value='';alert("تم الرفع بنجاح!");branchClientsRef.once('value',(snap)=>{updateDataFromSnapshot(snap);applyFilters();document.getElementById('dataTable').classList.remove('hidden');});}).catch(err=>{document.getElementById('loadingIndicator').classList.add('hidden');alert("خطأ: "+err);});};reader.readAsArrayBuffer(fileInput.files[0]);}catch(error){document.getElementById('loadingIndicator').classList.add('hidden');alert("خطأ: "+error.message);}},150);}function cleanPhoneNumber(phone){if(!phone||String(phone).trim()===""||phone==="undefined")return"";let p=String(phone).replace(/[^0-9]/g,'');if(p.startsWith('1')&&p.length===10)return'20'+p;if(p.startsWith('01')&&p.length===11)return'2'+p;if(!p.startsWith('20')&&p.length>0)return'20'+p;return p;}window.copyAndOpenRaya=function(nid,btn){if(nid&&String(nid).trim()!=="-"&&String(nid).trim()!==""){const tempInput=document.createElement("input");tempInput.value=nid;document.body.appendChild(tempInput);tempInput.select();try{document.execCommand("copy");let originalText=btn.innerHTML;btn.innerHTML=`<i class="fas fa-check text-emerald-400"></i> تم النسخ ✔️`;setTimeout(()=>{btn.innerHTML=originalText;},1500);}catch(err){console.error("Copy failed",err);}document.body.removeChild(tempInput);}else{alert("لا يوجد رقم قومي لنسخه!");}window.open("https://rayainstallment.com/Stores","RayaLimitTab");};function checkTodayFollowUps(){let today=new Date().toISOString().split('T')[0];let count=0;globalData.forEach(client=>{let clientHistory=Array.isArray(client.history)?client.history:[];if(clientHistory.some(h=>h&&h.type==='comment'&&h.followUpDate===today)){count++;}});const banner=document.getElementById('notificationBanner');const badge=document.getElementById('miniTodayCountBadge');if(count>0){document.getElementById('notificationCount').innerText=count;document.getElementById('miniTodayCount').innerText=count;banner.classList.remove('hidden');banner.classList.add('flex');badge.classList.remove('hidden');}else{banner.classList.add('hidden');banner.classList.remove('flex');badge.classList.add('hidden');}}function filterByToday(){let today=new Date().toISOString().split('T')[0];document.getElementById('followUpDateFilter').value=today;applyFilters();}function clearDateFilter(){document.getElementById('followUpDateFilter').value='';applyFilters();}function toggleAdvancedFilters(){const sec=document.getElementById('originalFiltersSection');const icon=document.getElementById('advFilterIcon');if(sec.classList.contains('hidden')){sec.classList.remove('hidden');icon.classList.remove('fa-chevron-down');icon.classList.add('fa-chevron-up');}else{sec.classList.add('hidden');icon.classList.remove('fa-chevron-up');icon.classList.add('fa-chevron-down');}}function restoreUI(){try{let uniqueStatuses=new Set();let uniqueCompanies=new Set();globalData.forEach(client=>{let cStatus=client.status?String(client.status):"بدون حالة";let cCompany=client.company?String(client.company):"بدون شركة";if(activeColumns.status)uniqueStatuses.add(cStatus);if(activeColumns.company&&cCompany!=='بدون شركة')uniqueCompanies.add(cCompany);});if(activeColumns.status&&uniqueStatuses.size>0)buildCheckboxes('statusCheckboxes',uniqueStatuses,'status',true);if(activeColumns.company)buildCheckboxes('companyCheckboxes',uniqueCompanies,'company',true);document.getElementById('actionPanel').classList.remove('hidden');applyFilters();}catch(e){console.error("Error UI",e);}}function buildCheckboxes(containerId,itemsSet,typeClass,addEmptyOption=false){const container=document.getElementById(containerId);container.innerHTML='';document.getElementById(containerId.replace('Checkboxes','FilterContainer')).classList.remove('hidden');const allDiv=document.createElement('label');allDiv.className='checkbox-label bg-white text-slate-700 px-1 py-0.5 rounded border border-slate-300 flex items-center gap-0.5 font-bold text-[8px] md:text-[9px] shadow-sm cursor-pointer';allDiv.innerHTML=`<input type="checkbox" onchange="toggleFilterAll(this, '${typeClass}')" checked class="w-2.5 h-2.5 text-sky-600 rounded"> <span>الكل</span>`;container.appendChild(allDiv);if(addEmptyOption&&typeClass==='company')itemsSet.add("بدون شركة");itemsSet.forEach(item=>{if(item){let safeItem=String(item);let bgColor=safeItem.includes("بدون")?"bg-rose-50 text-rose-800 border-rose-200":"bg-slate-50 text-slate-800 border-slate-200";const lbl=document.createElement('label');lbl.className=`checkbox-label ${bgColor} px-1 py-0.5 rounded text-[8px] md:text-[9px] border flex items-center gap-0.5 font-bold shadow-sm cursor-pointer`;lbl.innerHTML=`<input type="checkbox" class="${typeClass}-cb w-2.5 h-2.5 rounded" value="${safeItem}" checked onchange="applyFilters()"> <span>${safeItem}</span>`;container.appendChild(lbl);}});}function toggleFilterAll(masterCheckbox,typeClass){document.querySelectorAll(`.${typeClass}-cb`).forEach(cb=>cb.checked=masterCheckbox.checked);applyFilters();}function getCheckedValues(typeClass){return Array.from(document.querySelectorAll(`.${typeClass}-cb:checked`)).map(cb=>cb.value);}function updateEmpDropdown(){const empSet=new Set();globalData.forEach(client=>{let clientHistory=Array.isArray(client.history)?client.history:[];clientHistory.forEach(h=>{if(h&&h.empId)empSet.add(h.empId);});});const select=document.getElementById('empDropdownFilter');const currentVal=select.value;select.innerHTML='<option value="">الكل</option>';empSet.forEach(emp=>{if(emp&&String(emp).trim()!==''){const opt=document.createElement('option');opt.value=emp;opt.textContent=emp;select.appendChild(opt);}});if(empSet.has(currentVal))select.value=currentVal;}function renderHistory(historyArray){if(!historyArray||!Array.isArray(historyArray))return'<div class="text-slate-400 text-center py-1 text-[9px] font-bold">لا توجد تعليقات</div>';const commentsOnly=historyArray.filter(item=>item&&item.type==='comment');if(commentsOnly.length===0)return'<div class="text-slate-400 text-center py-1 text-[9px] font-bold">لا توجد تعليقات</div>';return commentsOnly.map(item=>{let followUpBadge=item.followUpDate?`<div class="text-[8px] font-bold text-rose-700 mt-0.5 bg-rose-50 inline-block px-1 py-0.5 rounded border border-rose-200 shadow-sm"><i class="fas fa-clock"></i> متابعة: ${item.followUpDate}</div>`:'';let productBadge=item.product&&item.product!=='all'?`<span class="text-[8px] font-bold text-sky-700 bg-sky-100 px-1 rounded ml-1 border border-sky-200">${item.product}</span>`:'';return`<div class="bg-white border border-slate-200 p-1 md:p-1.5 rounded mb-1 shadow-sm text-right"><div class="flex justify-between items-center mb-0.5"><span class="font-bold text-[7px] md:text-[8px] text-slate-500 bg-slate-100 px-1 rounded">${item.date||"-"}</span><span class="text-[7px] md:text-[8px] font-bold text-slate-700">M: ${item.empId||"-"}${productBadge}</span></div><div class="font-semibold text-slate-800 text-[9px] md:text-[11px] leading-tight break-words">${item.text||"-"}</div>${followUpBadge}</div>`;}).join('');}function generateRowHTML(client,index){let cName=client.name?String(client.name):"-";let cPhone=client.phone?String(client.phone):"-";let cNid=client.nid?String(client.nid):"-";let cStatus=client.status?String(client.status):"بدون حالة";let cCompany=client.company?String(client.company):"بدون شركة";let clientHistory=Array.isArray(client.history)?client.history:[];let hasComment=clientHistory.some(h=>h&&h.type==='comment');let rowClass=`client-row transition-colors text-sm `;if(client.followUpStatus==='done')rowClass+=`row-done`;else if(client.followUpStatus==='interested')rowClass+=`row-interested`;else if(client.followUpStatus==='not_interested')rowClass+=`row-not-interested`;else if(hasComment)rowClass+=`row-has-comment`;else if(client.sent)rowClass+=`row-sent`;else rowClass+=`row-default hover:bg-slate-50`;let html='';let displayName=cName;if(client.sent)displayName+=' <i class="fas fa-check-circle text-emerald-500 text-[8px]" title="تم الإرسال"></i>';let limitBtn=`<button onclick="copyAndOpenRaya('${cNid}', this)" class="mt-0.5 inline-block bg-slate-800 hover:bg-slate-700 text-white text-[8px] md:text-[9px] font-bold px-1.5 py-1 rounded shadow-sm transition cursor-pointer w-full text-center"><i class="fas fa-credit-card text-sky-400 mr-0.5"></i> الليمت</button>`;html+=`<td class="p-1 md:p-1.5 align-top pt-1.5"><div class="font-bold text-slate-800 text-[10px] md:text-xs truncate max-w-[140px]" title="${displayName}">${displayName}</div><div class="text-slate-800 font-black text-[10px] md:text-xs mt-0.5" dir="ltr">+${cPhone}</div><div class="text-sky-900 font-black text-[11px] md:text-sm mt-0.5 mb-0.5">${cNid}</div>${limitBtn}</td>`;let displayStatus=cStatus.includes("بدون")?'-':cStatus;let badgeStatus=cStatus.includes("بدون")?'text-slate-400 font-bold':'bg-slate-100 text-slate-700 border border-slate-300 px-1 py-0.5 rounded text-[8px] md:text-[9px] font-semibold block mb-1';let displayCompany=cCompany==='بدون شركة'?'-':cCompany;let badgeCompany=cCompany==='بدون شركة'?'text-slate-400 font-bold':'bg-slate-100 text-slate-700 border border-slate-300 px-1 py-0.5 rounded text-[8px] md:text-[9px] font-semibold block';html+=`<td class="p-1 md:p-1.5 align-top pt-2"><span class="${badgeStatus}">${displayStatus}</span><span class="${badgeCompany}">${displayCompany}</span></td>`;html+=`<td class="p-1 md:p-1.5 border-r border-l border-slate-100 align-top"><div class="h-16 md:h-20 overflow-y-auto mb-1 custom-scrollbar bg-slate-50/50 p-1 rounded border border-slate-200 shadow-inner" id="history-${index}">${renderHistory(clientHistory)}</div><div class="flex gap-0.5 md:gap-1 items-stretch flex-wrap sm:flex-nowrap"><select id="comment-product-${index}" class="w-16 md:w-20 border border-slate-300 p-0.5 rounded outline-none text-[8px] md:text-[9px] font-bold text-sky-700 bg-sky-50 flex-shrink-0 cursor-pointer"><option value="all">منتج</option><option value="Handset">Handset</option><option value="TV">TV</option><option value="AC">AC</option><option value="SDA">SDA</option><option value="HA">HA</option><option value="Acc">Acc</option><option value="أخرى">أخرى</option></select><input type="text" id="comment-input-${index}" class="w-full sm:flex-grow border border-slate-300 p-0.5 rounded focus:border-sky-500 outline-none text-[9px] md:text-[10px]" placeholder="كومنت..."><input type="date" id="comment-date-${index}" class="w-16 md:w-20 border border-slate-300 p-0.5 rounded outline-none text-[8px] md:text-[9px] font-bold text-slate-600 flex-shrink-0 cursor-pointer"><button onclick="addComment(${index})" class="bg-sky-600 hover:bg-sky-700 text-white px-1.5 py-0.5 rounded text-[9px] md:text-[10px] font-bold shadow flex-shrink-0"><i class="fas fa-save"></i></button></div></td>`;let dateBadge='';if(client.statusDate&&client.followUpStatus){let colorClass=client.followUpStatus==='done'?'text-emerald-700':(client.followUpStatus==='interested'?'text-amber-700':'text-rose-700');dateBadge=`<div class="text-[7px] md:text-[8px] font-bold ${colorClass} mt-0.5 text-center"><i class="fas fa-history"></i> ${client.statusDate}</div>`;}html+=`<td class="p-1 md:p-1.5 align-top border-l border-slate-100"><div class="flex flex-col gap-0.5 md:gap-1 justify-center"><button onclick="setFollowUpStatus(${index}, 'interested')" class="${client.followUpStatus==='interested'?'bg-amber-500 text-white shadow':'bg-white text-slate-600 hover:bg-amber-50'} px-1 py-1 rounded text-[9px] md:text-[10px] font-bold border border-amber-300 w-full transition">⭐ مهتم</button><button onclick="setFollowUpStatus(${index}, 'done')" class="${client.followUpStatus==='done'?'bg-emerald-500 text-white shadow':'bg-white text-slate-600 hover:bg-emerald-50'} px-1 py-1 rounded text-[9px] md:text-[10px] font-bold border border-emerald-300 w-full transition">✅ تم</button><button onclick="setFollowUpStatus(${index}, 'not_interested')" class="${client.followUpStatus==='not_interested'?'bg-rose-500 text-white shadow':'bg-white text-slate-600 hover:bg-rose-50'} px-1 py-1 rounded text-[9px] md:text-[10px] font-bold border border-rose-300 w-full transition">🚫 غير مهتم</button>${dateBadge}</div></td>`;let btnColor=client.sent?'bg-emerald-600 hover:bg-emerald-700':'bg-sky-600 hover:bg-sky-700';let btnText=client.sent?'<i class="fab fa-whatsapp"></i>':'<i class="fab fa-whatsapp"></i> إرسال';html+=`<td class="p-1 md:p-1.5 align-middle"><button onclick="sendManual(${index})" class="${btnColor} text-white px-1 py-1.5 md:py-2 rounded text-[10px] md:text-[11px] font-bold shadow-md transition w-full flex items-center justify-center gap-1">${btnText}</button></td>`;return{html,rowClass};}function updateSingleRowDOM(index){const tr=document.getElementById(`row-${index}`);if(tr){const rowData=generateRowHTML(globalData[index],index);tr.className=rowData.rowClass;tr.innerHTML=rowData.html;const hDiv=document.getElementById(`history-${index}`);if(hDiv)hDiv.scrollTop=hDiv.scrollHeight;}}function applyFilters(){try{const selectedStatuses=activeColumns.status?getCheckedValues('status'):[];const selectedCompanies=activeColumns.company?getCheckedValues('company'):[];const searchTerm=document.getElementById('searchInput').value.toLowerCase().trim();const followUpFilter=document.getElementById('followUpFilter').value;const productFilter=document.getElementById('productFilter').value;const empDropdownFilter=document.getElementById('empDropdownFilter').value;const targetDateFilter=document.getElementById('followUpDateFilter').value;const tbody=document.getElementById('tableBody');tbody.innerHTML='';let count=0;globalData.forEach((client,index)=>{let cName=client.name?String(client.name):"-";let cPhone=client.phone?String(client.phone):"-";let cNid=client.nid?String(client.nid):"-";let cStatus=client.status?String(client.status):"بدون حالة";let cCompany=client.company?String(client.company):"بدون شركة";let clientHistory=Array.isArray(client.history)?client.history:[];let statusMatch=!activeColumns.status||selectedStatuses.includes(cStatus);let companyMatch=!activeColumns.company||selectedCompanies.includes(cCompany);let searchMatch=true;if(searchTerm){let inComments=clientHistory.some(h=>h&&h.type==='comment'&&h.text&&String(h.text).toLowerCase().includes(searchTerm));searchMatch=cName.toLowerCase().includes(searchTerm)||cPhone.includes(searchTerm)||cNid.includes(searchTerm)||inComments;}let hasComment=clientHistory.some(h=>h&&h.type==='comment');let fuMatch=true;if(followUpFilter==='interested')fuMatch=client.followUpStatus==='interested';if(followUpFilter==='not_interested')fuMatch=client.followUpStatus==='not_interested';if(followUpFilter==='done')fuMatch=client.followUpStatus==='done';if(followUpFilter==='has_comment')fuMatch=hasComment;let empMatch=true;if(empDropdownFilter){empMatch=clientHistory.some(h=>h&&h.empId===empDropdownFilter);}let dateMatch=true;if(targetDateFilter){dateMatch=clientHistory.some(h=>h&&h.type==='comment'&&h.followUpDate===targetDateFilter);}let productMatch=true;if(productFilter!=='all'){productMatch=clientHistory.some(h=>h&&h.type==='comment'&&h.product===productFilter);}if(statusMatch&&companyMatch&&searchMatch&&fuMatch&&empMatch&&dateMatch&&productMatch){count++;const tr=document.createElement('tr');tr.id=`row-${index}`;const rowData=generateRowHTML(client,index);tr.className=rowData.rowClass;tr.innerHTML=rowData.html;tbody.appendChild(tr);const hDiv=document.getElementById(`history-${index}`);if(hDiv)hDiv.scrollTop=hDiv.scrollHeight;}});document.getElementById('clientCount').innerText=count;}catch(error){console.error("Error",error);}}function addComment(index){const empId=document.getElementById('empIdInput').value.trim();if(!empId){alert("أدخل (ID الموظف) أعلى الشاشة!");document.getElementById('empIdInput').focus();return;}const input=document.getElementById(`comment-input-${index}`);const text=input.value.trim();const productSelect=document.getElementById(`comment-product-${index}`);const product=productSelect?productSelect.value:'all';if(!text&&product==='all')return;const dateInput=document.getElementById(`comment-date-${index}`);const followUpDate=dateInput?dateInput.value:'';const actionDate=document.getElementById('datePicker').value;if(!globalData[index].history)globalData[index].history=[];globalData[index].history.push({date:actionDate,empId:empId,type:'comment',text:text||"تحديد منتج",product:product,followUpDate:followUpDate});updateClientInCloud(globalData[index]);updateSingleRowDOM(index);}function setFollowUpStatus(index,status){const empId=document.getElementById('empIdInput').value.trim();if(!empId){alert("أدخل (ID الموظف) أولاً!");document.getElementById('empIdInput').focus();return;}const actionDate=document.getElementById('datePicker').value;if(globalData[index].followUpStatus===status){globalData[index].followUpStatus='';globalData[index].statusDate='';}else{globalData[index].followUpStatus=status;globalData[index].statusDate=actionDate;}let currentScroll=window.scrollY;updateClientInCloud(globalData[index]);sortGlobalData();applyFilters();window.scrollTo(0,currentScroll);}function generateWaLink(client){let msg=document.getElementById('messageText').value;const isMobile=/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);if(isMobile){return`whatsapp://send?phone=${client.phone}&text=${encodeURIComponent(msg)}`;}else{return`https://web.whatsapp.com/send?phone=${client.phone}&text=${encodeURIComponent(msg)}`;}}function sendManual(index){const client=globalData[index];const link=generateWaLink(client);const isMobile=/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);if(isMobile){window.location.href=link;}else{let hiddenLink=document.getElementById('magic-wa-link');hiddenLink.href=link;hiddenLink.click();}client.sent=true;updateClientInCloud(client);}</script></body></html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>متابعة عملاء راية | Raya CRM</title>
+    
+    <!-- مكتبات Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; }
+        
+        /* إطارات واضحة لكل عميل مع تأثيرات لتوضيح الحالة */
+        .client-row { border: 2px solid #cbd5e1; border-bottom: 5px solid #94a3b8; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: background-color 0.3s ease; }
+        .row-default { background-color: #ffffff; }
+        .row-has-comment { background-color: #fdf4ff !important; border: 2px solid #d8b4fe !important; border-bottom: 5px solid #a855f7 !important; } 
+        .row-sent { background-color: #f0fdf4 !important; border: 2px solid #86efac !important; border-bottom: 5px solid #22c55e !important; } 
+        .row-interested { background-color: #fffbeb !important; border: 2px solid #fbbf24 !important; border-bottom: 5px solid #f59e0b !important; } 
+        .row-not-interested { background-color: #fff1f2 !important; border: 2px solid #fecdd3 !important; border-bottom: 5px solid #f43f5e !important; opacity: 0.95; } 
+        .row-done { background-color: #ecfdf5 !important; border: 2px solid #a7f3d0 !important; border-bottom: 5px solid #10b981 !important; opacity: 0.95; } 
+
+        .checkbox-label { cursor: pointer; user-select: none; transition: all 0.2s; }
+        .checkbox-label:hover { transform: translateY(-1px); }
+        
+        /* تخصيص السكرول بار */
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* تثبيت الفلاتر في أعلى الشاشة */
+        .sticky-panel { position: sticky; top: 0; z-index: 50; background-color: #f1f5f9; padding-top: 8px; padding-bottom: 8px; }
+        
+        .pulse-alert { animation: pulseAlert 2s infinite; }
+        @keyframes pulseAlert {
+            0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4); }
+            70% { box-shadow: 0 0 0 10px transparent; }
+            100% { box-shadow: 0 0 0 0 transparent; }
+        }
+
+        /* توهج الزراير عند الضغط لبيان الأكشن */
+        .btn-active-glow { box-shadow: 0 0 12px 3px currentColor; transform: scale(0.95); transition: all 0.2s; }
+    </style>
+</head>
+<body class="p-1 md:p-3 min-h-screen text-[11px] md:text-sm">
+
+<!-- نافذة اختيار الفرع -->
+<div id="branchModal" class="fixed inset-0 bg-slate-900 bg-opacity-95 z-[100] flex items-center justify-center hidden">
+    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl max-w-sm w-11/12 text-center border-t-8 border-sky-600 relative overflow-hidden">
+        <i class="fas fa-building text-5xl text-sky-600 mb-4"></i>
+        <h2 class="text-xl font-bold text-slate-800 mb-2">متابعة عملاء راية</h2>
+        <p class="text-slate-500 font-semibold mb-5 text-xs">حدد فرعك للوصول للسحابة</p>
+        
+        <select id="branchSelectModal" class="w-full border-2 border-slate-300 p-2.5 rounded-lg mb-5 text-sm font-bold text-slate-700 outline-none focus:border-sky-600">
+            <option value="" disabled selected>-- اختر الفرع --</option>
+            <option value="mega_helwan">Mega Helwan</option>
+            <option value="samsung_mokattam">Samsung Mokattam</option>
+            <option value="samsung_zahraa_elmaadi">Samsung Zahraa Elmaadi</option>
+            <option value="samsung_maadi_helwan">Samsung Maadi Helwan</option>
+            <option value="jehan_elsadat">Jehan Elsadat</option>
+            <option value="obour">Obour</option>
+            <option value="mega_sayeda_zeinab">Mega Sayeda Zeinab</option>
+            <option value="gazayer">Gazayer</option>
+            <option value="city_center">City Center</option>
+        </select>
+        
+        <button onclick="confirmBranchSelection()" class="w-full bg-sky-600 text-white font-bold py-3 rounded-lg shadow-lg">
+            دخول للفرع <i class="fas fa-sign-in-alt"></i>
+        </button>
+    </div>
+</div>
+
+<div class="max-w-[1600px] mx-auto bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200 hidden" id="mainAppContainer">
+    
+    <!-- رأس الصفحة -->
+    <div class="bg-slate-900 p-2 text-white flex flex-wrap justify-between items-center gap-2 border-b-4 border-sky-600">
+        <div class="flex items-center gap-2">
+            <div class="bg-sky-600 p-1.5 rounded"><i class="fas fa-headset text-sm"></i></div>
+            <h1 class="text-sm font-extrabold">متابعة عملاء راية</h1>
+            <span id="cloudStatus" class="bg-emerald-500 text-[8px] font-bold px-1.5 py-0.5 rounded-full animate-pulse"><i class="fas fa-cloud"></i> متصل</span>
+        </div>
+        
+        <div class="flex items-center gap-1.5 bg-slate-800 p-1 rounded-lg border border-slate-700">
+            <span class="text-[9px] font-bold text-slate-300">فرع:</span>
+            <select id="headerBranchSelect" onchange="changeBranchHeader()" class="bg-slate-900 text-sky-400 font-bold border border-slate-600 p-0.5 rounded outline-none text-[9px]">
+                <option value="mega_helwan">Mega Helwan</option>
+                <option value="samsung_mokattam">Samsung Mokattam</option>
+                <option value="samsung_zahraa_elmaadi">Samsung Zahraa Elmaadi</option>
+                <option value="samsung_maadi_helwan">Samsung Maadi Helwan</option>
+                <option value="jehan_elsadat">Jehan Elsadat</option>
+                <option value="obour">Obour</option>
+                <option value="mega_sayeda_zeinab">Mega Sayeda Zeinab</option>
+                <option value="gazayer">Gazayer</option>
+                <option value="city_center">City Center</option>
+            </select>
+            <button onclick="hardResetCloud()" class="bg-red-600 hover:bg-red-700 text-white px-1.5 py-0.5 rounded font-bold text-[8px] transition">
+                <i class="fas fa-radiation-alt"></i> فورمات
+            </button>
+        </div>
+    </div>
+
+    <!-- إشعار المتابعة اليومية -->
+    <div id="notificationBanner" class="hidden bg-rose-50 border-r-4 border-rose-600 p-2 mx-2 mt-2 rounded-lg flex-col sm:flex-row justify-between items-center pulse-alert">
+        <div class="flex items-center gap-2">
+            <div class="bg-rose-600 p-1.5 rounded-full"><i class="fas fa-bell text-white text-[10px] animate-bounce"></i></div>
+            <div>
+                <h3 class="font-black text-rose-800 text-[11px]">تنبيه متابعة!</h3>
+                <p class="text-[9px] text-rose-600 font-bold">لديك (<span id="notificationCount" class="text-xs font-black"></span>) عملاء بموعد اليوم.</p>
+            </div>
+        </div>
+        <button onclick="filterByToday()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-1 px-2 rounded text-[9px] mt-1 sm:mt-0 transition">
+            <i class="fas fa-eye"></i> عرض
+        </button>
+    </div>
+
+    <div class="p-1.5 md:p-3 grid grid-cols-1 xl:grid-cols-12 gap-2 relative">
+        
+        <!-- لوحة الإعدادات والعروض -->
+        <div class="xl:col-span-3 space-y-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+            
+            <div class="bg-amber-50 p-2.5 rounded-lg border border-amber-400 shadow-sm">
+                <h2 class="font-bold text-amber-800 text-[11px] mb-1.5 border-b border-amber-300 pb-1">
+                    <i class="fas fa-bullhorn text-amber-600"></i> عروض راية
+                </h2>
+                <textarea id="offersText" rows="4" onchange="saveSettingsToFirebase()" class="w-full p-1.5 bg-amber-100/50 border border-amber-300 rounded focus:border-amber-500 outline-none text-[11px] font-black text-amber-900" placeholder="اكتب العروض هنا ليراها الجميع..."></textarea>
+            </div>
+
+            <div class="bg-white p-2 rounded-lg border border-slate-100 shadow-sm">
+                <label class="block font-bold text-slate-700 text-[9px] mb-1"><i class="fas fa-file-excel text-sky-600"></i> رفع شيت عملاء:</label>
+                <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" onchange="processExcel()" class="w-full border border-slate-300 p-0.5 rounded bg-slate-50 text-[8px] file:mr-1 file:py-0.5 file:px-1 file:rounded file:border-0 file:font-bold file:bg-sky-100 file:text-sky-700 cursor-pointer">
+            </div>
+
+            <div class="bg-white p-2 rounded-lg border border-slate-100 shadow-sm">
+                <label class="block font-bold text-slate-700 text-[9px] mb-1"><i class="fas fa-comment-dots text-sky-600"></i> رسالة الواتساب الثابتة:</label>
+                <textarea id="messageText" rows="2" onchange="saveSettingsToFirebase()" class="w-full p-1 border border-slate-300 rounded text-[9px] outline-none" placeholder="نص الرسالة..."></textarea>
+            </div>
+        </div>
+
+        <!-- لوحة التحكم والجدول -->
+        <div class="xl:col-span-9 flex flex-col h-full hidden" id="actionPanel">
+            
+            <!-- الفلاتر المتثبتة -->
+            <div class="sticky-panel rounded-lg px-0.5">
+                <div class="bg-white p-1.5 rounded-lg border border-slate-300 shadow-sm">
+                    <div class="grid grid-cols-2 lg:grid-cols-6 gap-1 items-end">
+                        
+                        <div class="col-span-2 lg:col-span-1">
+                            <label class="block text-[8px] font-bold text-slate-500 mb-0.5">بحث عام:</label>
+                            <input type="text" id="searchInput" oninput="applyFilters()" class="bg-slate-50 border border-slate-300 text-[9px] rounded w-full p-1 outline-none focus:border-sky-500" placeholder="ابحث بالاسم، موبايل...">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[8px] font-bold text-slate-500 mb-0.5">تاريخ الإجراء:</label>
+                            <input type="date" id="datePicker" class="w-full border border-slate-300 p-1 rounded font-bold text-[8px] outline-none">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[8px] font-bold text-slate-500 mb-0.5">ID الموظف:</label>
+                            <input type="text" id="empIdInput" class="w-full border border-slate-300 p-1 rounded font-bold text-[8px] text-center outline-none focus:border-sky-500" placeholder="رقمك">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[8px] font-bold text-slate-500 mb-0.5">قرار العميل:</label>
+                            <select id="followUpFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1 rounded font-bold text-[8px] outline-none">
+                                <option value="all">الكل</option>
+                                <option value="interested">⭐ مهتم</option>
+                                <option value="not_interested">🚫 غير مهتم</option>
+                                <option value="done">✅ تم</option>
+                                <option value="has_comment">💬 كومنت</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[8px] font-bold text-slate-500 mb-0.5">المنتجات:</label>
+                            <select id="productFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1 rounded font-bold text-[8px] bg-sky-50 outline-none">
+                                <option value="all">الكل</option>
+                                <option value="Handset">Handset</option>
+                                <option value="TV">TV</option>
+                                <option value="AC">AC</option>
+                                <option value="SDA">SDA</option>
+                                <option value="HA">HA</option>
+                                <option value="Acc">Acc</option>
+                                <option value="أخرى">أخرى</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[8px] font-bold text-slate-500 mb-0.5">الموظفين:</label>
+                            <select id="empDropdownFilter" onchange="applyFilters()" class="w-full border border-slate-300 p-1 rounded font-bold text-[8px] outline-none">
+                                <option value="">الكل</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-span-2 lg:col-span-1 flex items-end gap-1">
+                            <div class="w-full">
+                                <label class="block text-[8px] font-bold text-slate-500 mb-0.5 flex justify-between">
+                                    موعد:
+                                    <span id="miniTodayCountBadge" class="hidden text-rose-700 font-black"><span id="miniTodayCount">0</span>يوم</span>
+                                </label>
+                                <div class="flex">
+                                    <input type="date" id="followUpDateFilter" onchange="applyFilters()" class="bg-slate-50 border border-slate-300 text-[8px] rounded-r w-full p-1 outline-none">
+                                    <button onclick="clearDateFilter()" class="bg-slate-200 hover:bg-slate-300 border border-r-0 border-slate-300 px-1 rounded-l text-[8px] transition"><i class="fas fa-times"></i></button>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-sky-50 border border-sky-200 rounded px-1.5 py-0.5 text-center">
+                                <div class="text-[6px] font-bold text-sky-600">بالفلتر</div>
+                                <div id="clientCount" class="text-sky-700 font-black text-[10px]">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="toggleAdvancedFilters()" class="w-full mt-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1 px-2 rounded text-[9px] border border-slate-300 flex justify-between transition outline-none">
+                        <span><i class="fas fa-sliders-h text-sky-600"></i> فلاتر متقدمة (نظام وشركات)</span>
+                        <i class="fas fa-chevron-down" id="advFilterIcon"></i>
+                    </button>
+
+                    <div id="originalFiltersSection" class="mt-1 pt-1 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-1 hidden">
+                        <div id="statusFilterContainer" class="hidden bg-slate-50 p-1 rounded border border-slate-200">
+                            <span class="block text-[8px] font-bold text-slate-500 mb-0.5">حالة النظام:</span>
+                            <div id="statusCheckboxes" class="flex flex-wrap gap-0.5"></div>
+                        </div>
+                        <div id="companyFilterContainer" class="hidden bg-slate-50 p-1 rounded border border-slate-200">
+                            <span class="block text-[8px] font-bold text-slate-500 mb-0.5">الشركة:</span>
+                            <div id="companyCheckboxes" class="flex flex-wrap gap-0.5"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- الجدول -->
+            <div class="overflow-x-auto bg-white flex-grow pt-0.5 rounded-b-xl">
+                <div id="loadingIndicator" class="text-center py-5 hidden">
+                    <i class="fas fa-spinner fa-spin text-xl text-sky-500 mb-1"></i>
+                    <p class="font-bold text-slate-500 text-[9px]">جاري المزامنة مع السحابة...</p>
+                </div>
+                
+                <table class="w-full text-center border-collapse min-w-[700px] md:min-w-[900px] table-fixed" id="dataTable">
+                    <thead class="bg-slate-200 border-b border-slate-300">
+                        <tr id="tableHeader">
+                            <th class="p-1 font-bold text-slate-700 text-[9px] w-32">العميل والموبايل</th>
+                            <th class="p-1 font-bold text-slate-700 text-[9px] w-20">البيانات</th>
+                            <th class="p-1 font-bold text-slate-700 text-[9px] w-auto">السجل والتعليق</th>
+                            <th class="p-1 font-bold text-slate-700 text-[9px] w-20">القرار</th>
+                            <th class="p-1 font-bold text-slate-700 text-[9px] w-14">W</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="bg-white p-1 block w-full table-row-group">
+                        <!-- البيانات -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a id="magic-wa-link" target="Raya_Unified_WhatsApp" style="display:none;"></a>
+
+<script>
+    // -----------------------------------------------------
+    // 1. إعدادات Firebase
+    // -----------------------------------------------------
+    const firebaseConfig = {
+        apiKey: "AIzaSyAkSD8k1Q4_gSwar3mwfDPVpUPWzHJevNk",
+        authDomain: "geox-platform.firebaseapp.com",
+        databaseURL: "https://geox-platform-default-rtdb.firebaseio.com",
+        projectId: "geox-platform",
+        storageBucket: "geox-platform.firebasestorage.app",
+        messagingSenderId: "691272759644",
+        appId: "1:691272759644:web:4f693b005708f94def6999",
+        measurementId: "G-LYKE4FPZVS"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
+
+    // -----------------------------------------------------
+    // 2. المتغيرات والتهيئة
+    // -----------------------------------------------------
+    let globalData = [];
+    let activeColumns = { name: false, nid: false, phone: false, status: false, company: false };
+    let currentBranch = '';
+    
+    // ضبط تاريخ اليوم أوتوماتيك أول ما تفتح
+    document.getElementById('datePicker').value = new Date().toISOString().split('T')[0];
+    
+    let branchClientsRef = null;
+    let branchSettingsRef = null;
+
+    window.onload = () => {
+        const saved = localStorage.getItem('raya_activeBranch');
+        if (saved) {
+            currentBranch = saved;
+            document.getElementById('headerBranchSelect').value = currentBranch;
+            document.getElementById('branchModal').classList.add('hidden');
+            document.getElementById('mainAppContainer').classList.remove('hidden');
+            loadCloudData();
+        } else {
+            document.getElementById('branchModal').classList.remove('hidden');
+        }
+    };
+
+    function confirmBranchSelection() {
+        const s = document.getElementById('branchSelectModal');
+        if (!s.value) return alert("اختر الفرع أولاً!");
+        currentBranch = s.value;
+        localStorage.setItem('raya_activeBranch', currentBranch);
+        document.getElementById('headerBranchSelect').value = currentBranch;
+        document.getElementById('branchModal').classList.add('hidden');
+        document.getElementById('mainAppContainer').classList.remove('hidden');
+        loadCloudData();
+    }
+
+    function changeBranchHeader() {
+        currentBranch = document.getElementById('headerBranchSelect').value;
+        localStorage.setItem('raya_activeBranch', currentBranch);
+        loadCloudData();
+    }
+
+    // -----------------------------------------------------
+    // 3. جلب البيانات والسحابة
+    // -----------------------------------------------------
+    function loadCloudData() {
+        document.getElementById('dataTable').classList.add('hidden');
+        document.getElementById('loadingIndicator').classList.remove('hidden');
+        document.getElementById('excelFile').value = '';
+        
+        if (branchClientsRef) branchClientsRef.off();
+        if (branchSettingsRef) branchSettingsRef.off();
+        
+        branchClientsRef = database.ref(`rayaCRM/branches/${currentBranch}/clients`);
+        branchSettingsRef = database.ref(`rayaCRM/branches/${currentBranch}/settings`);
+
+        branchSettingsRef.on('value', s => {
+            const v = s.val();
+            if (v) {
+                if (v.messageText !== undefined) document.getElementById('messageText').value = v.messageText;
+                if (v.offersText !== undefined) document.getElementById('offersText').value = v.offersText;
+                if (v.activeColumns !== undefined) activeColumns = v.activeColumns;
+            }
+        });
+
+        branchClientsRef.once('value', s => {
+            updateDataFromSnapshot(s);
+            document.getElementById('loadingIndicator').classList.add('hidden');
+            
+            if (globalData.length > 0) {
+                document.getElementById('dataTable').classList.remove('hidden');
+                document.getElementById('actionPanel').classList.remove('hidden');
+                updateEmpDropdown();
+                loadFilters(); // استرجاع الفلاتر من الذاكرة عشان متطيرش مع الريفريش
+                checkTodayFollowUps();
+                restoreUI();
+            } else {
+                document.getElementById('actionPanel').classList.add('hidden');
+                document.getElementById('notificationBanner').classList.add('hidden');
+            }
+
+            // الاستماع للتغييرات
+            branchClientsRef.on('child_changed', cs => {
+                const uc = cs.val(), i = globalData.findIndex(c => c.phone === uc.phone);
+                if (i !== -1) {
+                    globalData[i] = uc;
+                    updateSingleRowDOM(i);
+                }
+            });
+
+            branchClientsRef.on('child_added', cs => {
+                const nc = cs.val();
+                if (!globalData.some(c => c.phone === nc.phone)) {
+                    globalData.push(nc);
+                    sortGlobalData();
+                    applyFilters();
+                }
+            });
+        });
+    }
+
+    function updateDataFromSnapshot(s) {
+        const d = s.val();
+        globalData = [];
+        if (d) {
+            for (let p in d) globalData.push(d[p]);
+        }
+        sortGlobalData();
+    }
+
+    // الترتيب الذكي: المهتم فوق، ثم اللي ليه كومنت، ثم الجديد، ثم تم التنفيذ، ثم غير مهتم
+    function sortGlobalData() {
+        globalData.sort((a, b) => {
+            const gp = c => {
+                if (c.followUpStatus === 'interested') return 1;
+                let hc = c.history && c.history.some(h => h && h.type === 'comment');
+                if (hc && !c.followUpStatus) return 2;
+                if (!c.followUpStatus) return 3;
+                if (c.followUpStatus === 'done') return 4; 
+                if (c.followUpStatus === 'not_interested') return 5; 
+                return 3;
+            };
+            return gp(a) - gp(b) || (a.orderId || 0) - (b.orderId || 0);
+        });
+    }
+
+    function saveSettingsToFirebase() {
+        if (!branchSettingsRef) return;
+        branchSettingsRef.update({
+            messageText: document.getElementById('messageText').value,
+            offersText: document.getElementById('offersText').value,
+            activeColumns: activeColumns
+        });
+    }
+
+    function updateClientInCloud(obj) {
+        if (branchClientsRef) branchClientsRef.child(obj.phone).set(obj);
+    }
+
+    // زرار الفورمات 
+    function hardResetCloud() {
+        if (!currentBranch) return;
+        if (prompt("تحذير! هذا الإجراء سيمسح جميع بيانات الفرع نهائياً. للفرمتة اكتب 'نعم'") === 'نعم') {
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+            document.getElementById('dataTable').classList.add('hidden');
+            branchClientsRef.remove().then(() => {
+                branchSettingsRef.remove();
+                localStorage.removeItem('raya_f'); // مسح الفلاتر
+                alert("تم الفرمتة بنجاح!");
+                location.reload();
+            });
+        }
+    }
+
+    // -----------------------------------------------------
+    // 4. قراءة الإكسيل المضمونة اللي شغال معاك
+    // -----------------------------------------------------
+    function processExcel() {
+        const f = document.getElementById('excelFile');
+        if (!f.files.length || !currentBranch) return;
+        
+        document.getElementById('loadingIndicator').classList.remove('hidden');
+        document.getElementById('dataTable').classList.add('hidden');
+        
+        setTimeout(() => {
+            try {
+                const r = new FileReader();
+                r.onload = e => {
+                    const d = new Uint8Array(e.target.result),
+                          wb = XLSX.read(d, { type: 'array' }),
+                          ws = wb.Sheets[wb.SheetNames[0]],
+                          ja = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+                          
+                    if (ja.length < 2) {
+                        document.getElementById('loadingIndicator').classList.add('hidden');
+                        return alert("ملف الإكسيل فارغ أو غير مدعوم!");
+                    }
+                    
+                    let hri = -1, cols = { name: -1, nid: -1, phone: -1, status: -1, company: -1 };
+                    
+                    for (let i = 0; i < Math.min(ja.length, 50); i++) {
+                        const rv = ja[i];
+                        if (!rv || rv.length === 0) continue;
+                        
+                        const hs = rv.map(x => String(x).replace(/[\u200B-\u200D\uFEFF\n\r\t]/g, '').trim().toLowerCase()
+                                             .replace('أ', 'ا').replace('إ', 'ا').replace('ة', 'ه'));
+                                             
+                        let foundPhone = false;
+                        for (let j = 0; j < hs.length; j++) {
+                            if (hs[j].includes("موبايل") || hs[j].includes("تليفون") || hs[j].includes("هاتف") || hs[j].includes("phone") || hs[j].includes("mobile") || hs[j].includes("رقم")) {
+                                foundPhone = true; break;
+                            }
+                        }
+                        
+                        if (foundPhone) {
+                            hri = i;
+                            for (let j = 0; j < hs.length; j++) {
+                                let h = hs[j];
+                                if (h.includes("قومي") || h.includes("بطاقه") || h.includes("بطاقة") || h.includes("national") || h.includes("id")) cols.nid = j;
+                                else if (h.includes("اسم") || h.includes("عميل") || h.includes("name") || h.includes("customer")) cols.name = j;
+                                else if (h.includes("موبايل") || h.includes("تليفون") || h.includes("هاتف") || h.includes("phone") || h.includes("mobile") || h.includes("رقم")) cols.phone = j;
+                                else if (h.includes("حاله") || h.includes("حالة") || h.includes("status")) cols.status = j;
+                                else if (h.includes("شركه") || h.includes("شركة") || h.includes("company") || h.includes("جهه")) cols.company = j;
+                            }
+                            break;
+                        }
+                    }
+                    
+                    let isFuzzyMode = (hri === -1);
+                    if (isFuzzyMode) {
+                        hri = 0; 
+                        cols.name = 0;
+                        cols.phone = 1;
+                        cols.nid = 2;
+                    }
+                    
+                    activeColumns = {
+                        name: cols.name !== -1, nid: cols.nid !== -1, phone: cols.phone !== -1 || isFuzzyMode,
+                        status: cols.status !== -1, company: cols.company !== -1
+                    };
+                    saveSettingsToFirebase();
+                    
+                    let cm = {};
+                    globalData.forEach(c => {
+                        if (c.phone) {
+                            c.name = c.name || "-"; c.status = c.status || "-"; c.company = c.company || "-"; c.nid = c.nid || "-";
+                            c.history = Array.isArray(c.history) ? c.history : [];
+                            cm[c.phone] = c;
+                        }
+                    });
+                    
+                    let oc = Object.keys(cm).length;
+                    let addedCount = 0;
+                    
+                    let startRow = (hri === -1) ? 0 : hri + 1;
+
+                    for (let i = startRow; i < ja.length; i++) {
+                        const row = ja[i];
+                        if (!row || row.length === 0) continue;
+
+                        let ps = "", cn = "-", rn = "-", st = "-", cp = "-";
+
+                        if (!isFuzzyMode && cols.phone !== -1 && row[cols.phone]) {
+                            ps = cleanPhoneNumber(row[cols.phone]);
+                            
+                            cn = (cols.name !== -1 && row[cols.name]) ? String(row[cols.name]).trim() : "-";
+                            rn = (cols.nid !== -1 && row[cols.nid]) ? String(row[cols.nid]).trim() : "-";
+                            st = (cols.status !== -1 && row[cols.status]) ? String(row[cols.status]).trim() : "-";
+                            cp = (cols.company !== -1 && row[cols.company]) ? String(row[cols.company]).trim() : "-";
+                            
+                            if (rn.toUpperCase().includes('E')) rn = Number(row[cols.nid]).toLocaleString('fullwide', { useGrouping: false });
+                            else rn = rn.replace(/[^0-9]/g, '') || "-";
+                        } else {
+                            for (let j = 0; j < row.length; j++) {
+                                let cell = row[j];
+                                if (!cell) continue;
+                                let cStr = String(cell).trim();
+                                
+                                if (cStr.toUpperCase().includes('E') && !isNaN(cell)) {
+                                    cStr = Number(cell).toLocaleString('fullwide', {useGrouping:false});
+                                }
+                                
+                                let cNum = cStr.replace(/[^0-9]/g, '');
+
+                                if (!ps && ((cNum.length === 11 && cNum.startsWith('01')) || (cNum.length === 10 && cNum.startsWith('1')) || (cNum.length === 12 && cNum.startsWith('201')))) {
+                                    ps = cleanPhoneNumber(cNum);
+                                    continue;
+                                }
+                                if (rn === "-" && cNum.length === 14 && (cNum.startsWith('2') || cNum.startsWith('3'))) {
+                                    rn = cNum;
+                                    continue;
+                                }
+                                let clow = cStr.toLowerCase();
+                                if (st === "-" && (clow.includes('pending') || clow.includes('approved') || clow.includes('rejected') || clow.includes('active') || clow.includes('cancel') || clow.includes('limit') || clow.includes('expired') || clow.includes('مرفوض') || clow.includes('مقبول') || clow.includes('معلق'))) {
+                                    st = cStr;
+                                    continue;
+                                }
+                                if (cn === "-" && isNaN(cStr) && cStr.length > 5 && !clow.includes('pending') && !cStr.includes('@') && !cStr.includes('http')) {
+                                    cn = cStr;
+                                    continue;
+                                }
+                            }
+                        }
+
+                        if (ps && ps.length > 5) {
+                            if (rn.toUpperCase().includes('E')) rn = Number(rn).toLocaleString('fullwide', { useGrouping: false });
+                            else rn = rn.replace(/[^0-9]/g, '') || "-";
+                            
+                            if (cn === "") cn = "-";
+                            if (st === "") st = "-";
+                            if (cp === "") cp = "-";
+
+                            if (cm[ps]) {
+                                if (cn !== "-") cm[ps].name = cn;
+                                if (rn !== "-") cm[ps].nid = rn;
+                                if (st !== "-") cm[ps].status = st;
+                                if (cp !== "-") cm[ps].company = cp;
+                            } else {
+                                cm[ps] = {
+                                    orderId: oc++, name: cn, nid: rn, phone: ps, status: st, company: cp,
+                                    sent: false, history: [], followUpStatus: '', statusDate: ''
+                                };
+                                addedCount++;
+                            }
+                        }
+                    }
+                    
+                    if (addedCount === 0 && Object.keys(cm).length === 0) {
+                        document.getElementById('loadingIndicator').classList.add('hidden');
+                        document.getElementById('actionPanel').classList.remove('hidden');
+                        document.getElementById('dataTable').classList.remove('hidden');
+                        return alert("لم يتم العثور على أرقام هواتف لعملاء في هذا الشيت! تأكد من المحتوى.");
+                    }
+
+                    activeColumns = { name: true, nid: true, phone: true, status: true, company: true };
+                    saveSettingsToFirebase();
+
+                    branchClientsRef.set(cm).then(() => {
+                        document.getElementById('loadingIndicator').classList.add('hidden');
+                        document.getElementById('excelFile').value = '';
+                        
+                        branchClientsRef.once('value', s => {
+                            updateDataFromSnapshot(s);
+                            document.getElementById('actionPanel').classList.remove('hidden');
+                            document.getElementById('dataTable').classList.remove('hidden');
+                            updateEmpDropdown();
+                            checkTodayFollowUps();
+                            restoreUI(); 
+                        });
+                        alert(`تم الرفع والدمج بنجاح! تم التقاط ${addedCount} عميل جديد.`);
+                    }).catch(err => {
+                        document.getElementById('loadingIndicator').classList.add('hidden');
+                        alert("خطأ أثناء الاتصال بالسحابة: " + err);
+                    });
+                };
+                r.readAsArrayBuffer(f.files[0]);
+            } catch (err) {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                alert("خطأ: " + err.message);
+            }
+        }, 150);
+    }
+
+    function cleanPhoneNumber(p) {
+        if (!p || String(p).trim() === "" || p === "undefined") return "";
+        let cStr = String(p).trim();
+        if (cStr.toUpperCase().includes('E') && !isNaN(p)) {
+            cStr = Number(p).toLocaleString('fullwide', {useGrouping:false});
+        }
+        let f = cStr.replace(/[^0-9]/g, '');
+        if (f.startsWith('1') && f.length === 10) return '20' + f;
+        if (f.startsWith('01') && f.length === 11) return '2' + f;
+        if (!f.startsWith('20') && f.length > 0) return '20' + f;
+        return f;
+    }
+
+    // -----------------------------------------------------
+    // 5. الوظائف المتنوعة والفلاتر
+    // -----------------------------------------------------
+    
+    // نسخ الرقم وفتح تاب راية الموحدة
+    window.copyAndOpenRaya = function(nid, btn) {
+        if (nid && String(nid).trim() !== "-" && String(nid).trim() !== "") {
+            const ti = document.createElement("input");
+            ti.value = nid;
+            document.body.appendChild(ti);
+            ti.select();
+            try {
+                document.execCommand("copy");
+                let ot = btn.innerHTML;
+                btn.innerHTML = `<i class="fas fa-check text-emerald-400"></i> تم النسخ`;
+                setTimeout(() => btn.innerHTML = ot, 1500);
+            } catch (e) {}
+            document.body.removeChild(ti);
+        } else {
+            alert("لا يوجد رقم قومي!");
+        }
+        window.open("https://rayainstallment.com/Stores", "RayaLimitTab");
+    };
+
+    function checkTodayFollowUps() {
+        let t = new Date().toISOString().split('T')[0], c = 0;
+        globalData.forEach(cl => {
+            let h = Array.isArray(cl.history) ? cl.history : [];
+            if (h.some(x => x && x.type === 'comment' && x.followUpDate === t)) c++;
+        });
+        const ba = document.getElementById('notificationBanner'), bg = document.getElementById('miniTodayCountBadge');
+        if (c > 0) {
+            document.getElementById('notificationCount').innerText = c;
+            document.getElementById('miniTodayCount').innerText = c;
+            ba.classList.remove('hidden'); ba.classList.add('flex'); bg.classList.remove('hidden');
+        } else {
+            ba.classList.add('hidden'); ba.classList.remove('flex'); bg.classList.add('hidden');
+        }
+    }
+
+    function filterByToday() {
+        document.getElementById('followUpDateFilter').value = new Date().toISOString().split('T')[0];
+        applyFilters();
+    }
+
+    function clearDateFilter() {
+        document.getElementById('followUpDateFilter').value = '';
+        applyFilters();
+    }
+
+    function toggleAdvancedFilters() {
+        const s = document.getElementById('originalFiltersSection'), i = document.getElementById('advFilterIcon');
+        if (s.classList.contains('hidden')) {
+            s.classList.remove('hidden'); i.classList.replace('fa-chevron-down', 'fa-chevron-up');
+        } else {
+            s.classList.add('hidden'); i.classList.replace('fa-chevron-up', 'fa-chevron-down');
+        }
+    }
+
+    function saveFilters() {
+        const f = {
+            s: document.getElementById('searchInput').value,
+            f: document.getElementById('followUpFilter').value,
+            p: document.getElementById('productFilter').value,
+            e: document.getElementById('empDropdownFilter').value,
+            d: document.getElementById('followUpDateFilter').value
+        };
+        localStorage.setItem('raya_f', JSON.stringify(f));
+    }
+
+    function loadFilters() {
+        try {
+            const f = JSON.parse(localStorage.getItem('raya_f'));
+            if (f) {
+                document.getElementById('searchInput').value = f.s || '';
+                document.getElementById('followUpFilter').value = f.f || 'all';
+                document.getElementById('productFilter').value = f.p || 'all';
+                if (f.e) document.getElementById('empDropdownFilter').value = f.e;
+                document.getElementById('followUpDateFilter').value = f.d || '';
+            }
+        } catch (e) {}
+    }
+
+    function restoreUI() {
+        let us = new Set(), uc = new Set();
+        globalData.forEach(c => {
+            let st = c.status ? String(c.status) : "-", co = c.company ? String(c.company) : "-";
+            us.add(st);
+            if (co !== '-') uc.add(co);
+        });
+        
+        buildCheckboxes('statusCheckboxes', us, 'status', true);
+        buildCheckboxes('companyCheckboxes', uc, 'company', true);
+        
+        document.getElementById('actionPanel').classList.remove('hidden');
+        applyFilters();
+    }
+
+    function buildCheckboxes(cid, st, tc, ae) {
+        const ct = document.getElementById(cid);
+        ct.innerHTML = '';
+        document.getElementById(cid.replace('Checkboxes', 'FilterContainer')).classList.remove('hidden');
+        
+        let al = document.createElement('label');
+        al.className = 'checkbox-label bg-white px-1.5 py-1 rounded border border-slate-300 flex items-center gap-1 font-bold text-[9px] shadow-sm cursor-pointer';
+        al.innerHTML = `<input type="checkbox" onchange="toggleFilterAll(this, '${tc}')" checked class="w-2.5 h-2.5 text-sky-600 rounded"> <span>الكل</span>`;
+        ct.appendChild(al);
+        
+        if (ae && tc === 'company') st.add("-");
+        
+        st.forEach(i => {
+            if (i) {
+                let safeItem = String(i);
+                let bgColor = safeItem.includes("بدون") || safeItem === "-" ? "bg-rose-50 text-rose-800 border-rose-200" : "bg-slate-50 text-slate-800 border-slate-200";
+                let l = document.createElement('label');
+                l.className = `checkbox-label ${bgColor} px-1.5 py-1 rounded text-[9px] border flex items-center gap-1 font-bold shadow-sm cursor-pointer`;
+                l.innerHTML = `<input type="checkbox" class="${tc}-cb w-2.5 h-2.5 rounded" value="${safeItem}" checked onchange="applyFilters()"> <span>${safeItem}</span>`;
+                ct.appendChild(l);
+            }
+        });
+    }
+
+    function toggleFilterAll(m, tc) {
+        document.querySelectorAll(`.${tc}-cb`).forEach(c => c.checked = m.checked);
+        applyFilters();
+    }
+
+    function getCheckedValues(tc) {
+        return Array.from(document.querySelectorAll(`.${tc}-cb:checked`)).map(c => c.value);
+    }
+
+    function updateEmpDropdown() {
+        const es = new Set();
+        globalData.forEach(c => {
+            let h = Array.isArray(c.history) ? c.history : [];
+            h.forEach(x => { if (x && x.empId) es.add(x.empId); });
+        });
+        const sl = document.getElementById('empDropdownFilter'), cv = sl.value;
+        sl.innerHTML = '<option value="">الكل</option>';
+        es.forEach(e => {
+            if (e && String(e).trim() !== '') {
+                let o = document.createElement('option'); o.value = e; o.textContent = e; sl.appendChild(o);
+            }
+        });
+        if (es.has(cv)) sl.value = cv;
+    }
+
+    // -----------------------------------------------------
+    // 6. رسم الجدول (أزرار الكومنت الصغيرة)
+    // -----------------------------------------------------
+    function renderHistory(ha) {
+        if (!ha || !Array.isArray(ha)) return '<div class="text-slate-400 text-center py-1 text-[8px]">لا توجد تعليقات</div>';
+        const co = ha.filter(i => i && i.type === 'comment');
+        if (co.length === 0) return '<div class="text-slate-400 text-center py-1 text-[8px]">لا توجد تعليقات</div>';
+        
+        // الأحدث فوق والأقدم تحت
+        return co.slice().reverse().map(i => {
+            let fb = i.followUpDate ? `<span class="text-[7px] text-rose-600 bg-rose-50 px-1 border border-rose-100 rounded mr-1"><i class="fas fa-clock"></i> متابعة: ${i.followUpDate}</span>` : '';
+            let pb = i.product && i.product !== 'all' ? `<span class="text-[7px] text-sky-700 bg-sky-100 px-1 rounded ml-1 border border-sky-200">${i.product}</span>` : '';
+            return `<div class="bg-white border border-slate-200 p-1.5 rounded mb-1.5 shadow-sm text-right">
+                        <div class="flex justify-between items-center mb-0.5">
+                            <span class="text-[7px] text-slate-500 bg-slate-100 px-1 rounded">${i.date || "-"}</span>
+                            <span class="text-[7px] font-bold text-slate-700">م: ${i.empId || "-"}${pb}</span>
+                        </div>
+                        <div class="font-bold text-slate-800 text-[10px] break-words mt-0.5">${i.text || "-"}${fb}</div>
+                    </div>`;
+        }).join('');
+    }
+
+    function generateRowHTML(c, idx) {
+        let cn = c.name || "-", cp = c.phone || "-", cd = c.nid || "-", cs = c.status || "-", cc = c.company || "-";
+        let ch = Array.isArray(c.history) ? c.history : [], hc = ch.some(h => h && h.type === 'comment');
+        
+        let rc = `client-row `;
+        if (c.followUpStatus === 'done') rc += `row-done`;
+        else if (c.followUpStatus === 'interested') rc += `row-interested`;
+        else if (c.followUpStatus === 'not_interested') rc += `row-not-interested`;
+        else if (hc) rc += `row-has-comment`;
+        else if (c.sent) rc += `row-sent`;
+        else rc += `row-default`;
+        
+        let html = '';
+        let dn = cn;
+        if (c.sent) dn += ' <i class="fas fa-check-circle text-emerald-500 text-[8px]"></i>';
+        
+        let lb = `<button onclick="copyAndOpenRaya('${cd}', this)" class="mt-1 bg-slate-800 hover:bg-slate-700 text-white text-[8px] font-bold px-1.5 py-1 rounded w-full"><i class="fas fa-credit-card text-sky-400 mr-1"></i> عرض الليمت</button>`;
+        
+        html += `<td class="p-1 align-top pt-1.5">
+            <div class="font-bold text-slate-800 text-[10px] truncate max-w-[120px]">${dn}</div>
+            <div class="text-slate-800 font-black text-[9px] mt-0.5" dir="ltr">+${cp}</div>
+            <div class="text-sky-900 font-black text-[12px] bg-sky-100 p-0.5 rounded border border-sky-300 mt-1 mb-1 shadow-sm">${cd}</div>
+            ${lb}
+        </td>`;
+        
+        let bgs = cs === "-" ? 'text-slate-400 font-bold text-[8px]' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 rounded text-[8px] font-bold mb-1 block';
+        let bgc = cc === "-" ? 'text-slate-400 font-bold text-[8px]' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 rounded text-[8px] font-bold block';
+        
+        html += `<td class="p-1 align-top pt-2"><span class="${bgs}">${cs}</span><span class="${bgc}">${cc}</span></td>`;
+        
+        // مساحة الكومنت صغيرة لـ (كلمتين) وزرار الحفظ كبير
+        html += `<td class="p-1 border-r border-l border-slate-200 align-top bg-slate-50/30">
+            <div class="h-24 overflow-y-auto mb-1.5 custom-scrollbar bg-white p-1 rounded border border-slate-200" id="history-${idx}">
+                ${renderHistory(ch)}
+            </div>
+            <div class="flex flex-wrap gap-0.5 justify-end items-stretch">
+                <select id="comment-product-${idx}" class="w-16 border border-slate-300 p-1 rounded text-[9px] font-bold text-sky-700 bg-sky-50 outline-none">
+                    <option value="all">منتج</option>
+                    <option value="Handset">Handset</option>
+                    <option value="TV">TV</option>
+                    <option value="AC">AC</option>
+                    <option value="SDA">SDA</option>
+                    <option value="HA">HA</option>
+                    <option value="Acc">Acc</option>
+                    <option value="أخرى">أخرى</option>
+                </select>
+                <input type="date" id="comment-date-${idx}" class="w-20 border border-slate-300 p-1 rounded text-[8px] outline-none">
+                <input type="text" id="comment-input-${idx}" class="w-24 border border-slate-300 p-1 rounded text-[10px] outline-none" placeholder="كلمتين هنا...">
+                <button onclick="addComment(${idx}, this)" class="bg-sky-600 hover:bg-sky-700 text-white p-1 px-4 rounded text-[12px] font-bold shadow-md transition-transform active:scale-95"><i class="fas fa-save"></i> حفظ 💾</button>
+            </div>
+        </td>`;
+        
+        let db = '';
+        if (c.statusDate && c.followUpStatus) {
+            let ccx = c.followUpStatus === 'done' ? 'text-emerald-700' : (c.followUpStatus === 'interested' ? 'text-amber-700' : 'text-rose-700');
+            db = `<div class="text-[7px] font-bold ${ccx} mt-0.5 text-center"><i class="fas fa-history"></i> ${c.statusDate}</div>`;
+        }
+        
+        let b1 = c.followUpStatus === 'interested' ? 'bg-amber-500 text-white ring-2 ring-amber-400 shadow-inner' : 'bg-white text-slate-600 border border-amber-300';
+        let b2 = c.followUpStatus === 'done' ? 'bg-emerald-500 text-white ring-2 ring-emerald-400 shadow-inner' : 'bg-white text-slate-600 border border-emerald-300';
+        let b3 = c.followUpStatus === 'not_interested' ? 'bg-rose-500 text-white ring-2 ring-rose-400 shadow-inner' : 'bg-white text-slate-600 border border-rose-300';
+        
+        html += `<td class="p-1 align-top border-l border-slate-200">
+            <div class="flex flex-col gap-1">
+                <button onclick="setFollowUpStatus(${idx}, 'interested', this)" class="${b1} py-1.5 rounded text-[10px] font-bold transition">⭐ مهتم</button>
+                <button onclick="setFollowUpStatus(${idx}, 'done', this)" class="${b2} py-1.5 rounded text-[10px] font-bold transition">✅ تم</button>
+                <button onclick="setFollowUpStatus(${idx}, 'not_interested', this)" class="${b3} py-1.5 rounded text-[10px] font-bold transition">🚫 لا</button>
+                ${db}
+            </div>
+        </td>`;
+        
+        let wc = c.sent ? 'bg-emerald-600' : 'bg-sky-600';
+        let wt = c.sent ? '<i class="fab fa-whatsapp"></i>' : '<i class="fab fa-whatsapp"></i>';
+        
+        html += `<td class="p-1 align-middle">
+            <button onclick="sendManual(${idx})" class="${wc} text-white py-1.5 px-2 rounded text-[12px] font-bold w-full">${wt}</button>
+        </td>`;
+        
+        return { html, rowClass };
+    }
+
+    function updateSingleRowDOM(i) {
+        const t = document.getElementById(`row-${i}`);
+        if (t) {
+            const rd = generateRowHTML(globalData[i], i);
+            t.className = rd.rowClass;
+            t.innerHTML = rd.html;
+        }
+    }
+
+    function applyFilters() {
+        try {
+            // حماية الفلاتر
+            const sCb = document.querySelectorAll('.status-cb:checked');
+            const cCb = document.querySelectorAll('.company-cb:checked');
+            
+            const ss = sCb.length > 0 ? Array.from(sCb).map(c => c.value) : [];
+            const sc = cCb.length > 0 ? Array.from(cCb).map(c => c.value) : [];
+            
+            const s = document.getElementById('searchInput').value.toLowerCase().trim();
+            const f = document.getElementById('followUpFilter').value;
+            const p = document.getElementById('productFilter').value;
+            const e = document.getElementById('empDropdownFilter').value;
+            const d = document.getElementById('followUpDateFilter').value;
+            const tb = document.getElementById('tableBody');
+                  
+            tb.innerHTML = '';
+            let ct = 0;
+            
+            const allStatus = document.querySelectorAll('.status-cb').length === 0;
+            const allCompany = document.querySelectorAll('.company-cb').length === 0;
+            
+            globalData.forEach((c, i) => {
+                let cn = c.name ? String(c.name) : "-", cp = c.phone ? String(c.phone) : "-", cd = c.nid ? String(c.nid) : "-", cs = c.status ? String(c.status) : "-", cc = c.company ? String(c.company) : "-";
+                let ch = Array.isArray(c.history) ? c.history : [];
+                
+                let sm = allStatus || ss.includes(cs);
+                let cm = allCompany || sc.includes(cc);
+                let sch = true;
+                
+                if (s) {
+                    let ic = ch.some(h => h && h.type === 'comment' && h.text && String(h.text).toLowerCase().includes(s));
+                    sch = cn.toLowerCase().includes(s) || cp.includes(s) || cd.includes(s) || ic;
+                }
+                
+                let hc = ch.some(h => h && h.type === 'comment'), fm = true;
+                if (f === 'interested') fm = c.followUpStatus === 'interested';
+                if (f === 'not_interested') fm = c.followUpStatus === 'not_interested';
+                if (f === 'done') fm = c.followUpStatus === 'done';
+                if (f === 'has_comment') fm = hc;
+                
+                let em = true; if (e) em = ch.some(h => h && h.empId === e);
+                let dm = true; if (d) dm = ch.some(h => h && h.type === 'comment' && h.followUpDate === d);
+                let pm = true; if (p !== 'all') pm = ch.some(h => h && h.type === 'comment' && h.product === p);
+                
+                if (sm && cm && sch && fm && em && dm && pm) {
+                    ct++;
+                    const tr = document.createElement('tr');
+                    tr.id = `row-${i}`;
+                    const rd = generateRowHTML(c, i);
+                    tr.className = rd.rowClass;
+                    tr.innerHTML = rd.html;
+                    tb.appendChild(tr);
+                }
+            });
+            document.getElementById('clientCount').innerText = ct;
+            saveFilters();
+        } catch (err) { console.log(err); }
+    }
+
+    // --- الإجراءات والتحديث (توهج الأزرار وثبات الشاشة) ---
+    function addComment(i, btn) {
+        const ei = document.getElementById('empIdInput').value.trim();
+        if (!ei) { alert("أدخل ID الموظف أولاً من أعلى الشاشة!"); document.getElementById('empIdInput').focus(); return; }
+        
+        const t = document.getElementById(`comment-input-${i}`).value.trim(),
+              ps = document.getElementById(`comment-product-${i}`),
+              p = ps ? ps.value : 'all';
+              
+        if (!t && p === 'all') return;
+        
+        // تأثير توهج الزر
+        btn.classList.add('btn-active-glow');
+        setTimeout(() => btn.classList.remove('btn-active-glow'), 300);
+
+        const fd = document.getElementById(`comment-date-${i}`)?.value || '',
+              ad = document.getElementById('datePicker').value;
+              
+        if (!globalData[i].history) globalData[i].history = [];
+        globalData[i].history.push({ date: ad, empId: ei, type: 'comment', text: t || "تحديد منتج", product: p, followUpDate: fd });
+        
+        // ثبات الشاشة 
+        let cs = window.scrollY;
+        updateClientInCloud(globalData[i]);
+        sortGlobalData();
+        applyFilters();
+        window.scrollTo(0, cs);
+    }
+
+    function setFollowUpStatus(i, st, btn) {
+        const ei = document.getElementById('empIdInput').value.trim();
+        if (!ei) { alert("أدخل ID الموظف أولاً من أعلى الشاشة!"); document.getElementById('empIdInput').focus(); return; }
+        
+        // تأثير توهج الزر 
+        btn.classList.add('btn-active-glow');
+        setTimeout(() => btn.classList.remove('btn-active-glow'), 300);
+
+        const ad = document.getElementById('datePicker').value;
+        if (globalData[i].followUpStatus === st) {
+            globalData[i].followUpStatus = ''; globalData[i].statusDate = '';
+        } else {
+            globalData[i].followUpStatus = st; globalData[i].statusDate = ad;
+        }
+        
+        // ثبات الشاشة 
+        let cs = window.scrollY;
+        updateClientInCloud(globalData[i]);
+        sortGlobalData();
+        applyFilters();
+        window.scrollTo(0, cs);
+    }
+
+    function sendManual(i) {
+        const c = globalData[i], m = document.getElementById('messageText').value,
+              im = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+              l = im ? `whatsapp://send?phone=${c.phone}&text=${encodeURIComponent(m)}` : `https://web.whatsapp.com/send?phone=${c.phone}&text=${encodeURIComponent(m)}`;
+        
+        if (im) window.location.href = l;
+        else { let hl = document.getElementById('magic-wa-link'); hl.href = l; hl.click(); }
+        
+        c.sent = true;
+        updateClientInCloud(c);
+    }
+</script>
+</body>
+</html>
