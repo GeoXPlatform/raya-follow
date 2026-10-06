@@ -19,6 +19,7 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; }
         
+        /* إطارات ملونة لكل عميل لتوضيح حالته */
         .client-row { border: 2px solid #cbd5e1; border-bottom: 6px solid #94a3b8; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .row-default { background-color: #ffffff; }
         .row-has-comment { background-color: #fdf4ff !important; border: 2px solid #c084fc !important; border-bottom: 6px solid #a855f7 !important; } 
@@ -43,7 +44,8 @@
             100% { box-shadow: 0 0 0 0 transparent; }
         }
 
-        .btn-active-glow { box-shadow: 0 0 10px 2px currentColor; transform: scale(0.98); }
+        /* توهج الزراير عند الضغط لبيان الأكشن */
+        .btn-active-glow { box-shadow: 0 0 12px 3px currentColor; transform: scale(0.96); transition: all 0.2s; }
     </style>
 </head>
 <body class="p-1 md:p-3 min-h-screen text-[11px] md:text-sm">
@@ -126,7 +128,7 @@
                 <h2 class="font-bold text-amber-800 text-[11px] mb-1.5 border-b border-amber-300 pb-1">
                     <i class="fas fa-bullhorn text-amber-600"></i> عروض راية
                 </h2>
-                <textarea id="offersText" rows="4" onchange="saveSettingsToFirebase()" class="w-full p-1.5 bg-amber-100/50 border border-amber-300 rounded focus:border-amber-500 outline-none text-[11px] font-black text-amber-900" placeholder="اكتب العروض..."></textarea>
+                <textarea id="offersText" rows="4" onchange="saveSettingsToFirebase()" class="w-full p-1.5 bg-amber-100/50 border border-amber-300 rounded focus:border-amber-500 outline-none text-[11px] font-black text-amber-900" placeholder="اكتب العروض هنا ليراها الجميع..."></textarea>
             </div>
 
             <div class="bg-white p-2 rounded-lg border border-slate-100">
@@ -136,7 +138,7 @@
 
             <div class="bg-white p-2 rounded-lg border border-slate-100">
                 <label class="block font-bold text-slate-700 text-[9px] mb-1"><i class="fas fa-comment-dots text-sky-600"></i> رسالة الواتساب:</label>
-                <textarea id="messageText" rows="2" onchange="saveSettingsToFirebase()" class="w-full p-1 border border-slate-300 rounded text-[9px]" placeholder="نص الرسالة..."></textarea>
+                <textarea id="messageText" rows="2" onchange="saveSettingsToFirebase()" class="w-full p-1 border border-slate-300 rounded text-[9px]" placeholder="نص الرسالة الثابت..."></textarea>
             </div>
         </div>
 
@@ -149,7 +151,7 @@
                         
                         <div class="col-span-2 lg:col-span-1">
                             <label class="block text-[8px] font-bold text-slate-500 mb-0.5">بحث عام:</label>
-                            <input type="text" id="searchInput" oninput="applyFilters()" class="bg-slate-50 border border-slate-300 text-[9px] rounded w-full p-1" placeholder="بحث...">
+                            <input type="text" id="searchInput" oninput="applyFilters()" class="bg-slate-50 border border-slate-300 text-[9px] rounded w-full p-1" placeholder="بحث بالاسم، موبايل...">
                         </div>
                         
                         <div>
@@ -214,7 +216,7 @@
                     </div>
 
                     <button onclick="toggleAdvancedFilters()" class="w-full mt-1.5 bg-slate-100 text-slate-700 font-bold py-1 px-2 rounded text-[9px] border border-slate-300 flex justify-between">
-                        <span><i class="fas fa-sliders-h text-sky-600"></i> فلاتر متقدمة</span>
+                        <span><i class="fas fa-sliders-h text-sky-600"></i> فلاتر متقدمة (نظام وشركات)</span>
                         <i class="fas fa-chevron-down" id="advFilterIcon"></i>
                     </button>
 
@@ -257,6 +259,7 @@
     </div>
 </div>
 
+<!-- رابط الواتساب المخفي -->
 <a id="magic-wa-link" target="Raya_Unified_WhatsApp" style="display:none;"></a>
 
 <script>
@@ -273,7 +276,9 @@
         appId: "1:691272759644:web:4f693b005708f94def6999",
         measurementId: "G-LYKE4FPZVS"
     };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const database = firebase.database();
 
     // -----------------------------------------------------
@@ -283,6 +288,7 @@
     let activeColumns = { name: false, nid: false, phone: false, status: false, company: false };
     let currentBranch = '';
     
+    // ضبط تاريخ اليوم أوتوماتيك أول ما تفتح
     document.getElementById('datePicker').value = new Date().toISOString().split('T')[0];
     
     let branchClientsRef = null, branchSettingsRef = null;
@@ -302,7 +308,7 @@
 
     function confirmBranchSelection() {
         const s = document.getElementById('branchSelectModal');
-        if (!s.value) return alert("اختر الفرع!");
+        if (!s.value) return alert("اختر الفرع أولاً!");
         currentBranch = s.value;
         localStorage.setItem('raya_activeBranch', currentBranch);
         document.getElementById('headerBranchSelect').value = currentBranch;
@@ -348,7 +354,7 @@
                 document.getElementById('dataTable').classList.remove('hidden');
                 document.getElementById('actionPanel').classList.remove('hidden');
                 updateEmpDropdown();
-                loadFilters(); 
+                loadFilters(); // استرجاع الفلاتر من الذاكرة عشان متطيرش مع الريفريش
                 checkTodayFollowUps();
                 restoreUI();
             } else {
@@ -356,6 +362,7 @@
                 document.getElementById('notificationBanner').classList.add('hidden');
             }
 
+            // الاستماع للتغييرات
             branchClientsRef.on('child_changed', cs => {
                 const uc = cs.val(), i = globalData.findIndex(c => c.phone === uc.phone);
                 if (i !== -1) {
@@ -419,7 +426,7 @@
             document.getElementById('dataTable').classList.add('hidden');
             branchClientsRef.remove().then(() => {
                 branchSettingsRef.remove();
-                localStorage.removeItem('raya_f'); 
+                localStorage.removeItem('raya_f'); // مسح الفلاتر
                 alert("تم الفرمتة بنجاح!");
                 location.reload();
             });
@@ -427,7 +434,7 @@
     }
 
     // -----------------------------------------------------
-    // 4. قراءة الإكسيل بالقوة الجبرية (Ultimate Fallback)
+    // 4. قراءة الإكسيل بالقوة الجبرية (Ultra Scanner)
     // -----------------------------------------------------
     function processExcel() {
         const f = document.getElementById('excelFile');
@@ -452,11 +459,12 @@
                     
                     let hri = -1, cols = { name: -1, nid: -1, phone: -1, status: -1, company: -1 };
                     
-                    // البحث الموسع في أول 100 سطر
-                    for (let i = 0; i < Math.min(ja.length, 100); i++) {
+                    // البحث في أول 50 سطر لاستكشاف العناوين
+                    for (let i = 0; i < Math.min(ja.length, 50); i++) {
                         const rv = ja[i];
                         if (!rv || rv.length === 0) continue;
                         
+                        // تنظيف ذكي للعناوين
                         const hs = rv.map(x => String(x).replace(/[\u200B-\u200D\uFEFF\n\r\t]/g, '').trim().toLowerCase()
                                              .replace('أ', 'ا').replace('إ', 'ا').replace('ة', 'ه'));
                                              
@@ -481,17 +489,11 @@
                         }
                     }
                     
-                    // القوة الجبرية: لو ملقاش عناوين خالص، هيفترض إن العمود الأول اسم والتاني موبايل والتالت قومي
-                    if (hri === -1) {
-                        hri = 0; // هيبدأ من أول سطر
-                        cols.name = 0;
-                        cols.phone = 1;
-                        cols.nid = 2;
-                        alert("لم يتم العثور على عناوين واضحة للشيت. سيتم سحب البيانات بناءً على الترتيب الافتراضي (الاسم، الموبايل، الرقم القومي).");
-                    }
+                    // القوة الجبرية (Ultimate Fallback): لو ملقاش عناوين هيدور على الأرقام في كل سطر
+                    let isFuzzyMode = (hri === -1);
                     
                     activeColumns = {
-                        name: cols.name !== -1, nid: cols.nid !== -1, phone: cols.phone !== -1,
+                        name: cols.name !== -1, nid: cols.nid !== -1, phone: cols.phone !== -1 || isFuzzyMode,
                         status: cols.status !== -1, company: cols.company !== -1
                     };
                     saveSettingsToFirebase();
@@ -508,28 +510,68 @@
                     let oc = Object.keys(cm).length;
                     let addedCount = 0;
                     
-                    for (let i = hri + 1; i < ja.length; i++) {
-                        const rv = ja[i];
-                        if (!rv || !rv[cols.phone]) continue;
-                        const ps = cleanPhoneNumber(rv[cols.phone]);
+                    let startRow = isFuzzyMode ? 0 : hri + 1;
+
+                    for (let i = startRow; i < ja.length; i++) {
+                        const row = ja[i];
+                        if (!row || row.length === 0) continue;
+
+                        let ps = "", cn = "-", rn = "-", st = "-", cp = "-";
+
+                        if (!isFuzzyMode && cols.phone !== -1) {
+                            const phoneRaw = row[cols.phone];
+                            if (phoneRaw) ps = cleanPhoneNumber(phoneRaw);
+                            
+                            cn = (cols.name !== -1 && row[cols.name]) ? String(row[cols.name]).trim() : "-";
+                            rn = (cols.nid !== -1 && row[cols.nid]) ? String(row[cols.nid]).trim() : "-";
+                            st = (cols.status !== -1 && row[cols.status]) ? String(row[cols.status]).trim() : "-";
+                            cp = (cols.company !== -1 && row[cols.company]) ? String(row[cols.company]).trim() : "-";
+                            
+                            if (rn.toUpperCase().includes('E')) rn = Number(row[cols.nid]).toLocaleString('fullwide', { useGrouping: false });
+                            else rn = rn.replace(/[^0-9]/g, '') || "-";
+                        } else {
+                            // نظام الاستكشاف الحر (Fuzzy) بيمسح السطر كله
+                            for (let j = 0; j < row.length; j++) {
+                                let cell = row[j];
+                                if (!cell) continue;
+                                let cStr = String(cell).trim();
+                                
+                                // إصلاح الأرقام العلمية للرقم القومي E+
+                                if (cStr.toUpperCase().includes('E') && !isNaN(cell)) {
+                                    cStr = Number(cell).toLocaleString('fullwide', {useGrouping:false});
+                                }
+                                
+                                let cNum = cStr.replace(/[^0-9]/g, '');
+
+                                if (!ps && ((cNum.length === 11 && cNum.startsWith('01')) || (cNum.length === 10 && cNum.startsWith('1')) || (cNum.length === 12 && cNum.startsWith('201')))) {
+                                    ps = cleanPhoneNumber(cNum);
+                                    continue;
+                                }
+                                if (rn === "-" && cNum.length === 14 && (cNum.startsWith('2') || cNum.startsWith('3'))) {
+                                    rn = cNum;
+                                    continue;
+                                }
+                                let clow = cStr.toLowerCase();
+                                if (st === "-" && (clow.includes('pending') || clow.includes('approved') || clow.includes('rejected') || clow.includes('active') || clow.includes('cancel') || clow.includes('limit') || clow.includes('expired'))) {
+                                    st = cStr;
+                                    continue;
+                                }
+                                if (cn === "-" && isNaN(cStr) && cStr.length > 5 && !clow.includes('pending') && !cStr.includes('@')) {
+                                    cn = cStr;
+                                    continue;
+                                }
+                            }
+                        }
+
                         if (ps && ps.length > 5) {
-                            let st = activeColumns.status && rv[cols.status] ? String(rv[cols.status]).trim() : "-";
-                            if (st === "" || st === "undefined") st = "-";
-                            
-                            let comp = activeColumns.company && rv[cols.company] ? String(rv[cols.company]).trim() : "-";
-                            if (comp === "" || comp === "undefined") comp = "-";
-                            
-                            let rawNid = activeColumns.nid && rv[cols.nid] ? String(rv[cols.nid]).trim() : "-";
-                            if (rawNid.toUpperCase().includes('E')) rawNid = Number(rv[cols.nid]).toLocaleString('fullwide', { useGrouping: false });
-                            else rawNid = rawNid.replace(/[^0-9]/g, '') || "-";
-                            
-                            let cName = activeColumns.name && rv[cols.name] ? String(rv[cols.name]).trim() : "-";
-                            
                             if (cm[ps]) {
-                                cm[ps].name = cName; cm[ps].nid = rawNid; cm[ps].status = st; cm[ps].company = comp;
+                                if (cn !== "-") cm[ps].name = cn;
+                                if (rn !== "-") cm[ps].nid = rn;
+                                if (st !== "-") cm[ps].status = st;
+                                if (cp !== "-") cm[ps].company = cp;
                             } else {
                                 cm[ps] = {
-                                    orderId: oc++, name: cName, nid: rawNid, phone: ps, status: st, company: comp,
+                                    orderId: oc++, name: cn, nid: rn, phone: ps, status: st, company: cp,
                                     sent: false, history: [], followUpStatus: '', statusDate: ''
                                 };
                                 addedCount++;
@@ -537,6 +579,11 @@
                         }
                     }
                     
+                    if (Object.keys(cm).length === 0) {
+                        document.getElementById('loadingIndicator').classList.add('hidden');
+                        return alert("لم يتم العثور على أي عملاء في الشيت المرفوع! تأكد من أن الشيت يحتوي على أرقام هواتف صحيحة.");
+                    }
+
                     branchClientsRef.set(cm).then(() => {
                         document.getElementById('loadingIndicator').classList.add('hidden');
                         document.getElementById('excelFile').value = '';
@@ -550,7 +597,7 @@
                             checkTodayFollowUps();
                             restoreUI(); 
                         });
-                        alert(`تم الرفع والدمج بنجاح! تم إضافة ${addedCount} عميل جديد.`);
+                        alert(`تم الرفع والدمج بنجاح! تم التقاط ${addedCount} عميل جديد.`);
                     }).catch(err => {
                         document.getElementById('loadingIndicator').classList.add('hidden');
                         alert("خطأ أثناء الاتصال بالسحابة: " + err);
@@ -574,7 +621,7 @@
     }
 
     // -----------------------------------------------------
-    // 5. الوظائف المتنوعة
+    // 5. الوظائف المتنوعة والفلاتر
     // -----------------------------------------------------
     window.copyAndOpenRaya = function(nid, btn) {
         if (nid && String(nid).trim() !== "-" && String(nid).trim() !== "") {
@@ -661,8 +708,9 @@
             if (activeColumns.status) us.add(st);
             if (activeColumns.company && co !== '-') uc.add(co);
         });
-        if (activeColumns.status && us.size > 0) buildCheckboxes('statusCheckboxes', us, 'status', true);
-        if (activeColumns.company) buildCheckboxes('companyCheckboxes', uc, 'company', true);
+        
+        buildCheckboxes('statusCheckboxes', us, 'status', true);
+        buildCheckboxes('companyCheckboxes', uc, 'company', true);
         
         document.getElementById('actionPanel').classList.remove('hidden');
         applyFilters();
@@ -672,11 +720,14 @@
         const ct = document.getElementById(cid);
         ct.innerHTML = '';
         document.getElementById(cid.replace('Checkboxes', 'FilterContainer')).classList.remove('hidden');
+        
         let al = document.createElement('label');
         al.className = 'checkbox-label bg-white px-1.5 py-1 rounded border border-slate-300 flex items-center gap-1 font-bold text-[9px] shadow-sm cursor-pointer';
         al.innerHTML = `<input type="checkbox" onchange="toggleFilterAll(this, '${tc}')" checked class="w-2.5 h-2.5 text-sky-600 rounded"> <span>الكل</span>`;
         ct.appendChild(al);
+        
         if (ae && tc === 'company') st.add("-");
+        
         st.forEach(i => {
             if (i) {
                 let safeItem = String(i);
@@ -760,8 +811,8 @@
             ${lb}
         </td>`;
         
-        let bgs = cs.includes("-") ? 'text-slate-400 font-bold text-[8px]' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 rounded text-[8px] font-bold mb-1 block';
-        let bgc = cc.includes("-") ? 'text-slate-400 font-bold text-[8px]' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 rounded text-[8px] font-bold block';
+        let bgs = cs === "-" ? 'text-slate-400 font-bold text-[8px]' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 rounded text-[8px] font-bold mb-1 block';
+        let bgc = cc === "-" ? 'text-slate-400 font-bold text-[8px]' : 'bg-slate-100 text-slate-700 border border-slate-300 px-1 rounded text-[8px] font-bold block';
         
         html += `<td class="p-1 align-top pt-2"><span class="${bgs}">${cs}</span><span class="${bgc}">${cc}</span></td>`;
         
@@ -826,8 +877,8 @@
 
     function applyFilters() {
         try {
-            const ss = activeColumns.status ? getCheckedValues('status') : [],
-                  sc = activeColumns.company ? getCheckedValues('company') : [],
+            const ss = getCheckedValues('status'),
+                  sc = getCheckedValues('company'),
                   s = document.getElementById('searchInput').value.toLowerCase().trim(),
                   f = document.getElementById('followUpFilter').value,
                   p = document.getElementById('productFilter').value,
@@ -841,7 +892,11 @@
             globalData.forEach((c, i) => {
                 let cn = c.name ? String(c.name) : "-", cp = c.phone ? String(c.phone) : "-", cd = c.nid ? String(c.nid) : "-", cs = c.status ? String(c.status) : "-", cc = c.company ? String(c.company) : "-";
                 let ch = Array.isArray(c.history) ? c.history : [];
-                let sm = !activeColumns.status || ss.includes(cs), cm = !activeColumns.company || sc.includes(cc), sch = true;
+                
+                // تعديل الفلتر ليكون أكثر أماناً وتجاهل نقص الفلاتر (Fallback)
+                let sm = (ss.length === 0) || ss.includes(cs);
+                let cm = (sc.length === 0) || sc.includes(cc);
+                let sch = true;
                 
                 if (s) {
                     let ic = ch.some(h => h && h.type === 'comment' && h.text && String(h.text).toLowerCase().includes(s));
@@ -869,11 +924,11 @@
                 }
             });
             document.getElementById('clientCount').innerText = ct;
-            saveFilters(); 
+            saveFilters();
         } catch (err) { console.log(err); }
     }
 
-    // --- الإجراءات والتحديث (توهج وثبات) ---
+    // --- الإجراءات والتحديث (توهج وثبات الشاشة) ---
     function addComment(i, btn) {
         const ei = document.getElementById('empIdInput').value.trim();
         if (!ei) { alert("أدخل ID الموظف!"); document.getElementById('empIdInput').focus(); return; }
