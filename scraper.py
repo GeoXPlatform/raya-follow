@@ -33,12 +33,16 @@ headers = {
 
 for code in codes:
     try:
-        url = f"https://www.rayashop.com/ar/catalogsearch/result/?q={code}"
+        # إضافة فلتر البائع راية فقط في رابط البحث
+        url = f"https://www.rayashop.com/ar/catalogsearch/result/?q={code}&seller=raya"
         response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # استخراج السعر
         price_element = soup.find(class_='price')
         if price_element:
             prices_data[code] = price_element.text.strip()
+            print(f"✅ Found Raya price for {code}")
     except Exception as e:
         print(f"Error with {code}: {e}")
 
