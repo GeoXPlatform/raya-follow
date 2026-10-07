@@ -1,12 +1,10 @@
-name: Update Raya Prices from Excel
+name: Auto Update Raya Prices
 
 on:
   schedule:
-    - cron: '0 0,12 * * *'
-  workflow_dispatch:
-
-permissions:      # السطرين دول هما اللي هيحلوا مشكلة 128
-  contents: write 
+    # 0 0 بتوقيت جرينتش تعادل 2 أو 3 صباحاً بتوقيت مصر
+    - cron: '0 0 * * *'
+  workflow_dispatch: # زرار التشغيل اليدوي
 
 jobs:
   scrape:
@@ -21,16 +19,10 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4 pandas openpyxl
+        run: pip install requests beautifulsoup4 firebase-admin
 
       - name: Run Scraper
+        env:
+          # ربط المفتاح المخفي بالسكربت
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
         run: python scraper.py
-
-      - name: Commit and Push changes
-        run: |
-          git config --global user.name "GitHub Action Bot"
-          git config --global user.email "action@github.com"
-          git add prices.json
-          # السطر ده بيمنع الإيرور لو الأسعار متغيرتش
-          git commit -m "Auto-update prices from RayaShop" || echo "No changes to commit"
-          git push
