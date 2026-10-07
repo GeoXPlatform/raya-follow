@@ -5,6 +5,9 @@ on:
     - cron: '0 0,12 * * *'
   workflow_dispatch:
 
+permissions:      # السطرين دول هما اللي هيحلوا مشكلة 128
+  contents: write 
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
@@ -28,5 +31,6 @@ jobs:
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "action@github.com"
           git add prices.json
-          git commit -m "Auto-update prices from uploaded Excel sheets" || exit 0
+          # السطر ده بيمنع الإيرور لو الأسعار متغيرتش
+          git commit -m "Auto-update prices from RayaShop" || echo "No changes to commit"
           git push
